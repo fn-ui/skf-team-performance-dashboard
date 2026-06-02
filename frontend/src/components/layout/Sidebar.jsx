@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -24,44 +24,52 @@ import {
 function Sidebar({ darkMode, toggleDarkMode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
+  const location = useLocation();
   const menus = [
     {
       name: "Dashboard",
       icon: LayoutDashboard,
-      active: true,
+      path: "/",
     },
     {
       name: "Members",
       icon: Users,
+      path: "/members",
     },
     {
       name: "Projects",
       icon: FolderKanban,
+      path: "/projects",
     },
     {
       name: "Tasks",
       icon: CheckSquare,
+      path: "/tasks",
     },
     {
       name: "Performance",
       icon: BarChart3,
+      path: "/performance",
     },
     {
       name: "Reports",
       icon: FileText,
+      path: "/reports",
     },
     {
       name: "Goals",
       icon: Target,
+      path: "/goals",
     },
     {
       name: "Calendar",
       icon: CalendarDays,
+      path: "/calendar",
     },
     {
       name: "Settings",
       icon: Settings,
+      path: "/settings",
     },
   ];
 
@@ -159,14 +167,15 @@ function Sidebar({ darkMode, toggleDarkMode }) {
               const Icon = menu.icon;
 
               return (
-                <div
+                <Link
+                to={menu.path}
                   key={index}
                   className={`group flex cursor-pointer items-center rounded-xl p-3 transition-all duration-300 ${
                     collapsed
                       ? "justify-center"
                       : "gap-3"
                   } ${
-                    menu.active
+                    location.pathname === menu.path
                       ? "bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/10"
                       : "text-white/80 hover:bg-white/10 hover:text-white"
                   }`}
@@ -183,7 +192,7 @@ function Sidebar({ darkMode, toggleDarkMode }) {
                     </span>
                   )}
 
-                </div>
+                </Link>
               );
             })}
 

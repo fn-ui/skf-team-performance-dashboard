@@ -1,4 +1,3 @@
-import Sidebar from "../components/layout/Sidebar";
 
 import {
   Users,
@@ -97,15 +96,9 @@ if (hour < 12) {
 } else if (hour < 18) {
   greeting = "Good Afternoon";
 }
-  return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-emerald-50 transition-all duration-500 dark:from-black dark:via-zinc-950 dark:to-black">
-      
-      {/* Sidebar */}
-      <Sidebar
-  darkMode={darkMode}
-  toggleDarkMode={toggleDarkMode}
-  />
-
+  
+    return (
+  <>
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto transition-all duration-500">
 
@@ -858,9 +851,9 @@ if (hour < 12) {
 
 </div>
 </main>
-</div>
-       
-    
+
+      
+    </>
   );
 }
 

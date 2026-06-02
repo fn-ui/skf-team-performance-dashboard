@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Dashboard from "./pages/Dashboard";
+import Members from "./pages/Members";
+
+import Layout from "./components/layout/Layout";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -28,10 +33,37 @@ function App() {
   };
 
   return (
-    <Dashboard
-      darkMode={darkMode}
-      toggleDarkMode={toggleDarkMode}
-    />
+    <BrowserRouter>
+
+      <Routes>
+
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <Dashboard
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+              />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/members"
+          element={
+            <Layout>
+              <Members
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+              />
+            </Layout>
+          }
+        />
+
+      </Routes>
+
+    </BrowserRouter>
   );
 }
 
