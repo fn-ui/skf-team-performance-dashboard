@@ -113,7 +113,7 @@ const totalPages = Math.ceil(
   filteredMembers.length / membersPerPage
 );
   return (
-    <div className="flex-1 p-6 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto bg-slate-100 p-6 dark:bg-zinc-950">
 
       {/* HEADER */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-8">
@@ -308,8 +308,9 @@ const totalPages = Math.ceil(
 
               <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
                 <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-                />
+            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
+            style={{ width: member.productivity }}
+          />
               </div>
             </div>
 
@@ -338,25 +339,56 @@ const totalPages = Math.ceil(
                 </span>
             </div>
 
-            {/* ACTIONS */}
-            <div className="flex gap-3">
-              <button
-            onClick={() => setSelectedMember(member)}
-            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
-            >
-            View
-            </button>
+           {/* ACTIONS */}
+<div className="relative group">
 
-              <button className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
-                Message
-              </button>
-            </div>
+  {/* MAIN BUTTON */}
+  <button className="rounded-xl bg-emerald-600 px-4 py-2 text-sm text-white transition hover:bg-emerald-700">
+    More
+  </button>
 
-          </div>
+  {/* DROPDOWN */}
+  <div className="invisible absolute right-0 top-12 z-20 w-44 rounded-2xl border border-slate-200 bg-white p-2 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-900">
 
-        ))}
+    {/* VIEW */}
+    <button
+      onClick={() => setSelectedMember(member)}
+      className="w-full rounded-xl px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+    >
+      View Profile
+    </button>
 
-      </div>
+    {/* MESSAGE */}
+    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
+      Message
+    </button>
+
+    {/* EDIT */}
+    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-blue-600 transition hover:bg-blue-50 dark:hover:bg-blue-950/30">
+      Edit
+    </button>
+
+    {/* PROMOTE */}
+    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:hover:bg-purple-950/30">
+      Promote
+    </button>
+
+    {/* SUSPEND */}
+    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-yellow-700 transition hover:bg-yellow-50 dark:hover:bg-yellow-950/30">
+      Suspend
+    </button>
+
+    {/* REMOVE */}
+    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950/30">
+      Remove
+    </button>
+
+  </div>
+
+</div>
+</div>
+
+))}
 {/* PAGINATION */}
 <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
@@ -421,6 +453,7 @@ const totalPages = Math.ceil(
 
   </div>
 
+</div>
 </div>
     {/* MEMBER PROFILE MODAL */}
     {selectedMember && (    
