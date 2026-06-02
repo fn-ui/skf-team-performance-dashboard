@@ -358,16 +358,7 @@ const totalPages = Math.ceil(
       View Profile
     </button>
 
-    {/* MESSAGE */}
-    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
-      Message
-    </button>
-
-    {/* EDIT */}
-    <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-blue-600 transition hover:bg-blue-50 dark:hover:bg-blue-950/30">
-      Edit
-    </button>
-
+    
     {/* PROMOTE */}
     <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:hover:bg-purple-950/30">
       Promote
