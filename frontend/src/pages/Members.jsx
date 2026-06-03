@@ -4,7 +4,15 @@ function Members() {
 const [department, setDepartment] = useState("All");
 
 const [selectedMember, setSelectedMember] = useState(null);
-const members = [
+const [showMemberModal, setShowMemberModal] = useState(false);
+const [newMember, setNewMember] = useState({
+  name: "",
+  role: "",
+  department: "",
+  productivity: "",
+  status: "Active",
+});
+const [members, setMembers] = useState([
   {
     name: "Faith Njeri",
     role: "Team Manager",
@@ -80,7 +88,7 @@ const members = [
     location: "Kisumu, Kenya",
     bio: "Focused on backend APIs, database architecture, and secure system integrations.",
   },
-];
+]);
     /* FILTER MEMBERS */
 const filteredMembers = members.filter((member) => {
   const matchesSearch = member.name
@@ -112,6 +120,43 @@ const currentMembers = filteredMembers.slice(
 const totalPages = Math.ceil(
   filteredMembers.length / membersPerPage
 );
+const handleAddMember = () => {
+
+  if (
+    !newMember.name ||
+    !newMember.role ||
+    !newMember.department ||
+    !newMember.productivity
+  ) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  const memberToAdd = {
+  ...newMember,
+
+  productivity: Number(newMember.productivity),
+
+  avatar: newMember.name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase(),
+};
+
+  setMembers([...members, memberToAdd]);
+
+  setShowMemberModal(false);
+
+  setNewMember({
+    name: "",
+    role: "",
+    department: "",
+    productivity: "",
+    status: "Active",
+  });
+};
+
   return (
     <div className="flex-1 overflow-y-auto bg-slate-100 p-6 dark:bg-zinc-950">
 
@@ -128,9 +173,12 @@ const totalPages = Math.ceil(
           </p>
         </div>
 
-        <button className="rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium hover:bg-emerald-700 transition">
-          + Add Member
-        </button>
+        <button
+      onClick={() => setShowMemberModal(true)}
+      className="rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium hover:bg-emerald-700 transition"
+    >
+      + Add Member
+    </button>
 
       </div>
 {/* MEMBER STATS */}
@@ -632,6 +680,189 @@ const totalPages = Math.ceil(
     </div>
 
   </div>
+)}
+{/* ADD MEMBER MODAL */}
+{showMemberModal && (
+
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+
+    <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl dark:bg-zinc-900">
+
+      {/* HEADER */}
+      <div className="mb-8 flex items-center justify-between">
+
+        <div>
+
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-white">
+            Add New Member
+          </h2>
+
+          <p className="mt-2 text-slate-500 dark:text-zinc-400">
+            Add a new team member to the system.
+          </p>
+
+        </div>
+
+        {/* CLOSE */}
+        <button
+          onClick={() => setShowMemberModal(false)}
+          className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      {/* FORM */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* NAME */}
+        <div>
+
+          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
+            Full Name
+          </label>
+
+          <input
+            type="text"
+            placeholder="Enter full name"
+            value={newMember.name}
+            onChange={(e) =>
+              setNewMember({
+                ...newMember,
+                name: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+          />
+
+        </div>
+
+        {/* ROLE */}
+        <div>
+
+          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
+            Role
+          </label>
+
+          <input
+            type="text"
+            placeholder="Enter role"
+            value={newMember.role}
+            onChange={(e) =>
+              setNewMember({
+                ...newMember,
+                role: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+          />
+
+        </div>
+
+        {/* DEPARTMENT */}
+<div>
+
+  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
+    Department
+  </label>
+
+  <select
+    value={newMember.department}
+    onChange={(e) =>
+      setNewMember({
+        ...newMember,
+        department: e.target.value,
+      })
+    }
+    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+  >
+    <option value="">Select Department</option>
+
+    <option>Engineering</option>
+    <option>Design</option>
+    <option>Marketing</option>
+    <option>Human Resources</option>
+    <option>Finance</option>
+    <option>Operations</option>
+    <option>Product Management</option>
+    
+
+  </select>
+
+</div>
+
+        {/* PRODUCTIVITY */}
+        <div>
+
+          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
+            Productivity %
+          </label>
+
+          <input
+            type="number"
+            placeholder="Enter productivity"
+            value={newMember.productivity}
+            onChange={(e) =>
+              setNewMember({
+                ...newMember,
+                productivity: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-emerald-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+          />
+
+        </div>
+
+        {/* STATUS */}
+        <div>
+
+          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
+            Status
+          </label>
+
+          <select
+            value={newMember.status}
+            onChange={(e) =>
+              setNewMember({
+                ...newMember,
+                status: e.target.value,
+              })
+            }
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+          >
+            <option>Active</option>
+            <option>Busy</option>
+            <option>Away</option>
+          </select>
+
+        </div>
+
+      </div>
+
+      {/* ACTIONS */}
+      <div className="mt-8 flex justify-end gap-4">
+
+        <button
+          onClick={() => setShowMemberModal(false)}
+          className="rounded-2xl border border-slate-200 px-5 py-3 text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleAddMember}
+          className="rounded-2xl bg-emerald-600 px-5 py-3 font-medium text-white hover:bg-emerald-700 transition"
+        >
+          Add Member
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
 )}
     </div>
   );

@@ -258,6 +258,25 @@ const addActivity = (title, desc, color) => {
 
   setActivities((prev) => [newActivity, ...prev]);
 };
+const upcomingDeadlines = projects
+  .map((project) => {
+
+    const daysLeft = calculateDaysLeft(project.deadline);
+
+    return {
+      ...project,
+      daysLeft,
+    };
+  })
+
+  // remove passed deadlines
+  .filter((project) => project.daysLeft > 0)
+
+  // sort nearest deadline first
+  .sort((a, b) => a.daysLeft - b.daysLeft)
+
+  // show only top 3
+  .slice(0, 3);
 
     return (
     <div className="flex-1 p-6 overflow-y-auto">
@@ -668,34 +687,7 @@ const addActivity = (title, desc, color) => {
   {/* COUNTDOWN GRID */}
   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-    {[
-      {
-        project: "WorkPulse Dashboard",
-        days: 4,
-        progress: "78%",
-        status: "On Track",
-        color: "text-emerald-600",
-        bg: "bg-emerald-100",
-      },
-
-      {
-        project: "Mobile App UI",
-        days: 2,
-        progress: "54%",
-        status: "Risk",
-        color: "text-yellow-600",
-        bg: "bg-yellow-100",
-      },
-
-      {
-        project: "Analytics Module",
-        days: 1,
-        progress: "36%",
-        status: "Critical",
-        color: "text-red-600",
-        bg: "bg-red-100",
-      },
-    ].map((item, index) => (
+    {upcomingDeadlines.map((item, index) => (
 
       <div
         key={index}
@@ -708,19 +700,29 @@ const addActivity = (title, desc, color) => {
           <div>
 
             <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-              {item.project}
+              {item.name}
             </h3>
 
             <p className="mt-2 text-slate-500 dark:text-zinc-400">
-              Progress: {item.progress}
+              Progress: {item.progress}%
             </p>
 
           </div>
 
           <div
-            className={`rounded-2xl px-4 py-2 text-sm font-semibold ${item.bg} ${item.color}`}
+            className={`rounded-2xl px-4 py-2 text-sm font-semibold ${
+              item.daysLeft <= 2
+                ? "bg-red-100 text-red-600"
+                : item.daysLeft <= 5
+                ? "bg-yellow-100 text-yellow-600"
+                : "bg-emerald-100 text-emerald-600"
+            }`}
           >
-            {item.status}
+            {item.daysLeft <= 2
+              ? "Critical"
+              : item.daysLeft <= 5
+              ? "Risk"
+              : "On Track"}
           </div>
 
         </div>
@@ -733,7 +735,7 @@ const addActivity = (title, desc, color) => {
           </p>
 
           <h2 className="mt-2 text-5xl font-bold text-slate-800 dark:text-white">
-            {item.days}
+            {item.daysLeft}
           </h2>
 
         </div>
@@ -745,7 +747,7 @@ const addActivity = (title, desc, color) => {
 
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-              style={{ width: item.progress }}
+              style={{ width: `${item.progress}%` }}
             />
 
           </div>
