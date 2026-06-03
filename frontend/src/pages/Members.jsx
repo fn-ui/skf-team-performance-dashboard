@@ -185,31 +185,50 @@ const handleAddMember = () => {
 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
   {[
-    {
-      title: "Total Members",
-      value: "48",
-      color: "bg-blue-100",
-      text: "text-blue-600",
-    },
-    {
-      title: "Active Members",
-      value: "39",
-      color: "bg-emerald-100",
-      text: "text-emerald-600",
-    },
-    {
-      title: "Team Leads",
-      value: "8",
-      color: "bg-purple-100",
-      text: "text-purple-600",
-    },
-    {
-      title: "New This Month",
-      value: "12",
-      color: "bg-pink-100",
-      text: "text-pink-600",
-    },
-  ].map((stat, index) => (
+  {
+    title: "Total Members",
+    value: members.length,
+    color: "bg-blue-100",
+    text: "text-blue-600",
+  },
+
+  {
+    title: "Active Members",
+    value: members.filter(
+      (member) => member.status === "Active"
+    ).length,
+    color: "bg-emerald-100",
+    text: "text-emerald-600",
+  },
+
+  {
+    title: "Team Leads",
+    value: members.filter(
+      (member) =>
+        member.role.toLowerCase().includes("lead") ||
+        member.role.toLowerCase().includes("manager")
+    ).length,
+    color: "bg-purple-100",
+    text: "text-purple-600",
+  },
+
+  {
+  title: "Avg Productivity",
+
+  value: `${
+    Math.round(
+      members.reduce(
+        (total, member) =>
+          total + Number(String(member.productivity).replace("%", "") || 0),
+        0
+      ) / members.length
+    ) || 0
+  }%`,
+
+  color: "bg-pink-100",
+  text: "text-pink-600",
+}
+].map((stat, index) => (
     <div
       key={index}
       className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:bg-zinc-900 dark:border-zinc-800"
