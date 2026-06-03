@@ -3,12 +3,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
-
+import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
 import Layout from "./components/layout/Layout";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
-
+  
   // LOAD SAVED THEME
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -61,7 +62,32 @@ function App() {
           }
         />
 
-      </Routes>
+         <Route
+          path="/projects"
+          element={
+            <Layout>
+              <Projects
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+              />
+            </Layout>
+          }
+        />
+
+         <Route
+          path="/tasks"
+          element={
+            <Layout>
+              <Tasks
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+              />
+            </Layout>
+          }
+        />
+
+        
+</Routes>
 
     </BrowserRouter>
   );
