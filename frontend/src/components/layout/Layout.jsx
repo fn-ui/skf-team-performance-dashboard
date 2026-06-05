@@ -56,7 +56,7 @@ function Layout({ children }) {
           pt-6
           pb-6
           pr-6
-          pl-6
+          pl-4 sm:pl-6
 
           lg:pt-6
           ${

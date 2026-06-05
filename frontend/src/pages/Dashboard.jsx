@@ -100,7 +100,7 @@ if (hour < 12) {
     return (
   <>
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto transition-all duration-500">
+      <main className="flex-1 p-4 sm:p-6 overflow-y-auto transition-all duration-500 overflow-x-hidden">
 
         
         {/* Header */}
@@ -108,7 +108,7 @@ if (hour < 12) {
 
   {/* LEFT SIDE */}
   <div>
-    <h1 className="text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
+    <h1 className="text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
   {greeting}, Admin 👋
 </h1>
 
@@ -118,7 +118,7 @@ if (hour < 12) {
   </div>
 
   {/* RIGHT SIDE */}
-  <div className="flex items-center gap-4">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full lg:w-auto">
 
     {/* SEARCH BAR */}
     <div className="relative">
@@ -131,12 +131,12 @@ if (hour < 12) {
       <input
         type="text"
         placeholder="Search..."
-        className="w-[250px] rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+        className="w-full sm:w-[250px] rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
       />
 
     </div>
 {/* EXPORT REPORT BUTTON */}
-<button className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-white shadow-sm transition hover:bg-emerald-700">
+<button className="flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-emerald-600 px-5 py-3 text-white shadow-sm transition hover:bg-emerald-700">
 
   <Download size={18} />
 
@@ -162,7 +162,7 @@ if (hour < 12) {
 </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
 
   {stats.map((card, index) => {
     const Icon = card.icon;
@@ -179,13 +179,13 @@ if (hour < 12) {
               {card.title}
             </p>
 
-           <h2 className={`text-4xl font-bold mt-3 ${darkMode ? "text-white" : "text-slate-800"}`}>
-              {card.value}
-            </h2>
+           <h2 className="mt-3 text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white">
+            {card.value}
+          </h2>
 
             <p className={`mt-3 text-sm font-medium ${card.changeColor}`}>
                       <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
-          ↑ {card.change}
+          {card.change.startsWith("-") ? "↓" : "↑"} {card.change}
         </span>
             </p>
           </div>
@@ -206,7 +206,7 @@ if (hour < 12) {
 
        
         {/* Charts Section */}
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+<div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
 
   {/* Line Chart */}
   <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
@@ -336,7 +336,7 @@ if (hour < 12) {
       Tasks by Status
     </h2>
 
-    <div className="h-[300px] flex items-center justify-center">
+    <div className="h-[250px] sm:h-[300px] flex items-center justify-center">
 
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -360,7 +360,7 @@ if (hour < 12) {
         <Label
           value={taskData.reduce((acc, item) => acc + item.value, 0)}
           position="center"
-          className={`${darkMode ? "fill-white" : "fill-slate-800"} text-3xl font-bold`}
+          fill={darkMode ? "#fff" : "#1e293b"}
         />
 
         {/* TEXT BELOW */}
@@ -399,7 +399,7 @@ if (hour < 12) {
               style={{ backgroundColor: task.color }}
             />
 
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-white">
               {task.name}
             </p>
 
@@ -418,7 +418,7 @@ if (hour < 12) {
 
 </div>
 {/* Bottom Section */}
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
 
   {/* Top Performers */}
   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
@@ -491,11 +491,11 @@ if (hour < 12) {
 
           {/* USER INFO */}
           <div>
-            <h3 className="font-semibold text-slate-800">
+            <h3 className="font-semibold text-slate-800 dark:text-white">
               {member.name}
             </h3>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-zinc-400">
               {member.role}
             </p>
           </div>
@@ -586,7 +586,7 @@ if (hour < 12) {
 
           {/* ACTIVITY TEXT */}
           <div>
-            <p className="text-slate-700 font-medium">
+            <p className="text-slate-700 font-medium dark:text-white">
               {activity.activity}
             </p>
           </div>
@@ -607,7 +607,7 @@ if (hour < 12) {
 
 </div>
 {/* Productivity + Quick Actions */}
-<div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
+<div className="grid grid-cols-1 2xl:grid-cols-3 gap-6 mt-8">
 
   {/* QUICK ACTIONS */}
   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 h-fit dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
@@ -644,11 +644,11 @@ if (hour < 12) {
             className={`w-3 h-3 rounded-full mb-3 ${action.color}`}
           />
 
-          <h3 className="font-semibold text-slate-800">
+          <h3 className="font-semibold text-slate-800 dark:text-white">
             {action.title}
           </h3>
 
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1 dark:text-zinc-400">
             {action.desc}
           </p>
 
@@ -713,11 +713,11 @@ if (hour < 12) {
 
           <div className="flex items-center justify-between mb-2">
 
-            <h3 className="font-medium text-slate-700">
+            <h3 className="font-medium text-slate-700 dark:text-white">
               {dept.department}
             </h3>
 
-            <p className="font-semibold text-slate-800">
+            <p className="font-semibold text-slate-800 dark:text-white">
               {dept.progress}%
             </p>
 
@@ -765,7 +765,7 @@ if (hour < 12) {
   </div>
 
   {/* DEADLINE CARDS */}
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-5">
 
     {[
       {
@@ -806,11 +806,11 @@ if (hour < 12) {
         <div className="flex items-start justify-between mb-4">
 
           <div>
-            <h3 className="font-semibold text-slate-800">
+            <h3 className="font-semibold text-slate-800 dark:text-white">
               {task.title}
             </h3>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 mt-1 dark:text-zinc-400">
               {task.team}
             </p>
           </div>
@@ -824,11 +824,11 @@ if (hour < 12) {
         {/* PROGRESS */}
         <div className="mb-2 flex items-center justify-between">
 
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-white">
             Progress
           </p>
 
-          <p className="text-sm font-semibold text-slate-700">
+          <p className="text-sm font-semibold text-slate-700 dark:text-white">
             {task.progress}%
           </p>
 
