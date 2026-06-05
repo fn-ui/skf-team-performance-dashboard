@@ -122,7 +122,12 @@ function Sidebar({
         `}
       >
         {/* TOP */}
-        <div className="relative flex-1 overflow-y-auto overflow-x-hidden p-5">
+        <div
+          className={`
+            relative flex-1 overflow-x-hidden p-5
+            ${collapsed ? "overflow-y-auto" : "overflow-y-hidden"}
+          `}
+        >
           {/* COLLAPSE BUTTON */}
           <button
           onClick={() => setCollapsed(!collapsed)}

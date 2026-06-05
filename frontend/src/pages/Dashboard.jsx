@@ -105,7 +105,7 @@ if (hour < 12) {
         
         {/* Header */}
 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
-
+c
   {/* LEFT SIDE */}
   <div>
     <h1 className="mt-16 lg:mt-0 text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">

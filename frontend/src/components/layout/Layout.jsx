@@ -49,7 +49,6 @@ function Layout({ children }) {
       {/* PAGE CONTENT */}
       <main
         className={`
-          
           min-h-screen
           transition-all duration-300
           overflow-x-hidden
