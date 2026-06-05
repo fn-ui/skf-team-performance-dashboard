@@ -123,11 +123,15 @@ function Sidebar({
       >
         {/* TOP */}
         <div
-          className={`
-            relative flex-1 overflow-x-hidden p-5
-            ${collapsed ? "overflow-y-auto" : "overflow-y-hidden"}
-          `}
-        >
+        className={`
+          relative flex-1 overflow-x-hidden p-5
+          ${
+            collapsed
+              ? "overflow-y-auto"
+              : "overflow-y-auto scrollbar-hide"
+          }
+        `}
+      >
           {/* COLLAPSE BUTTON */}
           <button
           onClick={() => setCollapsed(!collapsed)}
