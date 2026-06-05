@@ -196,8 +196,13 @@ function Sidebar({
 
               return (
                 <Link
-                  key={index}
-                  to={menu.path}
+            key={index}
+            to={menu.path}
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                setMobileOpen(false);
+              }
+            }}
                   className={`
                     group flex items-center rounded-xl p-3 w-full overflow-hidden
                     transition-all duration-300

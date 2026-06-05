@@ -108,7 +108,7 @@ if (hour < 12) {
 
   {/* LEFT SIDE */}
   <div>
-    <h1 className="text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
+    <h1 className="mt-16 lg:mt-0 text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
   {greeting}, Admin 👋
 </h1>
 
@@ -131,29 +131,35 @@ if (hour < 12) {
       <input
         type="text"
         placeholder="Search..."
-        className="w-full sm:w-[250px] rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+        className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
       />
 
     </div>
-{/* EXPORT REPORT BUTTON */}
-<button className="flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-emerald-600 px-5 py-3 text-white shadow-sm transition hover:bg-emerald-700">
 
-  <Download size={18} />
+{/* ACTION BUTTONS */}
+<div className="flex items-center gap-3 w-full sm:w-auto">
 
-  <span className="hidden sm:block font-medium">
-    Export Report
-  </span>
+  {/* EXPORT REPORT BUTTON */}
+  <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-emerald-600 px-5 py-3 text-white shadow-sm transition hover:bg-emerald-700">
 
-</button>
-    {/* NOTIFICATION BUTTON */}
-    <button className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
+    <Download size={18} />
 
-      <Bell size={20} />
+    <span className="font-medium">
+      Export
+    </span>
 
-      {/* NOTIFICATION DOT */}
-      <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-red-500" />
+  </button>
 
-    </button>
+  {/* NOTIFICATION BUTTON */}
+  <button className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
+
+    <Bell size={20} />
+
+    <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-red-500" />
+
+  </button>
+
+</div>
 
     
 
@@ -162,7 +168,7 @@ if (hour < 12) {
 </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
 
   {stats.map((card, index) => {
     const Icon = card.icon;
@@ -179,9 +185,9 @@ if (hour < 12) {
               {card.title}
             </p>
 
-           <h2 className="mt-3 text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white">
-            {card.value}
-          </h2>
+           <h2 className={`text-2xl sm:text-3xl xl:text-4xl font-bold mt-3 ${darkMode ? "text-white" : "text-slate-800"}`}>
+              {card.value}
+            </h2>
 
             <p className={`mt-3 text-sm font-medium ${card.changeColor}`}>
                       <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
@@ -360,7 +366,7 @@ if (hour < 12) {
         <Label
           value={taskData.reduce((acc, item) => acc + item.value, 0)}
           position="center"
-          fill={darkMode ? "#fff" : "#1e293b"}
+          className={`${darkMode ? "fill-white" : "fill-slate-800"} text-3xl font-bold`}
         />
 
         {/* TEXT BELOW */}

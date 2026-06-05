@@ -49,7 +49,7 @@ function Layout({ children }) {
       {/* PAGE CONTENT */}
       <main
         className={`
-          w-full
+          
           min-h-screen
           transition-all duration-300
           overflow-x-hidden
