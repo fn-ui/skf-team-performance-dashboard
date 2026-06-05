@@ -111,9 +111,8 @@ function Sidebar({
           dark:from-black dark:via-zinc-950 dark:to-black
           border-r border-emerald-900 dark:border-zinc-800
           flex flex-col justify-between
-          transition-all duration-300
-          overflow-hidden
-          overflow-x-visible
+          transition-[width,transform] duration-300
+          overflow-y-hidden overflow-x-visible
           ${collapsed ? "w-24" : "w-72"}
           ${
             mobileOpen
@@ -209,7 +208,7 @@ function Sidebar({
                     }
                     ${
                       location.pathname === menu.path
-                        ? "bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/10"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 shadow-lg shadow-emerald-500/10"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
                     }
                   `}

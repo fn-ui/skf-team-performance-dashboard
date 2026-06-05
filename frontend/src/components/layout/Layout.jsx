@@ -49,6 +49,7 @@ function Layout({ children }) {
       {/* PAGE CONTENT */}
       <main
         className={`
+          w-full
           min-h-screen
           transition-all duration-300
           overflow-x-hidden
@@ -58,7 +59,7 @@ function Layout({ children }) {
           pr-6
           pl-4 sm:pl-6
 
-          lg:pt-6
+          
           ${
             collapsed
       ? "lg:ml-24"
