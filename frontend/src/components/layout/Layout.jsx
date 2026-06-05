@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 
 function Layout({ children }) {
   const [darkMode, setDarkMode] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   // LOAD SAVED THEME
   useEffect(() => {
@@ -28,19 +29,45 @@ function Layout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-emerald-50 dark:from-black dark:via-zinc-950 dark:to-black transition-all duration-300">
-
+    <div
+      className="
+        min-h-screen
+        overflow-x-hidden
+        bg-gradient-to-br
+        from-slate-100 via-slate-50 to-emerald-50
+        dark:from-black dark:via-zinc-950 dark:to-black
+      "
+    >
       {/* SIDEBAR */}
       <Sidebar
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
       />
 
       {/* PAGE CONTENT */}
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main
+        className={`
+          min-h-screen
+          transition-all duration-300
+          overflow-x-hidden
+
+          pt-6
+          pb-6
+          pr-6
+          pl-6
+
+          lg:pt-6
+          ${
+            collapsed
+      ? "lg:ml-24"
+      : "lg:ml-[19rem]"
+          }
+        `}
+      >
         {children}
       </main>
-
     </div>
   );
 }
