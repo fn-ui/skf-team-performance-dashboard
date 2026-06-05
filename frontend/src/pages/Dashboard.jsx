@@ -104,16 +104,15 @@ if (hour < 12) {
 
         
         {/* Header */}
-<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
-c
+   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
   {/* LEFT SIDE */}
   <div>
-    <h1 className="mt-16 lg:mt-0 text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
-  {greeting}, Admin 👋
-</h1>
+    <h1 className="mt-8 lg:mt-0 text-2xl sm:text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
+      {greeting}, Admin 👋
+    </h1>
 
     <p className="text-slate-500 dark:text-zinc-400 mt-2 transition-colors duration-300">
-      Here's what's happening with your team today.
+     Here's what's happening with your team today.
     </p>
   </div>
 
@@ -121,7 +120,7 @@ c
   <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full lg:w-auto">
 
     {/* SEARCH BAR */}
-    <div className="relative">
+    <div className="relative w-full sm:w-64">
 
       <Search
         size={18}
@@ -168,7 +167,7 @@ c
 </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-6">
 
   {stats.map((card, index) => {
     const Icon = card.icon;
@@ -212,10 +211,10 @@ c
 
        
         {/* Charts Section */}
-<div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
 
   {/* Line Chart */}
-  <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+  <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
 
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
@@ -336,7 +335,7 @@ c
   </div>
 
   {/* Pie Chart */}
-  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
 
     <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">
       Tasks by Status
@@ -424,7 +423,7 @@ c
 
 </div>
 {/* Bottom Section */}
-<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 mt-8">
 
   {/* Top Performers */}
   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
@@ -613,7 +612,7 @@ c
 
 </div>
 {/* Productivity + Quick Actions */}
-<div className="grid grid-cols-1 2xl:grid-cols-3 gap-6 mt-8">
+<div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6 mt-8">
 
   {/* QUICK ACTIONS */}
   <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 h-fit dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
@@ -749,7 +748,7 @@ c
 
 
   {/* Upcoming Deadlines */}
-<div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 mt-8 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+<div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 mt-8">
 
   {/* HEADER */}
   <div className="flex items-center justify-between mb-6">
@@ -771,7 +770,7 @@ c
   </div>
 
   {/* DEADLINE CARDS */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-5">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-5">
 
     {[
       {
