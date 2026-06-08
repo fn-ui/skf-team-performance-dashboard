@@ -86,7 +86,7 @@ const taskData = [
   { name: "Pending", value: 42, color: "#f59e0b" },
   { name: "Overdue", value: 24, color: "#ef4444" },
 ];
-function Dashboard({ darkMode, toggleDarkMode }) {
+function Dashboard({ darkMode }) {
   const hour = new Date().getHours();
 
 let greeting = "Good Evening";
@@ -144,7 +144,7 @@ if (hour < 12) {
     <Download size={18} />
 
     <span className="font-medium">
-      Export
+    <span className="hidden sm:inline">Export</span>
     </span>
 
   </button>
@@ -214,7 +214,7 @@ if (hour < 12) {
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
 
   {/* Line Chart */}
-  <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
+  <div className="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
 
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
@@ -226,9 +226,9 @@ if (hour < 12) {
       </button>
     </div>
 
-    <div className="h-[300px]">
+    <div className="h-[220px] sm:h-[300px] min-h-[220px] min-w-0">
 
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={300}>
   <AreaChart
     data={performanceData}
     margin={{
@@ -308,21 +308,22 @@ if (hour < 12) {
     <Tooltip />
 
     <Area
-  type="monotone"
-  dataKey="performance"
-  stroke="#10b981"
-  strokeWidth={4}
-  fill="url(#colorPerformance)"
-  dot={{
-    r: 5,
-    fill: "#fff",
-    stroke: "#10b981",
-    strokeWidth: 3,
-  }}
-  activeDot={{
-    r: 7,
-  }}
-/>
+      type="monotone"
+      dataKey="performance"
+      stroke="#10b981"
+      strokeWidth={4}
+      fill="url(#colorPerformance)"
+      dot={{
+        r: 4,
+        fill: "#fff",
+        stroke: "#10b981",
+        strokeWidth: 2,
+      }}
+      activeDot={{
+        r: 6,
+      }}
+    /
+    >
 
     
 
@@ -335,22 +336,22 @@ if (hour < 12) {
   </div>
 
   {/* Pie Chart */}
-  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
+  <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
 
     <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">
       Tasks by Status
     </h2>
 
-    <div className="h-[250px] sm:h-[300px] flex items-center justify-center">
+    <div className="h-[250px] sm:h-[300px] min-h-[250px] flex items-center justify-center min-w-0">
 
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={300}>
         <PieChart>
 
           <Pie
           data={taskData}
           dataKey="value"
-          innerRadius={70}
-          outerRadius={100}
+          innerRadius="40%"
+          outerRadius="60%"
           paddingAngle={3}
         >
 
@@ -426,7 +427,7 @@ if (hour < 12) {
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 mt-8">
 
   {/* Top Performers */}
-  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+  <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
 
     <div className="flex items-center justify-between mb-6">
 
@@ -540,7 +541,7 @@ if (hour < 12) {
   </div>
 
   {/* Recent Activity */}
-  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+  <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
 
     <div className="flex items-center justify-between mb-6">
 
@@ -615,7 +616,7 @@ if (hour < 12) {
 <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6 mt-8">
 
   {/* QUICK ACTIONS */}
-  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 h-fit dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+  <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:border-zinc-800 h-fit dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
 
     <h2 className="text-2xl font-semibold text-slate-800 mb-6 dark:text-white">
       Quick Actions
@@ -665,7 +666,7 @@ if (hour < 12) {
   </div>
 
   {/* DEPARTMENT PRODUCTIVITY */}
-  <div className="xl:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
+  <div className="xl:col-span-2 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 transition-all duration-300">
 
     <div className="flex items-center justify-between mb-8">
 
@@ -748,7 +749,7 @@ if (hour < 12) {
 
 
   {/* Upcoming Deadlines */}
-<div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 mt-8">
+<div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 mt-8">
 
   {/* HEADER */}
   <div className="flex items-center justify-between mb-6">

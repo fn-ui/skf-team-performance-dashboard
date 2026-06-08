@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
@@ -8,17 +8,16 @@ import Tasks from "./pages/Tasks";
 import Layout from "./components/layout/Layout";
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
-  
-  // LOAD SAVED THEME
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-
-    if (savedTheme === "dark") {
-      setDarkMode(true);
-      document.documentElement.classList.add("dark");
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem("theme");
+      const isDark = saved === "dark";
+      if (isDark) document.documentElement.classList.add("dark");
+      return isDark;
+    } catch {
+      return false;
     }
-  }, []);
+  });
 
   // TOGGLE THEME
   const toggleDarkMode = () => {
@@ -41,7 +40,7 @@ function App() {
         <Route
           path="/"
           element={
-            <Layout>
+            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Dashboard
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
@@ -53,7 +52,7 @@ function App() {
         <Route
           path="/members"
           element={
-            <Layout>
+            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Members
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
@@ -65,7 +64,7 @@ function App() {
          <Route
           path="/projects"
           element={
-            <Layout>
+            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Projects
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
@@ -77,7 +76,7 @@ function App() {
          <Route
           path="/tasks"
           element={
-            <Layout>
+            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Tasks
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}

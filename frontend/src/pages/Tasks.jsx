@@ -121,19 +121,7 @@ function Tasks() {
     const handleDelete = (id) => {
     setTasks(tasks.filter((task) => task.id !== id));
     };
-    const getDaysLeft = (dueDate) => {
-  const today = new Date();
-
-  const due = new Date(dueDate);
-
-  const diffTime = due - today;
-
-  const diffDays = Math.ceil(
-    diffTime / (1000 * 60 * 60 * 24)
-  );
-
-  return diffDays;
-};
+    // getDaysLeft removed — inline calculations are used where needed
 const totalTasks = tasks.length;
 
 const inProgressTasks = tasks.filter(
@@ -242,8 +230,8 @@ const overdueTasks = tasks.filter((task) => {
       {/* TASK TABLE */}
       <div className="mt-8 overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* TABLE HEADER */}
-        <div className="grid grid-cols-8 gap-4 border-b border-slate-200 px-6 py-5 text-sm font-semibold text-slate-500 dark:border-zinc-800 dark:text-zinc-400 min-w-[1000px]">
+        {/* TABLE HEADER (desktop) */}
+        <div className="hidden md:grid md:grid-cols-8 gap-4 border-b border-slate-200 px-6 py-5 text-sm font-semibold text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
 
           <p>Task</p>
           <p>Project</p>
@@ -255,12 +243,42 @@ const overdueTasks = tasks.filter((task) => {
           <p>Actions</p>
         </div>
 
+        {/* MOBILE LIST */}
+        <div className="md:hidden space-y-3 p-4">
+          {filteredTasks.map((task, idx) => (
+            <div key={idx} className="rounded-2xl bg-white p-4 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-white">{task.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">{task.project}</p>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-sm text-slate-500">{task.assignee}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-700">{task.progress}%</p>
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${task.progress}%` }} />
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-sm text-slate-500 dark:text-zinc-400">Due: {task.dueDate}</span>
+                <span className="text-sm font-semibold">{task.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* TASK ROWS */}
         {filteredTasks.map((task, index) => (
 
           <div
             key={index}
-            className="grid grid-cols-8 gap-4 items-center border-b border-slate-100 px-6 py-5 hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40 min-w-[1000px]"
+            className="hidden md:grid md:grid-cols-8 gap-4 items-center border-b border-slate-100 px-6 py-5 hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
           >
 
             {/* TASK */}

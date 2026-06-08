@@ -300,18 +300,82 @@ const handleAddMember = () => {
       {/* MEMBERS TABLE */}
       <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
 
-        {/* TABLE HEADER */}
-        <div className="grid grid-cols-7 gap-4 border-b border-slate-200 px-6 py-5 text-sm font-semibold text-slate-500 dark:border-zinc-800 dark:text-zinc-400 min-w-[1000px]">
+        {/* TABLE HEADER (desktop) */}
+          <div className="hidden md:grid md:grid-cols-7 gap-4 border-b border-slate-200 px-6 py-5 text-sm font-semibold text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
 
-          <p>Member</p>
-          <p>Department</p>
-          <p>Role</p>
-          <p>Tasks</p>
-          <p>Productivity</p>
-          <p>Status</p>
-          <p>Actions</p>
+            <p>Member</p>
+            <p>Department</p>
+            <p>Role</p>
+            <p>Tasks</p>
+            <p>Productivity</p>
+            <p>Status</p>
+            <p>Actions</p>
 
-        </div>
+          </div>
+
+          {/* MOBILE LIST */}
+          <div className="md:hidden space-y-3">
+            {currentMembers.map((member, idx) => {
+              const productivityValue =
+                typeof member.productivity === "number"
+                  ? `${member.productivity}%`
+                  : member.productivity;
+
+              return (
+                <div
+                  key={idx}
+                  className="rounded-2xl bg-white p-4 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-bold text-white ${member.color}`}>
+                        {member.avatar}
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold text-slate-800 dark:text-white">
+                          {member.name}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-zinc-400">
+                          {member.role}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold text-slate-800 dark:text-white">{member.tasks}</p>
+                      <p className="text-sm text-emerald-600">{productivityValue}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-sm text-slate-600 dark:text-zinc-300">{member.department}</p>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          member.status === "Active"
+                            ? "bg-emerald-500"
+                            : member.status === "Busy"
+                            ? "bg-red-500"
+                            : "bg-yellow-500"
+                        }`}
+                      />
+                      <span className="text-sm font-semibold text-slate-700 dark:text-white">{member.status}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
+                        style={{ width: productivityValue }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
             {filteredMembers.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16">
 
@@ -325,12 +389,12 @@ const handleAddMember = () => {
 
             </div>
             )}
-        {/* TABLE ROWS */}
+        {/* TABLE ROWS (desktop) */}
         {currentMembers.map((member, index) => (
 
           <div
             key={index}
-            className="grid grid-cols-7 gap-4 items-center border-b border-slate-100 px-6 py-5 transition hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40 min-w-[1000px]"
+            className="hidden md:grid md:grid-cols-7 gap-4 items-center border-b border-slate-100 px-6 py-5 transition hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
           >
 
             {/* MEMBER */}
@@ -346,7 +410,7 @@ const handleAddMember = () => {
                 </h3>
 
                 <p className="text-sm text-slate-500 dark:text-zinc-400">
-                  @{member.name.toLowerCase().replace(" ", "")}
+                  @{member.name.toLowerCase().replace(/\s+/g, "")}
                 </p>
               </div>
 
@@ -369,16 +433,27 @@ const handleAddMember = () => {
 
             {/* PRODUCTIVITY */}
             <div>
-              <p className="text-sm font-semibold text-emerald-600 mb-1">
-                {member.productivity}
-              </p>
+              {(() => {
+                const productivityValue =
+                  typeof member.productivity === "number"
+                    ? `${member.productivity}%`
+                    : member.productivity;
 
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
-                <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-            style={{ width: member.productivity }}
-          />
-              </div>
+                return (
+                  <>
+                    <p className="text-sm font-semibold text-emerald-600 mb-1">
+                      {productivityValue}
+                    </p>
+
+                    <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
+                        style={{ width: productivityValue }}
+                      />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* STATUS */}

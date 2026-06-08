@@ -137,9 +137,9 @@ const handleAddProject = () => {
   // ADD PROJECT
   setProjects([...projects, projectToAdd]);
     addActivity(
-    "New Project Created",
-    `${projectToAdd.name} was added by ${projectToAdd.lead}.`,
-    "bg-emerald-500"
+      "New Project Created",
+      projectToAdd.name + " was added by " + projectToAdd.lead + ".",
+      "bg-emerald-500"
     );
   // CLOSE MODAL
   setShowModal(false);
@@ -169,7 +169,7 @@ const handleDeleteProject = (projectName) => {
   }
   addActivity(
     "Project Deleted",
-    `${projectName} was removed from the system.`,
+    projectName + " was removed from the system.",
     "bg-red-500"
   );
 };
@@ -186,20 +186,17 @@ const handleArchiveProject = (projectName) => {
 
   // update selected project
   if (selectedProject?.name === projectName) {
-
     setSelectedProject({
       ...selectedProject,
       status: "Archived",
     });
   }
-  const handleArchiveProject = (projectName) => {
 
   addActivity(
     "Project Archived",
-    `${projectName} was archived.`,
+    projectName + " was archived.",
     "bg-yellow-500"
   );
-};
 };
 const handleUpdateProject = () => {
 
@@ -226,10 +223,23 @@ const handleUpdateProject = () => {
   // close edit modal
   setEditingProject(null);
   addActivity(
-  "Project Updated",
-  `${updatedProject.name} was edited successfully.`,
-  "bg-blue-500"
-);
+    "Project Updated",
+    (editForm.name || (editingProject && editingProject.name)) + " was edited successfully.",
+    "bg-blue-500"
+  );
+};
+
+const handleEditClick = (project) => {
+  setEditingProject(project);
+  setEditForm({
+    name: project.name,
+    lead: project.lead,
+    team: String(project.team || ""),
+    deadline: project.deadline,
+    progress: String(project.progress || ""),
+    status: project.status,
+    priority: project.priority,
+  });
 };
 const calculateDaysLeft = (deadline) => {
 
@@ -356,10 +366,10 @@ const upcomingDeadlines = projects
         </div>
 
         {/* ICON BOX */}
-        <div className={`${stat.color} rounded-2xl p-4`}>
+        <div className={stat.color + " rounded-2xl p-4"}>
 
           <div
-            className={`h-5 w-5 rounded-full ${stat.text} bg-current`}
+            className={"h-5 w-5 rounded-full " + stat.text + " bg-current"}
           />
 
         </div>
@@ -408,8 +418,8 @@ const upcomingDeadlines = projects
 {/* PROJECTS TABLE */}
 <div className="mt-8 overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
-  {/* TABLE HEADER */}
-  <div className="grid grid-cols-8 gap-4 border-b border-slate-200 px-6 py-5 text-sm font-semibold text-slate-500 dark:border-zinc-800 dark:text-zinc-400 min-w-[1000px]">
+  {/* TABLE HEADER (desktop) */}
+  <div className="hidden md:grid md:grid-cols-8 gap-4 border-b border-slate-200 px-6 py-5 text-sm font-semibold text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
 
     <p>Project</p>
     <p>Team Lead</p>
@@ -420,6 +430,43 @@ const upcomingDeadlines = projects
     <p>Priority</p>
     <p>Actions</p>
 
+  </div>
+
+  {/* MOBILE LIST */}
+  <div className="md:hidden space-y-3 p-4">
+    {filteredProjects.map((project, idx) => (
+      <div key={idx} className="rounded-2xl bg-white p-4 shadow-sm border border-slate-200 dark:bg-zinc-900 dark:border-zinc-800">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="font-semibold text-slate-800 dark:text-white">{project.name}</h3>
+            <p className="text-sm text-slate-500 dark:text-zinc-400">Lead: {project.lead}</p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-sm text-slate-500">{project.team} members</p>
+            <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-white">{project.progress}%</p>
+          </div>
+        </div>
+
+        <div className="mt-3">
+            <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600" style={{ width: project.progress + '%' }} />
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-sm text-slate-500 dark:text-zinc-400">{project.deadline}</span>
+          <span className={
+            'text-sm font-semibold ' +
+            (project.priority === "High"
+              ? "bg-red-100 text-red-700 px-2 py-1 rounded-full"
+              : project.priority === "Medium"
+              ? "bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full"
+              : "bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full")
+          }>{project.priority}</span>
+        </div>
+      </div>
+    ))}
   </div>
 {/* EMPTY STATE */}
 {filteredProjects.length === 0 && (
@@ -442,7 +489,7 @@ const upcomingDeadlines = projects
 
     <div
       key={index}
-      className="grid grid-cols-8 gap-4 items-center border-b border-slate-100 px-6 py-5 transition hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40 min-w-[1000px]"
+      className="hidden md:grid md:grid-cols-8 gap-4 items-center border-b border-slate-100 px-6 py-5 transition hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
     >
 
       {/* PROJECT */}
@@ -495,7 +542,7 @@ const upcomingDeadlines = projects
 
           <div
             className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-            style={{ width: project.progress }}
+            style={{ width: `${project.progress}%` }}
           />
 
         </div>
@@ -634,8 +681,8 @@ const upcomingDeadlines = projects
           )}
 
           {/* DOT */}
-          <div
-            className={`mt-1 h-7 w-7 rounded-full ${activity.color} ring-4 ring-white dark:ring-zinc-900`}
+            <div
+              className={"mt-1 h-7 w-7 rounded-full " + activity.color + " ring-4 ring-white dark:ring-zinc-900"}
           />
 
           {/* CONTENT */}
@@ -710,13 +757,14 @@ const upcomingDeadlines = projects
           </div>
 
           <div
-            className={`rounded-2xl px-4 py-2 text-sm font-semibold ${
-              item.daysLeft <= 2
+            className={
+              'rounded-2xl px-4 py-2 text-sm font-semibold ' +
+              (item.daysLeft <= 2
                 ? "bg-red-100 text-red-600"
                 : item.daysLeft <= 5
                 ? "bg-yellow-100 text-yellow-600"
-                : "bg-emerald-100 text-emerald-600"
-            }`}
+                : "bg-emerald-100 text-emerald-600")
+            }
           >
             {item.daysLeft <= 2
               ? "Critical"
@@ -747,7 +795,7 @@ const upcomingDeadlines = projects
 
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-              style={{ width: `${item.progress}%` }}
+              style={{ width: item.progress + '%' }}
             />
 
           </div>
@@ -828,7 +876,7 @@ const upcomingDeadlines = projects
           <div className="flex items-center gap-3">
 
             <div
-              className={`h-4 w-4 rounded-full ${column.color}`}
+              className={"h-4 w-4 rounded-full " + column.color}
             />
 
             <h3 className="text-lg font-bold text-slate-800 dark:text-white">
