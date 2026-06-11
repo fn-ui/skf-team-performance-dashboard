@@ -1,22 +1,16 @@
 import {
-  X,
-  FolderKanban,
   CalendarDays,
-  Users,
   CheckCircle2,
   Clock3,
-  Flag,
+  Users,
 } from "lucide-react";
 
 function ProjectDetailsModal({
   isOpen,
   onClose,
-  selectedProject,
+  project,
 }) {
-  if (
-    !isOpen ||
-    !selectedProject
-  )
+  if (!isOpen || !project)
     return null;
 
   const getPriorityColor = (
@@ -37,254 +31,195 @@ function ProjectDetailsModal({
     }
   };
 
+  const getStatusColor = (
+    status
+  ) => {
+    switch (status) {
+      case "Planning":
+        return "bg-amber-100 text-amber-700";
+
+      case "Development":
+        return "bg-blue-100 text-blue-700";
+
+      case "Testing":
+        return "bg-purple-100 text-purple-700";
+
+      case "Completed":
+        return "bg-emerald-100 text-emerald-700";
+
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-8 overflow-y-auto max-h-[95vh]">
+      <div className="w-full max-w-3xl bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-slate-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-start justify-between gap-6 mb-8">
 
           <div>
 
             <h2 className="text-3xl font-bold dark:text-white">
-              Project Details
+              {project.name}
             </h2>
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-2">
-              Complete overview of the
-              selected project.
+            <p className="text-slate-500 dark:text-zinc-400 mt-3">
+              {project.description}
             </p>
 
           </div>
 
           <button
             onClick={onClose}
-            className="w-11 h-11 rounded-2xl hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center transition"
+            className="w-10 h-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
           >
-
-            <X
-              size={22}
-              className="dark:text-white"
-            />
-
+            ✕
           </button>
 
         </div>
 
-        {/* PROJECT CARD */}
-        <div className="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8">
+        {/* STATUS + PRIORITY */}
+        <div className="flex flex-wrap gap-4 mb-8">
 
-          {/* TOP */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <span
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(
+              project.status
+            )}`}
+          >
+            {project.status}
+          </span>
 
-            <div>
+          <span
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${getPriorityColor(
+              project.priority
+            )}`}
+          >
+            {project.priority} Priority
+          </span>
 
-              <div className="flex items-center gap-3">
+        </div>
 
-                <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
+        {/* PROGRESS */}
+        <div className="mb-8">
 
-                  <FolderKanban className="text-emerald-600" />
+          <div className="flex items-center justify-between mb-3">
 
-                </div>
+            <p className="font-medium dark:text-white">
+              Project Progress
+            </p>
 
-                <div>
-
-                  <h2 className="text-3xl font-bold dark:text-white">
-                    {selectedProject.name}
-                  </h2>
-
-                  <p className="text-slate-500 dark:text-zinc-400 mt-2">
-                    {
-                      selectedProject.description
-                    }
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* PRIORITY */}
-            <span
-              className={`px-4 py-2 rounded-full text-sm font-semibold w-fit ${getPriorityColor(
-                selectedProject.priority
-              )}`}
-            >
-
-              {selectedProject.priority} Priority
-
-            </span>
+            <p className="font-bold dark:text-white">
+              {project.progress}%
+            </p>
 
           </div>
 
-          {/* STATS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
+          <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-4">
 
-            {/* MANAGER */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
+            <div
+              className="bg-emerald-500 h-4 rounded-full transition-all duration-500"
+              style={{
+                width: `${project.progress}%`,
+              }}
+            />
 
-              <p className="text-slate-500 dark:text-zinc-400 text-sm">
-                Project Manager
-              </p>
+          </div>
 
-              <h3 className="text-lg font-bold mt-3 dark:text-white">
-                {selectedProject.manager}
-              </h3>
+        </div>
 
-            </div>
+        {/* DETAILS GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* STATUS */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
+          {/* MANAGER */}
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
-              <p className="text-slate-500 dark:text-zinc-400 text-sm">
-                Current Status
-              </p>
+            <p className="text-slate-500 dark:text-zinc-400 text-sm mb-2">
+              Project Manager
+            </p>
 
-              <h3 className="text-lg font-bold mt-3 text-blue-600">
-                {selectedProject.status}
-              </h3>
+            <h3 className="text-lg font-bold dark:text-white">
+              {project.manager}
+            </h3>
 
-            </div>
+          </div>
 
-            {/* DEADLINE */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
+          {/* DEADLINE */}
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
+
+            <div className="flex items-center gap-2 mb-2">
+
+              <CalendarDays
+                size={18}
+                className="text-slate-400"
+              />
 
               <p className="text-slate-500 dark:text-zinc-400 text-sm">
                 Deadline
               </p>
 
-              <div className="flex items-center gap-2 mt-3">
-
-                <CalendarDays
-                  size={18}
-                  className="text-red-500"
-                />
-
-                <h3 className="text-lg font-bold text-red-500">
-                  {
-                    selectedProject.deadline
-                  }
-                </h3>
-
-              </div>
-
             </div>
 
-            {/* TASKS */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
+            <h3 className="text-lg font-bold dark:text-white">
+              {project.deadline}
+            </h3>
+
+          </div>
+
+          {/* TASKS */}
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
+
+            <div className="flex items-center gap-2 mb-2">
+
+              <CheckCircle2
+                size={18}
+                className="text-slate-400"
+              />
 
               <p className="text-slate-500 dark:text-zinc-400 text-sm">
                 Tasks Completed
               </p>
 
-              <div className="flex items-center gap-2 mt-3">
-
-                <CheckCircle2
-                  size={18}
-                  className="text-emerald-600"
-                />
-
-                <h3 className="text-lg font-bold dark:text-white">
-
-                  {
-                    selectedProject.completedTasks
-                  }
-                  /
-                  {
-                    selectedProject.totalTasks
-                  }
-
-                </h3>
-
-              </div>
-
             </div>
+
+            <h3 className="text-lg font-bold dark:text-white">
+              {
+                project.completed_tasks
+              }
+              /
+              {project.total_tasks}
+            </h3>
 
           </div>
 
-          {/* PROGRESS */}
-          <div className="mt-10">
+          {/* MEMBERS */}
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 mb-3">
 
-              <p className="font-medium dark:text-white">
-                Project Progress
-              </p>
-
-              <p className="font-bold text-emerald-600">
-                {
-                  selectedProject.progress
-                }
-                %
-              </p>
-
-            </div>
-
-            <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-4">
-
-              <div
-                className="bg-emerald-500 h-4 rounded-full transition-all duration-500"
-                style={{
-                  width: `${selectedProject.progress}%`,
-                }}
+              <Users
+                size={18}
+                className="text-slate-400"
               />
 
-            </div>
-
-          </div>
-
-          {/* TEAM MEMBERS */}
-          <div className="mt-10">
-
-            <div className="flex items-center gap-3 mb-6">
-
-              <Users className="text-purple-600" />
-
-              <h3 className="text-xl font-bold dark:text-white">
+              <p className="text-slate-500 dark:text-zinc-400 text-sm">
                 Team Members
-              </h3>
+              </p>
 
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-wrap gap-2">
 
-              {selectedProject.members.map(
+              {project.members?.map(
                 (member, index) => (
-                  <div
+                  <span
                     key={index}
-                    className="flex items-center justify-between bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl px-5 py-4"
+                    className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium"
                   >
-
-                    <div className="flex items-center gap-4">
-
-                      <div className="w-11 h-11 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
-
-                        {member.charAt(0)}
-
-                      </div>
-
-                      <div>
-
-                        <h4 className="font-semibold dark:text-white">
-                          {member}
-                        </h4>
-
-                        <p className="text-sm text-slate-500 dark:text-zinc-400">
-                          Team Member
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    <Clock3
-                      size={18}
-                      className="text-slate-400"
-                    />
-
-                  </div>
+                    {member}
+                  </span>
                 )
               )}
 
@@ -294,22 +229,14 @@ function ProjectDetailsModal({
 
         </div>
 
-        {/* ACTIONS */}
-        <div className="flex items-center justify-end gap-4 mt-10">
+        {/* FOOTER */}
+        <div className="flex items-center justify-end mt-10">
 
           <button
             onClick={onClose}
-            className="px-6 py-3 rounded-2xl border border-slate-200 dark:border-zinc-800 dark:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+            className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition"
           >
-
             Close
-
-          </button>
-
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl transition font-medium">
-
-            Open Workspace
-
           </button>
 
         </div>

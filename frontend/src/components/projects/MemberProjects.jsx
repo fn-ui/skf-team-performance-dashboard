@@ -1,64 +1,105 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
-
-import { projects } from "../../data/projectsData";
-
-import ProjectDetailsModal from "./ProjectDetailsModal";
 
 import {
   FolderKanban,
   Search,
   Eye,
-  CalendarDays,
-  CheckCircle2,
   Clock3,
+  CheckCircle2,
 } from "lucide-react";
+
+import { getProjects } from "../../services/projectsService";
+
+import ProjectDetailsModal from "./ProjectDetailsModal";
 
 function MemberProjects() {
   const { profile } = useAuth();
 
-  // MEMBER PROJECTS
-  const memberProjects =
-    projects.filter((project) =>
-      project.members.includes(
-        profile?.full_name
-      )
-    );
+  const [projects, setProjects] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   const [search, setSearch] =
     useState("");
 
-  const [selectedProject, setSelectedProject] =
-    useState(null);
+  const [
+    isDetailsOpen,
+    setIsDetailsOpen,
+  ] = useState(false);
 
-  const [isDetailsOpen, setIsDetailsOpen] =
-    useState(false);
+  const [
+    selectedProject,
+    setSelectedProject,
+  ] = useState(null);
 
-  // FILTERED
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects =
+    async () => {
+      try {
+        const data =
+          await getProjects();
+
+        const memberProjects =
+          data.filter((project) =>
+            project.members?.includes(
+              profile?.full_name
+            )
+          );
+
+        setProjects(
+          memberProjects
+        );
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
   const filteredProjects =
-    memberProjects.filter((project) =>
+    projects.filter((project) =>
       project.name
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(
           search.toLowerCase()
         )
     );
 
-  // KPI
-  const completedProjects =
-    memberProjects.filter(
-      (project) =>
-        project.status ===
-        "Completed"
-    ).length;
+  const getPriorityColor = (
+    priority
+  ) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700";
 
-  const activeProjects =
-    memberProjects.filter(
-      (project) =>
-        project.status !==
-        "Completed"
-    ).length;
+      case "Medium":
+        return "bg-amber-100 text-amber-700";
+
+      case "Low":
+        return "bg-emerald-100 text-emerald-700";
+
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading projects...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -71,28 +112,26 @@ function MemberProjects() {
         </h1>
 
         <p className="text-slate-500 dark:text-zinc-400 mt-2">
-          View assigned projects,
-          deadlines, and progress.
+          Projects assigned to you.
         </p>
 
       </div>
 
-      {/* KPI CARDS */}
+      {/* KPI */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
             <div>
 
               <p className="text-slate-500 dark:text-zinc-400">
-                Assigned Projects
+                Total Projects
               </p>
 
               <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {memberProjects.length}
+                {projects.length}
               </h2>
 
             </div>
@@ -107,19 +146,24 @@ function MemberProjects() {
 
         </div>
 
-        {/* ACTIVE */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
             <div>
 
               <p className="text-slate-500 dark:text-zinc-400">
-                Active Projects
+                Active
               </p>
 
               <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {activeProjects}
+                {
+                  projects.filter(
+                    (project) =>
+                      project.status !==
+                      "Completed"
+                  ).length
+                }
               </h2>
 
             </div>
@@ -134,8 +178,7 @@ function MemberProjects() {
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -146,14 +189,20 @@ function MemberProjects() {
               </p>
 
               <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {completedProjects}
+                {
+                  projects.filter(
+                    (project) =>
+                      project.status ===
+                      "Completed"
+                  ).length
+                }
               </h2>
 
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
 
-              <CheckCircle2 className="text-purple-600" />
+              <CheckCircle2 className="text-emerald-600" />
 
             </div>
 
@@ -178,12 +227,12 @@ function MemberProjects() {
           onChange={(e) =>
             setSearch(e.target.value)
           }
-          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
         />
 
       </div>
 
-      {/* PROJECTS GRID */}
+      {/* PROJECTS */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
         {filteredProjects.map(
@@ -193,8 +242,7 @@ function MemberProjects() {
               className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
             >
 
-              {/* TOP */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between">
 
                 <div>
 
@@ -210,10 +258,12 @@ function MemberProjects() {
 
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-
-                  {project.status}
-
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(
+                    project.priority
+                  )}`}
+                >
+                  {project.priority}
                 </span>
 
               </div>
@@ -223,7 +273,7 @@ function MemberProjects() {
 
                 <div className="flex items-center justify-between mb-2">
 
-                  <p className="text-sm text-slate-500 dark:text-zinc-400">
+                  <p className="text-sm dark:text-zinc-400">
                     Progress
                   </p>
 
@@ -246,83 +296,29 @@ function MemberProjects() {
 
               </div>
 
-              {/* DETAILS */}
-              <div className="space-y-4 mt-6">
+              {/* ACTIONS */}
+              <div className="flex items-center gap-3 mt-8">
 
-                <div className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setSelectedProject(
+                      project
+                    );
 
-                  <p className="text-slate-500 dark:text-zinc-400">
-                    Manager
-                  </p>
+                    setIsDetailsOpen(
+                      true
+                    );
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-100 dark:bg-zinc-800 dark:text-white"
+                >
 
-                  <p className="font-semibold dark:text-white">
-                    {project.manager}
-                  </p>
+                  <Eye size={18} />
 
-                </div>
+                  View Details
 
-                <div className="flex items-center justify-between">
-
-                  <p className="text-slate-500 dark:text-zinc-400">
-                    Tasks
-                  </p>
-
-                  <p className="font-semibold dark:text-white">
-
-                    {
-                      project.completedTasks
-                    }
-                    /
-                    {project.totalTasks}
-
-                  </p>
-
-                </div>
-
-                <div className="flex items-center justify-between">
-
-                  <p className="text-slate-500 dark:text-zinc-400">
-                    Deadline
-                  </p>
-
-                  <div className="flex items-center gap-2">
-
-                    <CalendarDays
-                      size={16}
-                      className="text-red-500"
-                    />
-
-                    <p className="font-semibold text-red-500">
-                      {
-                        project.deadline
-                      }
-                    </p>
-
-                  </div>
-
-                </div>
+                </button>
 
               </div>
-
-              {/* BUTTON */}
-              <button
-                onClick={() => {
-                  setSelectedProject(
-                    project
-                  );
-
-                  setIsDetailsOpen(
-                    true
-                  );
-                }}
-                className="w-full mt-8 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl transition"
-              >
-
-                <Eye size={18} />
-
-                View Details
-
-              </button>
 
             </div>
           )
@@ -330,42 +326,12 @@ function MemberProjects() {
 
       </div>
 
-      {/* EMPTY */}
-      {filteredProjects.length === 0 && (
-
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
-
-          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
-
-            <FolderKanban
-              size={36}
-              className="text-slate-400"
-            />
-
-          </div>
-
-          <h2 className="text-3xl font-bold dark:text-white">
-            No Projects Found
-          </h2>
-
-          <p className="text-slate-500 dark:text-zinc-400 mt-3">
-            No assigned projects match
-            your search.
-          </p>
-
-        </div>
-
-      )}
-
-      {/* DETAILS MODAL */}
       <ProjectDetailsModal
         isOpen={isDetailsOpen}
         onClose={() =>
           setIsDetailsOpen(false)
         }
-        selectedProject={
-          selectedProject
-        }
+        project={selectedProject}
       />
 
     </div>

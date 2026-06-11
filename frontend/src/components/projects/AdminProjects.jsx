@@ -1,15 +1,7 @@
-import { useState } from "react";
-import { useEffect } from "react";
 import {
-  getProjects,
-  createProject,
-  updateProject,
-  deleteProject,
-} from "../../services/projectsService";
-
-import CreateProjectModal from "./CreateProjectModal";
-import EditProjectModal from "./EditProjectModal";
-import ProjectDetailsModal from "./ProjectDetailsModal";
+  useEffect,
+  useState,
+} from "react";
 
 import {
   FolderKanban,
@@ -23,187 +15,206 @@ import {
   Users,
 } from "lucide-react";
 
-function AdminProjects() {
-  // STATE
-  const [projects, setProjects] =
-  useState([]);
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+} from "../../services/projectsService";
 
-   const [loading, setLoading] =
-  useState(true);
+import CreateProjectModal from "./CreateProjectModal";
+import EditProjectModal from "./EditProjectModal";
+import ProjectDetailsModal from "./ProjectDetailsModal";
+
+function AdminProjects() {
+  const [projects, setProjects] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   const [search, setSearch] =
     useState("");
 
-    useEffect(() => {
-  fetchProjects();
-}, []);
-
-const fetchProjects =
-  async () => {
-    try {
-      const data =
-        await getProjects();
-
-      setProjects(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // MODALS
   const [isCreateOpen, setIsCreateOpen] =
     useState(false);
 
   const [isEditOpen, setIsEditOpen] =
     useState(false);
 
-  const [isDetailsOpen, setIsDetailsOpen] =
-    useState(false);
+  const [
+    isDetailsOpen,
+    setIsDetailsOpen,
+  ] = useState(false);
 
-  // SELECTED PROJECT
   const [
     selectedProject,
     setSelectedProject,
   ] = useState(null);
 
-  // NEW PROJECT
+  const [editProject, setEditProject] =
+    useState(null);
+
   const [newProject, setNewProject] =
     useState({
       name: "",
       description: "",
       manager: "",
-      members: [],
+      members: "",
       status: "Planning",
       priority: "Medium",
       progress: 0,
       deadline: "",
-      completedTasks: 0,
-      totalTasks: 0,
+      completed_tasks: 0,
+      total_tasks: 0,
     });
 
-  // SEARCH FILTER
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects =
+    async () => {
+      try {
+        const data =
+          await getProjects();
+
+        setProjects(data || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const handleAddProject =
+    async () => {
+      try {
+        const project = {
+          ...newProject,
+
+          members:
+            typeof newProject.members ===
+            "string"
+              ? newProject.members
+                  .split(",")
+                  .map((member) =>
+                    member.trim()
+                  )
+              : [],
+        };
+
+        const createdProject =
+          await createProject(
+            project
+          );
+
+        setProjects([
+          createdProject,
+          ...projects,
+        ]);
+
+        setIsCreateOpen(false);
+
+        setNewProject({
+          name: "",
+          description: "",
+          manager: "",
+          members: "",
+          status: "Planning",
+          priority: "Medium",
+          progress: 0,
+          deadline: "",
+          completed_tasks: 0,
+          total_tasks: 0,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const handleDeleteProject =
+    async (id) => {
+      try {
+        await deleteProject(id);
+
+        setProjects(
+          projects.filter(
+            (project) =>
+              project.id !== id
+          )
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const handleOpenEdit = (
+    project
+  ) => {
+    setEditProject({
+      ...project,
+
+      members:
+        Array.isArray(
+          project.members
+        )
+          ? project.members.join(
+              ", "
+            )
+          : "",
+    });
+
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateProject =
+    async () => {
+      try {
+        const updatedData = {
+          ...editProject,
+
+          members:
+            typeof editProject.members ===
+            "string"
+              ? editProject.members
+                  .split(",")
+                  .map((member) =>
+                    member.trim()
+                  )
+              : [],
+        };
+
+        const updatedProject =
+          await updateProject(
+            editProject.id,
+            updatedData
+          );
+
+        setProjects(
+          projects.map((project) =>
+            project.id ===
+            updatedProject.id
+              ? updatedProject
+              : project
+          )
+        );
+
+        setIsEditOpen(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
   const filteredProjects =
     projects.filter((project) =>
       project.name
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(
           search.toLowerCase()
         )
     );
 
-  // KPI DATA
-  const totalProjects =
-    projects.length;
-
-  const activeProjects =
-    projects.filter(
-      (project) =>
-        project.status !==
-        "Completed"
-    ).length;
-
-  const completedProjects =
-    projects.filter(
-      (project) =>
-        project.status ===
-        "Completed"
-    ).length;
-
-  const totalManagers =
-    new Set(
-      projects.map(
-        (project) =>
-          project.manager
-      )
-    ).size;
-
-  // CREATE PROJECT
-  const handleAddProject =
-  async () => {
-    try {
-      const project = {
-        ...newProject,
-
-        members:
-          newProject.members
-            .split(",")
-            .map((member) =>
-              member.trim()
-            ),
-      };
-
-      const createdProject =
-        await createProject(
-          project
-        );
-
-      setProjects([
-        createdProject,
-        ...projects,
-      ]);
-
-      setNewProject({
-        name: "",
-        description: "",
-        manager: "",
-        deadline: "",
-        status: "Planning",
-        priority: "Medium",
-        progress: 0,
-        members: "",
-        completedTasks: 0,
-        totalTasks: 0,
-      });
-
-      setIsCreateOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // DELETE
-  const handleDeleteProject =
-  async (id) => {
-    try {
-      await deleteProject(id);
-
-      setProjects(
-        projects.filter(
-          (project) =>
-            project.id !== id
-        )
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // UPDATE
-  const handleUpdateProject =
-  async () => {
-    try {
-      const updatedProject =
-        await updateProject(
-          editProject.id,
-          editProject
-        );
-
-      setProjects(
-        projects.map((project) =>
-          project.id ===
-          updatedProject.id
-            ? updatedProject
-            : project
-        )
-      );
-
-      setIsEditOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -223,28 +234,27 @@ const fetchProjects =
   };
 
   if (loading) {
-  return (
-    <div className="p-10 dark:text-white">
-      Loading projects...
-    </div>
-  );
-}
+    return (
+      <div className="p-10 dark:text-white">
+        Loading projects...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
 
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+      <div className="flex items-center justify-between">
 
         <div>
 
           <h1 className="text-3xl font-bold dark:text-white">
-            Projects Overview
+            Projects
           </h1>
 
           <p className="text-slate-500 dark:text-zinc-400 mt-2">
-            Manage all company projects,
-            managers, and progress.
+            Manage all projects.
           </p>
 
         </div>
@@ -253,7 +263,7 @@ const fetchProjects =
           onClick={() =>
             setIsCreateOpen(true)
           }
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl transition"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl"
         >
 
           <Plus size={18} />
@@ -261,119 +271,6 @@ const fetchProjects =
           Create Project
 
         </button>
-
-      </div>
-
-      {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Total Projects
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {totalProjects}
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
-
-              <FolderKanban className="text-emerald-600" />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* ACTIVE */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Active Projects
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {activeProjects}
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center">
-
-              <Clock3 className="text-blue-600" />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Completed
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {completedProjects}
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
-
-              <CheckCircle2 className="text-purple-600" />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* MANAGERS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Managers
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {totalManagers}
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center">
-
-              <Users className="text-amber-600" />
-
-            </div>
-
-          </div>
-
-        </div>
 
       </div>
 
@@ -392,212 +289,130 @@ const fetchProjects =
           onChange={(e) =>
             setSearch(e.target.value)
           }
-          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
         />
 
       </div>
 
-      {/* PROJECTS TABLE */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl overflow-hidden">
+      {/* PROJECTS */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        <div className="overflow-x-auto">
+        {filteredProjects.map(
+          (project) => (
+            <div
+              key={project.id}
+              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+            >
 
-          <table className="w-full">
+              <div className="flex items-start justify-between">
 
-            <thead className="bg-slate-50 dark:bg-zinc-950">
+                <div>
 
-              <tr>
+                  <h2 className="text-2xl font-bold dark:text-white">
+                    {project.name}
+                  </h2>
 
-                <th className="text-left px-6 py-5 text-sm font-semibold dark:text-white">
-                  Project
-                </th>
+                  <p className="text-slate-500 dark:text-zinc-400 mt-2">
+                    {
+                      project.description
+                    }
+                  </p>
 
-                <th className="text-left px-6 py-5 text-sm font-semibold dark:text-white">
-                  Manager
-                </th>
+                </div>
 
-                <th className="text-left px-6 py-5 text-sm font-semibold dark:text-white">
-                  Status
-                </th>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(
+                    project.priority
+                  )}`}
+                >
+                  {project.priority}
+                </span>
 
-                <th className="text-left px-6 py-5 text-sm font-semibold dark:text-white">
-                  Progress
-                </th>
+              </div>
 
-                <th className="text-left px-6 py-5 text-sm font-semibold dark:text-white">
-                  Priority
-                </th>
+              {/* PROGRESS */}
+              <div className="mt-6">
 
-                <th className="text-left px-6 py-5 text-sm font-semibold dark:text-white">
-                  Actions
-                </th>
+                <div className="flex items-center justify-between mb-2">
 
-              </tr>
+                  <p className="text-sm dark:text-zinc-400">
+                    Progress
+                  </p>
 
-            </thead>
+                  <p className="font-semibold dark:text-white">
+                    {project.progress}%
+                  </p>
 
-            <tbody>
+                </div>
 
-              {filteredProjects.map(
-                (project) => (
-                  <tr
-                    key={project.id}
-                    className="border-t border-slate-200 dark:border-zinc-800"
-                  >
+                <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-3">
 
-                    {/* PROJECT */}
-                    <td className="px-6 py-5">
+                  <div
+                    className="bg-emerald-500 h-3 rounded-full"
+                    style={{
+                      width: `${project.progress}%`,
+                    }}
+                  />
 
-                      <div>
+                </div>
 
-                        <h3 className="font-semibold dark:text-white">
-                          {project.name}
-                        </h3>
+              </div>
 
-                        <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
-                          {
-                            project.description
-                          }
-                        </p>
+              {/* ACTIONS */}
+              <div className="flex items-center gap-3 mt-8">
 
-                      </div>
+                <button
+                  onClick={() => {
+                    setSelectedProject(
+                      project
+                    );
 
-                    </td>
+                    setIsDetailsOpen(
+                      true
+                    );
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-100 dark:bg-zinc-800 dark:text-white"
+                >
 
-                    {/* MANAGER */}
-                    <td className="px-6 py-5 dark:text-white">
+                  <Eye size={18} />
 
-                      {project.manager}
+                  View
 
-                    </td>
+                </button>
 
-                    {/* STATUS */}
-                    <td className="px-6 py-5">
+                <button
+                  onClick={() =>
+                    handleOpenEdit(
+                      project
+                    )
+                  }
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white"
+                >
 
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                  <Pencil size={18} />
 
-                        {project.status}
+                  Edit
 
-                      </span>
+                </button>
 
-                    </td>
+                <button
+                  onClick={() =>
+                    handleDeleteProject(
+                      project.id
+                    )
+                  }
+                  className="px-4 py-3 rounded-xl bg-red-600 text-white"
+                >
 
-                    {/* PROGRESS */}
-                    <td className="px-6 py-5">
+                  <Trash2 size={18} />
 
-                      <div className="w-40">
+                </button>
 
-                        <div className="flex items-center justify-between mb-2">
+              </div>
 
-                          <span className="text-sm dark:text-white">
-                            {
-                              project.progress
-                            }
-                            %
-                          </span>
-
-                        </div>
-
-                        <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-2">
-
-                          <div
-                            className="bg-emerald-500 h-2 rounded-full"
-                            style={{
-                              width: `${project.progress}%`,
-                            }}
-                          />
-
-                        </div>
-
-                      </div>
-
-                    </td>
-
-                    {/* PRIORITY */}
-                    <td className="px-6 py-5">
-
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(
-                          project.priority
-                        )}`}
-                      >
-
-                        {project.priority}
-
-                      </span>
-
-                    </td>
-
-                    {/* ACTIONS */}
-                    <td className="px-6 py-5">
-
-                      <div className="flex items-center gap-3">
-
-                        {/* VIEW */}
-                        <button
-                          onClick={() => {
-                            setSelectedProject(
-                              project
-                            );
-
-                            setIsDetailsOpen(
-                              true
-                            );
-                          }}
-                          className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition"
-                        >
-
-                          <Eye size={18} />
-
-                        </button>
-
-                        {/* EDIT */}
-                        <button
-                          onClick={() => {
-                            setSelectedProject(
-                              project
-                            );
-
-                            setIsEditOpen(
-                              true
-                            );
-                          }}
-                          className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center hover:bg-amber-200 transition"
-                        >
-
-                          <Pencil size={18} />
-
-                        </button>
-
-                        {/* DELETE */}
-                        <button
-                          onClick={() =>
-                            handleDeleteProject(
-                              project.id
-                            )
-                          }
-                          className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition"
-                        >
-
-                          <Trash2
-                            size={18}
-                          />
-
-                        </button>
-
-                      </div>
-
-                    </td>
-
-                  </tr>
-                )
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
+            </div>
+          )
+        )}
 
       </div>
 
@@ -605,25 +420,20 @@ const fetchProjects =
       <CreateProjectModal
         isOpen={isCreateOpen}
         onClose={() =>
-          setIsCreateOpen(false)
+            setIsCreateOpen(false)
         }
         newProject={newProject}
         setNewProject={setNewProject}
-        handleCreateProject={
-          handleCreateProject
-        }
-      />
-
+        handleAddProject={handleAddProject}
+        />
       <EditProjectModal
         isOpen={isEditOpen}
         onClose={() =>
           setIsEditOpen(false)
         }
-        selectedProject={
-          selectedProject
-        }
-        setSelectedProject={
-          setSelectedProject
+        editProject={editProject}
+        setEditProject={
+          setEditProject
         }
         handleUpdateProject={
           handleUpdateProject
@@ -635,9 +445,7 @@ const fetchProjects =
         onClose={() =>
           setIsDetailsOpen(false)
         }
-        selectedProject={
-          selectedProject
-        }
+        project={selectedProject}
       />
 
     </div>

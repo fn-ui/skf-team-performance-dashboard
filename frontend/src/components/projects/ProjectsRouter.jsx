@@ -1,8 +1,8 @@
-import { useAuth } from "../../contexts/AuthContext";
-
 import AdminProjects from "./AdminProjects";
 import ManagerProjects from "./ManagerProjects";
 import MemberProjects from "./MemberProjects";
+
+import { useAuth } from "../../contexts/AuthContext";
 
 function ProjectsRouter() {
   const { profile } = useAuth();
@@ -13,7 +13,9 @@ function ProjectsRouter() {
   }
 
   // MANAGER
-  if (profile?.role === "manager") {
+  if (
+    profile?.role === "manager"
+  ) {
     return <ManagerProjects />;
   }
 

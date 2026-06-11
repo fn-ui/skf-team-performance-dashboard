@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabase";
 
 // GET ALL PROJECTS
 export async function getProjects() {
