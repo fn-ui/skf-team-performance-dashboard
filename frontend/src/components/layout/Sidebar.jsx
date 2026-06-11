@@ -21,6 +21,8 @@ import {
   Sun,
 } from "lucide-react";
 
+import { useAuth } from "../../contexts/AuthContext";
+
 function Sidebar({
   darkMode,
   toggleDarkMode,
@@ -30,6 +32,7 @@ function Sidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const location = useLocation();
+  const { user, profile, signOut } = useAuth();
 
   const menus = [
     {
@@ -41,6 +44,7 @@ function Sidebar({
       name: "Members",
       icon: Users,
       path: "/members",
+      roles: ["admin", "manager"],
     },
     {
       name: "Projects",
@@ -61,6 +65,7 @@ function Sidebar({
       name: "Reports",
       icon: FileText,
       path: "/reports",
+      roles: ["admin", "manager"],
     },
     {
       name: "Goals",
@@ -76,6 +81,13 @@ function Sidebar({
       name: "Settings",
       icon: Settings,
       path: "/settings",
+      roles: ["admin"],
+    },
+    {
+      name: "User Management",
+      icon: Users,
+      path: "/admin/users",
+      roles: ["admin"],
     },
   ];
 
@@ -200,7 +212,9 @@ function Sidebar({
 
           {/* MENU */}
           <nav className="flex flex-col gap-3 overflow-x-hidden">
-            {menus.map((menu, index) => {
+            {menus
+              .filter((m) => !m.roles || m.roles.includes(profile?.role || "member"))
+              .map((menu, index) => {
               const Icon = menu.icon;
 
               return (
@@ -244,7 +258,7 @@ function Sidebar({
         </div>
 
         {/* BOTTOM */}
-        <div className="border-t border-white/10 p-5">
+          <div className="border-t border-white/10 p-5">
           {/* PROFILE */}
           <div
             className={`
@@ -265,11 +279,11 @@ function Sidebar({
             {!collapsed && (
               <div>
                 <h3 className="font-semibold text-white">
-                  Faith Njeri
+                  {profile?.full_name || user?.email || "Guest"}
                 </h3>
 
                 <p className="text-sm text-emerald-100/70">
-                  Team Manager
+                  {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Member"}
                 </p>
               </div>
             )}
@@ -301,7 +315,7 @@ function Sidebar({
             </button>
 
             {/* LOGOUT */}
-            <button className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-400 transition hover:bg-red-500/20">
+            <button onClick={() => signOut()} className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-400 transition hover:bg-red-500/20">
               <LogOut size={20} />
             </button>
           </div>

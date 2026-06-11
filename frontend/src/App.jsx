@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import MembersRouter from "./components/members/MembersRouter";
+import ProjectsRouter from "./components/projects/ProjectsRouter";
+import TasksRouter from "./components/tasks/TasksRouter";
+import PerformanceRouter from "./components/performance/PerformanceRouter";
+import ReportsRouter from "./components/reports/ReportsRouter";
+import GoalsRouter from "./components/goals/GoalsRouter";
+import DashboardRouter from "./components/dashboard/DashboardRouter";
+import SettingsRouter from "./components/settings/SettingsRouter";
 
-import Dashboard from "./pages/Dashboard";
-import Members from "./pages/Members";
-import Projects from "./pages/Projects";
-import Tasks from "./pages/Tasks";
 import Layout from "./components/layout/Layout";
+
+import CalendarPage from "./components/calendar/CalendarPage";
+
+import AdminUsers from "./pages/Admin/Users";
+import RequireAuth from "./components/RequireAuth";
+import Login from "./pages/Auth/Login";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -37,51 +47,130 @@ function App() {
 
       <Routes>
 
+        <Route path="/login" element={<Login />} />
+
         <Route
           path="/"
           element={
-            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Dashboard
-                darkMode={darkMode}
-                toggleDarkMode={toggleDarkMode}
-              />
-            </Layout>
+            <RequireAuth>
+              <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                <DashboardRouter />
+              </Layout>
+            </RequireAuth>
           }
         />
 
-        <Route
-          path="/members"
-          element={
-            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Members
-                darkMode={darkMode}
-                toggleDarkMode={toggleDarkMode}
-              />
-            </Layout>
-          }
-        />
+         <Route
+            path="/members"
+            element={
+              <RequireAuth allowed={["admin", "manager"]}>
+                <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                  <MembersRouter />
+                </Layout>
+              </RequireAuth>
+            }
+          />
 
          <Route
           path="/projects"
           element={
-            <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Projects
+            <RequireAuth>
+              <Layout
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
-              />
-            </Layout>
+              >
+                <ProjectsRouter />
+              </Layout>
+            </RequireAuth>
           }
         />
 
          <Route
-          path="/tasks"
-          element={
+        path="/tasks"
+        element={
+          <RequireAuth>
             <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Tasks
+              <TasksRouter />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+
+        <Route
+          path="/performance"
+          element={
+            <RequireAuth>
+              <Layout
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
-              />
+              >
+                <PerformanceRouter />
+              </Layout>
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <RequireAuth allowed={["admin", "manager"]}>
+              <Layout
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+              >
+                <ReportsRouter />
+              </Layout>
+            </RequireAuth>
+          }
+        />
+
+        <Route
+        path="/goals"
+        element={
+          <RequireAuth>
+            <Layout
+              darkMode={darkMode}
+              toggleDarkMode={toggleDarkMode}
+            >
+              <GoalsRouter />
             </Layout>
+          </RequireAuth>
+        }
+      />
+
+              <Route
+        path="/calendar"
+        element={
+          <RequireAuth>
+            <Layout
+              darkMode={darkMode}
+              toggleDarkMode={toggleDarkMode}
+            >
+              <CalendarPage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth allowed={["admin"]}>
+              <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                <SettingsRouter />
+              </Layout>
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <RequireAuth allowed={["admin"]}>
+              <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                <AdminUsers />
+              </Layout>
+            </RequireAuth>
           }
         />
 
