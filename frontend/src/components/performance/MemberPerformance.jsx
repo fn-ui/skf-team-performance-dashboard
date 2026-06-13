@@ -1,6 +1,6 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-
-import { performanceData } from "../../data/performanceData";
+import { getTasks } from "../../services/tasksService";
 
 import {
   TrendingUp,
@@ -13,26 +13,92 @@ import {
 function MemberPerformance() {
   const { profile } = useAuth();
 
-  // CURRENT USER PERFORMANCE
-  const member =
-    performanceData.find(
-      (item) =>
-        item.member ===
-        profile?.full_name
-    ) || performanceData[0];
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // PRODUCTIVITY COLOR
+  useEffect(() => {
+    if (profile?.id) {
+      loadTasks();
+    }
+  }, [profile]);
+
+  const loadTasks = async () => {
+    try {
+      const data = await getTasks();
+      setTasks(data || []);
+    } catch (error) {
+      console.error(
+        "TASK FETCH ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔥 MEMBER TASKS
+  const memberTasks = tasks.filter((task) => {
+    const assignees =
+      task?.task_assignees || [];
+
+    return assignees.some(
+      (a) => a?.user_id === profile?.id
+    );
+  });
+
+  // 📊 STATS
+  const completed = memberTasks.filter(
+    (t) => t.status === "Completed"
+  ).length;
+
+  const pending = memberTasks.filter(
+    (t) => t.status === "Pending"
+  ).length;
+
+  const inProgress = memberTasks.filter(
+    (t) => t.status === "In Progress"
+  ).length;
+
+  const total = memberTasks.length;
+
+  const productivity =
+    total === 0
+      ? 0
+      : Math.round(
+          (completed / total) * 100
+        );
+
+  // 🔥 PRODUCTIVITY COLOR
   const getProductivityColor = (
-    productivity
+    value
   ) => {
-    if (productivity >= 85)
+    if (value >= 85)
       return "bg-emerald-500";
 
-    if (productivity >= 70)
+    if (value >= 70)
       return "bg-blue-500";
 
     return "bg-amber-500";
   };
+
+  // 🏆 PERFORMANCE LABEL
+  const getPerformanceLabel = (
+    value
+  ) => {
+    if (value >= 85) return "Excellent";
+    if (value >= 70) return "Good";
+    if (value >= 50) return "Average";
+    return "Needs Improvement";
+  };
+
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-6 dark:text-white">
+        Loading performance...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

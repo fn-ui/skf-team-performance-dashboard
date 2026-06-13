@@ -22,7 +22,7 @@ function GoalsRouter() {
   }
 
   // MANAGER
-  if (profile.role === "manager") {
+  if (profile.role === "Team Manager") {
     return <ManagerGoals />;
   }
 

@@ -1,5 +1,5 @@
 import MembersPage from "./MembersPage";
 
 export default function ManagerMembers() {
-  return <MembersPage mode="manager" />;
+  return <MembersPage mode="Team Manager" />;
 }

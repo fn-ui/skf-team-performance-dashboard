@@ -1,124 +1,344 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
 import { supabase } from "../lib/supabase";
 
-const AuthContext = createContext();
+const AuthContext =
+  createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({
+  children,
+}) {
+  const [user, setUser] =
+    useState(null);
 
-  useEffect(() => {
-    let mounted = true;
+  const [profile, setProfile] =
+    useState(null);
 
-    const getUser = async () => {
-      setLoading(true);
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+  const [loading, setLoading] =
+    useState(true);
 
-      if (!mounted) return;
+  /* ================= FETCH PROFILE ================= */
 
-      setUser(currentUser ?? null);
+  const fetchProfile = async (
+    userId
+  ) => {
+    if (!userId) return null;
 
-      if (currentUser) {
-        try {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("role, full_name")
-            .eq("id", currentUser.id)
-            .single();
-          if (error) {
-            console.error('Failed to fetch profile:', error);
-            setProfile(null);
-          } else {
-            setProfile(data ?? null);
-          }
-        } catch (err) {
-          console.error('Unexpected error fetching profile:', err);
-          setProfile(null);
+    const { data, error } =
+      await supabase
+        .from("profiles")
+        .select(`
+            id,
+            role,
+            full_name,
+            email,
+            manager_id,
+
+            member_details (
+              avatar_url
+            )
+          `)
+        .eq("id", userId)
+        .maybeSingle();
+
+    if (error) {
+      console.error(
+        "PROFILE FETCH ERROR:",
+        error.message
+      );
+
+      return null;
+    }
+          const details = Array.isArray(
+        data?.member_details
+      )
+        ? data.member_details[0]
+        : data?.member_details;
+
+      return {
+        ...data,
+        avatar_url:
+          details?.avatar_url || "",
+      };
+
+    return data || null;
+  };
+
+  /* ================= WAIT FOR PROFILE ================= */
+
+  const waitForProfile =
+    async (
+      userId,
+      retries = 10
+    ) => {
+      for (
+        let i = 0;
+        i < retries;
+        i++
+      ) {
+        const profileData =
+          await fetchProfile(
+            userId
+          );
+
+        if (profileData) {
+          return profileData;
         }
-      } else {
-        setProfile(null);
+
+        console.log(
+          `WAITING FOR PROFILE ${
+            i + 1
+          }/${retries}`
+        );
+
+        await new Promise(
+          (resolve) =>
+            setTimeout(
+              resolve,
+              1000
+            )
+        );
       }
+
+      return null;
+    };
+
+  /* ================= LOAD USER ================= */
+
+  const loadUser =
+    async (session) => {
+      const currentUser =
+        session?.user || null;
+
+      /* NO SESSION */
+
+      if (!currentUser) {
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+
+        return;
+      }
+
+      setUser(currentUser);
+
+      /* WAIT FOR PROFILE */
+
+      const profileData =
+        await waitForProfile(
+          currentUser.id
+        );
+
+      if (!profileData) {
+        console.error(
+          "PROFILE CREATION TIMEOUT"
+        );
+
+        setProfile(null);
+        setLoading(false);
+
+        return;
+      }
+
+      setProfile(profileData);
 
       setLoading(false);
     };
 
-    getUser();
+  /* ================= INIT ================= */
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") {
-        setUser(session.user);
-        (async () => {
-          try {
-            const { data, error } = await supabase
-              .from("profiles")
-              .select("role, full_name")
-              .eq("id", session.user.id)
-              .single();
-            if (error) {
-              console.error('Failed to fetch profile after sign in:', error);
-              setProfile(null);
-            } else {
-              setProfile(data ?? null);
-            }
-          } catch (err) {
-            console.error('Unexpected error fetching profile after sign in:', err);
-            setProfile(null);
-          }
-        })();
-      }
+  useEffect(() => {
+    let mounted = true;
 
-      if (event === "SIGNED_OUT") {
+    const init = async () => {
+      try {
+        setLoading(true);
+
+        const {
+          data,
+          error,
+        } =
+          await supabase.auth.getSession();
+
+        if (error) {
+          console.error(
+            error
+          );
+
+          setLoading(false);
+
+          return;
+        }
+
+        if (!mounted) return;
+
+        await loadUser(
+          data.session
+        );
+      } catch (err) {
+        console.error(err);
+
         setUser(null);
         setProfile(null);
+        setLoading(false);
       }
-    });
+    };
+
+    init();
+
+    /* ================= AUTH LISTENER ================= */
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      async (
+        event,
+        session
+      ) => {
+        console.log(
+          "AUTH EVENT:",
+          event
+        );
+
+        if (!mounted) return;
+
+        setLoading(true);
+
+        await loadUser(session);
+      }
+    );
 
     return () => {
       mounted = false;
-      listener.subscription.unsubscribe();
+
+      subscription.unsubscribe();
     };
   }, []);
 
-  const signUp = async (email, password, role = "member", full_name = "") => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+  /* ================= SIGN UP ================= */
 
-    // create profile row with role (this requires a profiles table)
+  const signUp = async (
+    email,
+    password,
+    role = "member",
+    full_name = ""
+  ) => {
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.signUp({
+        email: email
+          .trim()
+          .toLowerCase(),
+
+        password:
+          password.trim(),
+      });
+
+    if (error) {
+      throw error;
+    }
+
     if (data.user) {
-      await supabase.from("profiles").insert([{ id: data.user.id, role, full_name }]);
+      const {
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .upsert([
+          {
+            id: data.user.id,
+
+            email: email
+              .trim()
+              .toLowerCase(),
+
+            role,
+
+            full_name,
+
+            last_seen:
+              new Date().toISOString(),
+
+            is_online: false,
+          },
+        ]);
+
+      if (profileError) {
+        console.error(
+          profileError
+        );
+
+        throw profileError;
+      }
     }
 
     return data;
   };
 
-  const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+  /* ================= SIGN IN ================= */
+
+  const signIn = async (
+    email,
+    password
+  ) => {
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.signInWithPassword(
+        {
+          email: email
+            .trim()
+            .toLowerCase(),
+
+          password:
+            password.trim(),
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
     return data;
   };
 
+  /* ================= SIGN OUT ================= */
+
   const signOut = async () => {
     await supabase.auth.signOut();
+
     setUser(null);
+
     setProfile(null);
   };
 
-  const value = {
-    user,
-    profile,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-  };
+  /* ================= CONTEXT ================= */
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        signUp,
+        signIn,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  return useContext(
+    AuthContext
+  );
 }

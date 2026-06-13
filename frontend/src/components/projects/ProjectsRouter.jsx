@@ -14,7 +14,7 @@ function ProjectsRouter() {
 
   // MANAGER
   if (
-    profile?.role === "manager"
+    profile?.role === "Team Manager"
   ) {
     return <ManagerProjects />;
   }

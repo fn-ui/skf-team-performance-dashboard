@@ -1,6 +1,19 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import { tasks as tasksData } from "../../data/tasksData";
+import {
+  getTasks,
+  updateTask,
+  deleteTask,
+  createTask,
+  assignTaskUsers,
+} from "../../services/tasksService";
+
+import { getUsers } from "../../services/userService";
+
+import { useAuth } from "../../contexts/AuthContext";
 
 import TaskDetailsModal from "./TaskDetailsModal";
 import EditTaskModal from "./EditTaskModal";
@@ -19,133 +32,395 @@ import {
 } from "lucide-react";
 
 function ManagerTasks() {
-  const [tasks, setTasks] = useState(tasksData);
+  const { user, profile } =
+    useAuth();
 
-  const [search, setSearch] = useState("");
+  // TASKS
+  const [tasks, setTasks] =
+    useState([]);
+
+  // USERS
+  const [users, setUsers] =
+    useState([]);
+
+  // LOADING
+  const [loading, setLoading] =
+    useState(true);
+
+  // FILTERS
+  const [search, setSearch] =
+    useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  // DETAILS MODAL
+  const [
+    priorityFilter,
+    setPriorityFilter,
+  ] = useState("All");
+
+  // USER SEARCH
+  const [userSearch, setUserSearch] =
+    useState("");
+
+  // ASSIGNED USERS
+  const [selectedUsers, setSelectedUsers] =
+    useState([]);
+
+  // MODALS
   const [selectedTask, setSelectedTask] =
     useState(null);
 
   const [isDetailsOpen, setIsDetailsOpen] =
     useState(false);
 
-  // EDIT MODAL
   const [isEditOpen, setIsEditOpen] =
     useState(false);
 
   const [editedTask, setEditedTask] =
     useState(null);
 
-  // CREATE MODAL
   const [isCreateOpen, setIsCreateOpen] =
     useState(false);
 
-  const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    project: "",
-    assignee: "",
-    status: "Pending",
-    priority: "Medium",
-    progress: 0,
-    dueDate: "",
-  });
+  // NEW TASK
+  const [newTask, setNewTask] =
+    useState({
+      title: "",
+      description: "",
+      project_id: "",
+      status: "Pending",
+      priority: "Medium",
+      progress: 0,
+      due_date: "",
+    });
 
-  // FILTERED TASKS
+  // 🔥 INITIAL LOAD
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    loadTasks();
+    loadUsers();
+  }, [profile?.id]);
+
+  // 📦 LOAD TASKS
+  const loadTasks =
+    async () => {
+      try {
+        setLoading(true);
+
+        const data =
+          await getTasks();
+
+        // 🔥 ONLY MANAGER TASKS
+        const managerTasks =
+          (data || []).filter(
+            (task) =>
+              task.created_by ===
+                profile?.id ||
+              task.creator?.id ===
+                profile?.id
+          );
+
+        setTasks(managerTasks);
+      } catch (error) {
+        console.error(
+          "FETCH TASKS ERROR:",
+          error.message
+        );
+
+        setTasks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  // 👥 LOAD USERS
+  const loadUsers =
+    async () => {
+      try {
+        const data =
+          await getUsers();
+
+        // 🔥 MEMBERS ONLY
+        const membersOnly =
+          (data || []).filter(
+            (user) =>
+              user.role ===
+              "member"
+          );
+
+        setUsers(membersOnly);
+      } catch (error) {
+        console.error(
+          "FETCH USERS ERROR:",
+          error.message
+        );
+
+        setUsers([]);
+      }
+    };
+
+  // 🔎 FILTER USERS
+  const filteredUsers =
+    users.filter((user) =>
+      user.full_name
+        ?.toLowerCase()
+        .includes(
+          userSearch.toLowerCase()
+        )
+    );
+
+  // 🔎 FILTER TASKS
   const filteredTasks = tasks
     .filter((task) =>
-      task.title.toLowerCase().includes(
-        search.toLowerCase()
-      )
+      task.title
+        ?.toLowerCase()
+        .includes(
+          search.toLowerCase()
+        )
     )
     .filter((task) =>
       statusFilter === "All"
         ? true
-        : task.status === statusFilter
+        : task.status ===
+          statusFilter
+    )
+    .filter((task) =>
+      priorityFilter === "All"
+        ? true
+        : task.priority ===
+          priorityFilter
     );
 
-  // STATS
-  const completedTasks = tasks.filter(
-    (task) => task.status === "Completed"
-  ).length;
+  // 📊 STATS
+  const completedTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "Completed"
+    ).length;
 
-  const inProgressTasks = tasks.filter(
-    (task) => task.status === "In Progress"
-  ).length;
+  const inProgressTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "In Progress"
+    ).length;
 
-  const pendingTasks = tasks.filter(
-    (task) => task.status === "Pending"
-  ).length;
+  const pendingTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "Pending"
+    ).length;
 
-  // DETAILS
-  const handleOpenDetails = (task) => {
+  // 👁 OPEN DETAILS
+  const handleOpenDetails = (
+    task
+  ) => {
     setSelectedTask(task);
 
     setIsDetailsOpen(true);
   };
 
-  // EDIT
-  const handleEditTask = (task) => {
-    setEditedTask(task);
+  // ✏️ OPEN EDIT
+  const handleEditTask = (
+    task
+  ) => {
+    setEditedTask({
+      ...task,
+    });
 
     setIsEditOpen(true);
   };
 
-  // UPDATE
-  const handleUpdateTask = () => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === editedTask.id
-        ? editedTask
-        : task
-    );
-
-    setTasks(updatedTasks);
-
-    setIsEditOpen(false);
-  };
-
-  // DELETE
-  const handleDeleteTask = (id) => {
-    const updatedTasks = tasks.filter(
-      (task) => task.id !== id
-    );
-
-    setTasks(updatedTasks);
-  };
-
-  // CREATE
-  const handleCreateTask = () => {
-    if (
-      !newTask.title ||
-      !newTask.assignee
-    )
-      return;
-
-    const task = {
-      id: Date.now(),
-      ...newTask,
+  // 👥 TOGGLE USER
+  const toggleUserSelection =
+    (userId) => {
+      setSelectedUsers(
+        (prev) =>
+          prev.includes(userId)
+            ? prev.filter(
+                (id) =>
+                  id !== userId
+              )
+            : [
+                ...prev,
+                userId,
+              ]
+      );
     };
 
-    setTasks([task, ...tasks]);
+  // 💾 UPDATE TASK
+  const handleUpdateTask =
+    async () => {
+      if (!editedTask?.id)
+        return;
 
-    setNewTask({
-      title: "",
-      description: "",
-      project: "",
-      assignee: "",
-      status: "Pending",
-      priority: "Medium",
-      progress: 0,
-      dueDate: "",
-    });
+      try {
+        const updated =
+          await updateTask(
+            editedTask.id,
+            {
+              title:
+                editedTask.title,
+              description:
+                editedTask.description,
+              project_id:
+                editedTask.project_id,
+              status:
+                editedTask.status,
+              priority:
+                editedTask.priority,
+              progress:
+                editedTask.progress,
+              due_date:
+                editedTask.due_date,
+            }
+          );
 
-    setIsCreateOpen(false);
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id ===
+            updated.id
+              ? {
+                  ...task,
+                  ...updated,
+                }
+              : task
+          )
+        );
+
+        setIsEditOpen(false);
+
+        setEditedTask(null);
+      } catch (error) {
+        console.error(
+          "UPDATE ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // 🗑 DELETE TASK
+  const handleDeleteTask =
+    async (id) => {
+      try {
+        await deleteTask(id);
+
+        setTasks((prev) =>
+          prev.filter(
+            (task) =>
+              task.id !== id
+          )
+        );
+      } catch (error) {
+        console.error(
+          "DELETE ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // ➕ CREATE TASK
+  const handleCreateTask =
+    async () => {
+      if (!newTask.title)
+        return;
+
+      try {
+        // 🔥 CREATE TASK
+        const createdTask =
+          await createTask({
+            title:
+              newTask.title,
+            description:
+              newTask.description,
+            project_id:
+              newTask.project_id ||
+              null,
+            status:
+              newTask.status,
+            priority:
+              newTask.priority,
+            progress:
+              newTask.progress,
+            due_date:
+              newTask.due_date ||
+              null,
+            created_by:
+              profile?.id ||
+              user?.id ||
+              null,
+          });
+
+        // 👥 ASSIGN USERS
+        if (
+          selectedUsers.length > 0
+        ) {
+          await assignTaskUsers(
+            createdTask.id,
+            selectedUsers
+          );
+        }
+
+        // 🔄 RELOAD TASKS
+        await loadTasks();
+
+        // 🔥 RESET FORM
+        setNewTask({
+          title: "",
+          description: "",
+          project_id: "",
+          status: "Pending",
+          priority: "Medium",
+          progress: 0,
+          due_date: "",
+        });
+
+        setSelectedUsers([]);
+
+        setUserSearch("");
+
+        setIsCreateOpen(false);
+      } catch (error) {
+        console.error(
+          "CREATE ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // 🎨 PRIORITY COLORS
+  const getPriorityColor = (
+    priority
+  ) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700";
+
+      case "Medium":
+        return "bg-amber-100 text-amber-700";
+
+      case "Low":
+        return "bg-emerald-100 text-emerald-700";
+
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
   };
 
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading tasks...
+      </div>
+    );
+  }
+
+ 
   return (
     <div className="space-y-8">
 

@@ -13,8 +13,9 @@ function EventDetailsModal({
   onClose,
   selectedEvent,
 }) {
-  if (!isOpen || !selectedEvent)
+  if (!isOpen || !selectedEvent) {
     return null;
+  }
 
   const getPriorityColor = (
     priority
@@ -37,10 +38,10 @@ function EventDetailsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+      <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
 
           <div>
 
@@ -48,16 +49,15 @@ function EventDetailsModal({
               Event Details
             </h2>
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-1">
-              Full information about this
-              calendar event.
+            <p className="mt-1 text-slate-500 dark:text-zinc-400">
+              Full information about this event
             </p>
 
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+            className="rounded-xl p-2 transition hover:bg-slate-100 dark:hover:bg-zinc-800"
           >
 
             <X
@@ -70,46 +70,42 @@ function EventDetailsModal({
         </div>
 
         {/* BODY */}
-        <div className="p-6 space-y-8">
+        <div className="space-y-8 p-6">
 
           {/* TITLE */}
-          <div>
+          <div className="flex flex-wrap items-start justify-between gap-4">
 
-            <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
 
               <h1 className="text-3xl font-bold dark:text-white">
                 {selectedEvent.title}
               </h1>
 
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-semibold ${getPriorityColor(
-                  selectedEvent.priority
-                )}`}
-              >
-                {
-                  selectedEvent.priority
-                }
-              </span>
+              <p className="mt-3 leading-relaxed text-slate-500 dark:text-zinc-400">
+                {selectedEvent.description}
+              </p>
 
             </div>
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-4 leading-relaxed">
-              {
-                selectedEvent.description
-              }
-            </p>
+            <span
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${getPriorityColor(
+                selectedEvent.priority
+              )}`}
+            >
+              {selectedEvent.priority}
+            </span>
 
           </div>
 
           {/* INFO GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
             {/* DATE */}
-            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
+            <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100">
 
                   <CalendarDays className="text-emerald-600" />
 
@@ -117,14 +113,12 @@ function EventDetailsModal({
 
                 <div>
 
-                  <p className="text-slate-500 dark:text-zinc-400 text-sm">
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">
                     Event Date
                   </p>
 
-                  <h3 className="font-bold dark:text-white mt-1">
-                    {
-                      selectedEvent.date
-                    }
+                  <h3 className="mt-1 font-bold dark:text-white">
+                    {selectedEvent.date}
                   </h3>
 
                 </div>
@@ -134,11 +128,11 @@ function EventDetailsModal({
             </div>
 
             {/* TIME */}
-            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
+            <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100">
 
                   <Clock3 className="text-blue-600" />
 
@@ -146,14 +140,12 @@ function EventDetailsModal({
 
                 <div>
 
-                  <p className="text-slate-500 dark:text-zinc-400 text-sm">
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">
                     Event Time
                   </p>
 
-                  <h3 className="font-bold dark:text-white mt-1">
-                    {
-                      selectedEvent.time
-                    }
+                  <h3 className="mt-1 font-bold dark:text-white">
+                    {selectedEvent.time}
                   </h3>
 
                 </div>
@@ -163,11 +155,11 @@ function EventDetailsModal({
             </div>
 
             {/* TYPE */}
-            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
+            <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100">
 
                   <Briefcase className="text-purple-600" />
 
@@ -175,14 +167,12 @@ function EventDetailsModal({
 
                 <div>
 
-                  <p className="text-slate-500 dark:text-zinc-400 text-sm">
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">
                     Event Type
                   </p>
 
-                  <h3 className="font-bold dark:text-white mt-1">
-                    {
-                      selectedEvent.type
-                    }
+                  <h3 className="mt-1 font-bold dark:text-white">
+                    {selectedEvent.type}
                   </h3>
 
                 </div>
@@ -192,11 +182,11 @@ function EventDetailsModal({
             </div>
 
             {/* ASSIGNED */}
-            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
+            <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100">
 
                   <Users className="text-amber-600" />
 
@@ -204,14 +194,12 @@ function EventDetailsModal({
 
                 <div>
 
-                  <p className="text-slate-500 dark:text-zinc-400 text-sm">
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">
                     Assigned To
                   </p>
 
-                  <h3 className="font-bold dark:text-white mt-1">
-                    {
-                      selectedEvent.assignedTo
-                    }
+                  <h3 className="mt-1 font-bold dark:text-white">
+                    {selectedEvent.assignedTo || "Team"}
                   </h3>
 
                 </div>
@@ -222,10 +210,10 @@ function EventDetailsModal({
 
           </div>
 
-          {/* DESCRIPTION */}
-          <div className="bg-slate-50 dark:bg-zinc-950 rounded-3xl p-6">
+          {/* EXTRA INFO */}
+          <div className="rounded-3xl bg-slate-50 p-6 dark:bg-zinc-950">
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="mb-4 flex items-center gap-3">
 
               <Info className="text-slate-500" />
 
@@ -235,29 +223,23 @@ function EventDetailsModal({
 
             </div>
 
-            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed">
-              {
-                selectedEvent.description
-              }
+            <p className="leading-relaxed text-slate-600 dark:text-zinc-300">
+              {selectedEvent.description}
             </p>
 
           </div>
 
-          {/* FOOTER INFO */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* FOOTER */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
 
             <div className="flex items-center gap-2 text-slate-500 dark:text-zinc-400">
 
               <Flag size={16} />
 
-              <span>
-                Priority Level:
-              </span>
+              <span>Priority:</span>
 
               <span className="font-semibold dark:text-white">
-                {
-                  selectedEvent.priority
-                }
+                {selectedEvent.priority}
               </span>
 
             </div>
@@ -266,11 +248,9 @@ function EventDetailsModal({
 
               Created By:
 
-              <span className="font-semibold dark:text-white ml-2">
+              <span className="ml-2 font-semibold dark:text-white">
 
-                {
-                  selectedEvent.createdBy
-                }
+                {selectedEvent.createdBy || "Admin"}
 
               </span>
 

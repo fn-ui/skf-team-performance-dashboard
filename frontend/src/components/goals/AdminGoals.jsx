@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { goalsData } from "../../data/goalsData";
+import {
+  getGoals,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+} from "../../services/goalsService";
+
+import { getProjects } from "../../services/projectsService";
 
 import CreateGoalModal from "./CreateGoalModal";
 import EditGoalModal from "./EditGoalModal";
@@ -17,45 +24,78 @@ import {
 } from "lucide-react";
 
 function AdminGoals() {
+  // GOALS
+  const [goalList, setGoalList] = useState([]);
 
-    const [isEditOpen, setIsEditOpen] =
-  useState(false);
+  // PROJECTS
+  const [projects, setProjects] = useState([]);
 
-const [isDetailsOpen, setIsDetailsOpen] =
-  useState(false);
+  // LOADING
+  const [loading, setLoading] = useState(true);
 
-const [selectedGoal, setSelectedGoal] =
-  useState(null);
+  // SEARCH/FILTERS
   const [search, setSearch] = useState("");
-
   const [statusFilter, setStatusFilter] =
     useState("All");
 
+  // MODALS
   const [isModalOpen, setIsModalOpen] =
     useState(false);
 
-  const [goalList, setGoalList] =
-    useState(goalsData);
+  const [isEditOpen, setIsEditOpen] =
+    useState(false);
 
+  const [isDetailsOpen, setIsDetailsOpen] =
+    useState(false);
+
+  // SELECTED GOAL
+  const [selectedGoal, setSelectedGoal] =
+    useState(null);
+
+  // NEW GOAL
   const [newGoal, setNewGoal] =
     useState({
       title: "",
       description: "",
-      assignedTo: "",
-      createdBy: "Admin",
-      department: "",
+      project_id: "",
+      owner_id: "",
+      goal_type: "Personal",
+      status: "Active",
       progress: 0,
-      status: "In Progress",
       priority: "Medium",
-      deadline: "",
-      milestones: [],
+      target_date: "",
     });
+
+  // FETCH GOALS + PROJECTS
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const goalsData = await getGoals();
+
+      const projectsData =
+        await getProjects();
+
+      setGoalList(goalsData);
+
+      setProjects(projectsData);
+    } catch (error) {
+      console.error(
+        "GOALS FETCH ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // FILTERED GOALS
   const filteredGoals = goalList
     .filter((goal) =>
       goal.title
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase())
     )
     .filter((goal) =>
@@ -65,61 +105,125 @@ const [selectedGoal, setSelectedGoal] =
     );
 
   // CREATE GOAL
-  const handleCreateGoal = () => {
-    if (
-      !newGoal.title ||
-      !newGoal.assignedTo
-    )
-      return;
+  const handleCreateGoal =
+    async () => {
+      if (!newGoal.title) return;
 
-    const goal = {
-      id: Date.now(),
-      ...newGoal,
+      try {
+        const createdGoal =
+          await createGoal(newGoal);
+
+        setGoalList([
+          createdGoal,
+          ...goalList,
+        ]);
+
+        setNewGoal({
+          title: "",
+          description: "",
+          project_id: "",
+          owner_id: "",
+          goal_type: "Personal",
+          status: "Active",
+          progress: 0,
+          priority: "Medium",
+          target_date: "",
+        });
+
+        setIsModalOpen(false);
+      } catch (error) {
+        console.error(
+          "CREATE GOAL ERROR:",
+          error.message
+        );
+      }
     };
 
-    setGoalList([
-      goal,
-      ...goalList,
-    ]);
+  // OPEN DETAILS
+  const handleOpenDetails = (
+    goal
+  ) => {
+    setSelectedGoal(goal);
 
-    setNewGoal({
-      title: "",
-      description: "",
-      assignedTo: "",
-      createdBy: "Admin",
-      department: "",
-      progress: 0,
-      status: "In Progress",
-      priority: "Medium",
-      deadline: "",
-      milestones: [],
-    });
-
-    setIsModalOpen(false);
+    setIsDetailsOpen(true);
   };
-  //update goal
-  const handleUpdateGoal = () => {
-  const updatedGoals =
-    goalList.map((goal) =>
-      goal.id === selectedGoal.id
-        ? selectedGoal
-        : goal
-    );
 
-  setGoalList(updatedGoals);
+  // OPEN EDIT
+  const handleEditGoal = (goal) => {
+    setSelectedGoal(goal);
 
-  setIsEditOpen(false);
-};
-// DELETE GOAL
-const handleDeleteGoal = (id) => {
-  const updatedGoals =
+    setIsEditOpen(true);
+  };
+
+  // UPDATE GOAL
+  const handleUpdateGoal =
+    async () => {
+      try {
+        const updatedGoal =
+          await updateGoal(
+            selectedGoal.id,
+            selectedGoal
+          );
+
+        setGoalList(
+          goalList.map((goal) =>
+            goal.id ===
+            updatedGoal.id
+              ? updatedGoal
+              : goal
+          )
+        );
+
+        setIsEditOpen(false);
+      } catch (error) {
+        console.error(
+          "UPDATE GOAL ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // DELETE GOAL
+  const handleDeleteGoal =
+    async (id) => {
+      try {
+        await deleteGoal(id);
+
+        setGoalList(
+          goalList.filter(
+            (goal) =>
+              goal.id !== id
+          )
+        );
+      } catch (error) {
+        console.error(
+          "DELETE GOAL ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // STATS
+  const completedGoals =
     goalList.filter(
-      (goal) => goal.id !== id
-    );
+      (goal) =>
+        goal.status === "Completed"
+    ).length;
 
-  setGoalList(updatedGoals);
-};
+  const activeGoals =
+    goalList.filter(
+      (goal) =>
+        goal.status === "Active"
+    ).length;
 
+  const inProgressGoals =
+    goalList.filter(
+      (goal) =>
+        goal.status ===
+        "In Progress"
+    ).length;
+
+  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -137,6 +241,15 @@ const handleDeleteGoal = (id) => {
         return "bg-slate-100 text-slate-700";
     }
   };
+
+  // LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading goals...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

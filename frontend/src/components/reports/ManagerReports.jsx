@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import { useAuth } from "../../contexts/AuthContext";
-import { reportsData } from "../../data/reportsData";
+
+import { getAdminReportStats } from "../../services/reportsService";
 
 import GenerateReportModal from "./GenerateReportModal";
 
@@ -15,48 +17,142 @@ import {
 function ManagerReports() {
   const { profile } = useAuth();
 
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] =
+    useState(true);
+
+  // 🔥 REAL DATA
+  const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] =
+    useState([]);
+  const [users, setUsers] = useState([]);
+
+  // 🔍 FILTERS
+  const [search, setSearch] =
+    useState("");
+
   const [categoryFilter, setCategoryFilter] =
     useState("All");
 
+  // 🔥 MODAL
   const [isModalOpen, setIsModalOpen] =
     useState(false);
 
-  const managerReportsData = reportsData.filter(
-    (report) =>
-      report.generatedBy ===
-      profile?.full_name
-  );
-
+  // 🔥 REPORTS
   const [reportList, setReportList] =
-    useState(managerReportsData);
+    useState([]);
 
+  // 🔥 NEW REPORT
   const [newReport, setNewReport] =
     useState({
       title: "",
       category: "Performance",
       project: "",
       generatedBy:
-        profile?.full_name || "Manager",
-      date: "2026-06-10",
+        profile?.full_name || "Team Manager",
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
       status: "Completed",
       type: "PDF",
     });
 
-  // FILTERED REPORTS
+  // 🔥 LOAD REPORT DATA
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  const loadReports = async () => {
+    try {
+      setLoading(true);
+
+      const data =
+        await getAdminReportStats();
+
+      setTasks(data.tasks || []);
+      setProjects(data.projects || []);
+      setUsers(data.users || []);
+
+      // 🔥 MANAGER GENERATED REPORTS
+      const generatedReports = [
+        {
+          id: 1,
+          title: "Team Productivity",
+          category: "Performance",
+          project: "Team Projects",
+          generatedBy:
+            profile?.full_name ||
+            "Team Manager",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status: "Completed",
+          type: "PDF",
+        },
+
+        {
+          id: 2,
+          title: "Tasks Progress",
+          category: "Tasks",
+          project: "All Tasks",
+          generatedBy:
+            profile?.full_name ||
+            "Team Manager",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status: "Completed",
+          type: "Excel",
+        },
+      ];
+
+      setReportList(generatedReports);
+    } catch (error) {
+      console.error(
+        "REPORT ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔎 FILTERED REPORTS
   const filteredReports = reportList
     .filter((report) =>
       report.title
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase())
     )
     .filter((report) =>
       categoryFilter === "All"
         ? true
-        : report.category === categoryFilter
+        : report.category ===
+          categoryFilter
     );
 
-  // GENERATE REPORT
+  // 📊 STATS
+  const totalReports =
+    reportList.length;
+
+  const totalProjects =
+    projects.length;
+
+  const totalTasks = tasks.length;
+
+  const completedTasks = tasks.filter(
+    (task) =>
+      task.status === "Completed"
+  ).length;
+
+  const productivity =
+    totalTasks === 0
+      ? 0
+      : Math.round(
+          (completedTasks / totalTasks) *
+            100
+        );
+
+  // ➕ GENERATE REPORT
   const handleGenerateReport = () => {
     if (
       !newReport.title ||
@@ -69,9 +165,9 @@ function ManagerReports() {
       ...newReport,
     };
 
-    setReportList([
+    setReportList((prev) => [
       report,
-      ...reportList,
+      ...prev,
     ]);
 
     setNewReport({
@@ -79,8 +175,10 @@ function ManagerReports() {
       category: "Performance",
       project: "",
       generatedBy:
-        profile?.full_name || "Manager",
-      date: "2026-06-10",
+        profile?.full_name || "Team Manager",
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
       status: "Completed",
       type: "PDF",
     });
@@ -88,12 +186,21 @@ function ManagerReports() {
     setIsModalOpen(false);
   };
 
-  // DOWNLOAD REPORT
+  // ⬇ DOWNLOAD REPORT
   const handleDownload = (report) => {
     console.log(
       `Downloading ${report.title}`
     );
   };
+
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading reports...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

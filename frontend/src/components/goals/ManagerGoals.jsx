@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-import { goalsData } from "../../data/goalsData";
+import {
+  getGoals,
+  createGoal,
+  updateGoal,
+} from "../../services/goalsService";
+
+import { getProjects } from "../../services/projectsService";
 
 import CreateGoalModal from "./CreateGoalModal";
 
@@ -19,44 +25,82 @@ import {
 function ManagerGoals() {
   const { profile } = useAuth();
 
-  const managerGoals = goalsData.filter(
-    (goal) =>
-      goal.createdBy ===
-      profile?.full_name
-  );
-
+  // GOALS
   const [goalList, setGoalList] =
-    useState(managerGoals);
+    useState([]);
 
+  // PROJECTS
+  const [projects, setProjects] =
+    useState([]);
+
+  // LOADING
+  const [loading, setLoading] =
+    useState(true);
+
+  // SEARCH/FILTERS
   const [search, setSearch] =
     useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
+  // MODAL
   const [isModalOpen, setIsModalOpen] =
     useState(false);
 
+  // NEW GOAL
   const [newGoal, setNewGoal] =
     useState({
       title: "",
       description: "",
-      assignedTo: "",
-      createdBy:
-        profile?.full_name || "Manager",
-      department: "",
+      project_id: "",
+      owner_id: profile?.id || "",
+      goal_type: "Team",
+      status: "Active",
       progress: 0,
-      status: "In Progress",
       priority: "Medium",
-      deadline: "",
-      milestones: [],
+      target_date: "",
     });
+
+  // FETCH GOALS
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const goalsData =
+        await getGoals();
+
+      const projectsData =
+        await getProjects();
+
+      // 🔥 MANAGER GOALS ONLY
+      const managerGoals =
+        goalsData.filter(
+          (goal) =>
+            goal.owner_id ===
+            profile?.id
+        );
+
+      setGoalList(managerGoals);
+
+      setProjects(projectsData);
+    } catch (error) {
+      console.error(
+        "MANAGER GOALS ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // FILTERED GOALS
   const filteredGoals = goalList
     .filter((goal) =>
       goal.title
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase())
     )
     .filter((goal) =>
@@ -66,40 +110,94 @@ function ManagerGoals() {
     );
 
   // CREATE GOAL
-  const handleCreateGoal = () => {
-    if (
-      !newGoal.title ||
-      !newGoal.assignedTo
-    )
-      return;
+  const handleCreateGoal =
+    async () => {
+      if (!newGoal.title) return;
 
-    const goal = {
-      id: Date.now(),
-      ...newGoal,
+      try {
+        const createdGoal =
+          await createGoal(newGoal);
+
+        setGoalList([
+          createdGoal,
+          ...goalList,
+        ]);
+
+        setNewGoal({
+          title: "",
+          description: "",
+          project_id: "",
+          owner_id:
+            profile?.id || "",
+          goal_type: "Team",
+          status: "Active",
+          progress: 0,
+          priority: "Medium",
+          target_date: "",
+        });
+
+        setIsModalOpen(false);
+      } catch (error) {
+        console.error(
+          "CREATE GOAL ERROR:",
+          error.message
+        );
+      }
     };
 
-    setGoalList([
-      goal,
-      ...goalList,
-    ]);
+  // UPDATE GOAL PROGRESS
+  const handleUpdateProgress =
+    async (
+      goalId,
+      progress
+    ) => {
+      try {
+        const updatedGoal =
+          await updateGoal(
+            goalId,
+            {
+              progress,
+            }
+          );
 
-    setNewGoal({
-      title: "",
-      description: "",
-      assignedTo: "",
-      createdBy:
-        profile?.full_name || "Manager",
-      department: "",
-      progress: 0,
-      status: "In Progress",
-      priority: "Medium",
-      deadline: "",
-      milestones: [],
-    });
+        setGoalList(
+          goalList.map((goal) =>
+            goal.id === goalId
+              ? updatedGoal
+              : goal
+          )
+        );
+      } catch (error) {
+        console.error(
+          "UPDATE PROGRESS ERROR:",
+          error.message
+        );
+      }
+    };
 
-    setIsModalOpen(false);
-  };
+  // STATS
+  const completedGoals =
+    goalList.filter(
+      (goal) =>
+        goal.status ===
+        "Completed"
+    ).length;
 
+  const activeGoals =
+    goalList.filter(
+      (goal) =>
+        goal.status ===
+        "Active"
+    ).length;
+
+  const inProgressGoals =
+    goalList.filter(
+      (goal) =>
+        goal.status ===
+        "In Progress"
+    ).length;
+
+  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -117,6 +215,15 @@ function ManagerGoals() {
         return "bg-slate-100 text-slate-700";
     }
   };
+
+  // LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading goals...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

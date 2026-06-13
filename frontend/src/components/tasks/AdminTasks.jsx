@@ -1,6 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { tasks as tasksData } from "../../data/tasksData";
+import {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  assignTaskUsers,
+} from "../../services/tasksService";
+
+import { getUsers } from "../../services/userService";
+
+import { useAuth } from "../../contexts/AuthContext";
 
 import TaskDetailsModal from "./TaskDetailsModal";
 import EditTaskModal from "./EditTaskModal";
@@ -9,56 +19,138 @@ import CreateTaskModal from "./CreateTaskModal";
 import {
   Search,
   Plus,
-  CheckCircle,
+ CheckCircle,
   Clock,
   AlertTriangle,
   Trash2,
   Pencil,
   Eye,
+  Users,
 } from "lucide-react";
 
 function AdminTasks() {
-  const [isEditOpen, setIsEditOpen] =
-  useState(false);
+  const { user } = useAuth();
 
-   const [editedTask, setEditedTask] =
-  useState(null);
-  const [isCreateOpen, setIsCreateOpen] =
-  useState(false);
+  const [tasks, setTasks] =
+    useState([]);
 
-const [newTask, setNewTask] = useState({
-  title: "",
-  description: "",
-  project: "",
-  assignee: "",
-  status: "Pending",
-  priority: "Medium",
-  progress: 0,
-  dueDate: "",
-});
-  const [tasks, setTasks] = useState(tasksData);
+  const [users, setUsers] =
+    useState([]);
 
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] =
+    useState(true);
+
+  // 🔎 FILTERS
+  const [search, setSearch] =
+    useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  const [priorityFilter, setPriorityFilter] =
-    useState("All");
+  const [
+    priorityFilter,
+    setPriorityFilter,
+  ] = useState("All");
 
-  // DETAILS MODAL
-  const [selectedTask, setSelectedTask] =
-    useState(null);
+  // 👥 USER SEARCH
+  const [userSearch, setUserSearch] =
+    useState("");
 
-  const [isDetailsOpen, setIsDetailsOpen] =
+  // 👥 ASSIGNED USERS
+  const [
+    selectedUsers,
+    setSelectedUsers,
+  ] = useState([]);
+
+  // MODALS
+  const [
+    isCreateOpen,
+    setIsCreateOpen,
+  ] = useState(false);
+
+  const [isEditOpen, setIsEditOpen] =
     useState(false);
 
-  // FILTERED TASKS
+  const [
+    isDetailsOpen,
+    setIsDetailsOpen,
+  ] = useState(false);
+
+  // SELECTED TASKS
+  const [
+    selectedTask,
+    setSelectedTask,
+  ] = useState(null);
+
+  const [editedTask, setEditedTask] =
+    useState(null);
+
+  // 🆕 NEW TASK
+  const [newTask, setNewTask] =
+    useState({
+      title: "",
+      description: "",
+      project_id: "",
+      status: "Pending",
+      priority: "Medium",
+      progress: 0,
+      due_date: "",
+    });
+
+  // 🔥 INITIAL LOAD
+  useEffect(() => {
+    fetchTasks();
+    fetchUsers();
+  }, []);
+
+  // 📦 FETCH TASKS
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getTasks();
+
+      setTasks(data || []);
+    } catch (error) {
+      console.error(
+        "FETCH TASKS ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 👥 FETCH USERS
+  const fetchUsers = async () => {
+    try {
+      const data = await getUsers();
+
+      setUsers(data || []);
+    } catch (error) {
+      console.error(
+        "FETCH USERS ERROR:",
+        error.message
+      );
+    }
+  };
+
+  // 🔎 FILTERED USERS
+  const filteredUsers = users.filter(
+    (user) =>
+      user.full_name
+        ?.toLowerCase()
+        .includes(
+          userSearch.toLowerCase()
+        )
+  );
+
+  // 🔎 FILTERED TASKS
   const filteredTasks = tasks
     .filter((task) =>
-      task.title.toLowerCase().includes(
-        search.toLowerCase()
-      )
+      task.title
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
     )
     .filter((task) =>
       statusFilter === "All"
@@ -68,83 +160,221 @@ const [newTask, setNewTask] = useState({
     .filter((task) =>
       priorityFilter === "All"
         ? true
-        : task.priority === priorityFilter
+        : task.priority ===
+          priorityFilter
     );
 
-  // DELETE TASK
-  const handleDeleteTask = (id) => {
-    const updatedTasks = tasks.filter(
-      (task) => task.id !== id
+  // 👥 SELECT USERS
+  const toggleUserSelection = (
+    userId
+  ) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter(
+            (id) => id !== userId
+          )
+        : [...prev, userId]
     );
-
-    setTasks(updatedTasks);
   };
 
-  // OPEN DETAILS
-  const handleOpenDetails = (task) => {
+  // 🗑 DELETE TASK
+  const handleDeleteTask = async (
+    id
+  ) => {
+    try {
+      await deleteTask(id);
+
+      setTasks((prev) =>
+        prev.filter(
+          (task) => task.id !== id
+        )
+      );
+    } catch (error) {
+      console.error(
+        "DELETE ERROR:",
+        error.message
+      );
+    }
+  };
+
+  // 👁 OPEN DETAILS
+  const handleOpenDetails = (
+    task
+  ) => {
     setSelectedTask(task);
 
     setIsDetailsOpen(true);
   };
 
-  // STATS
-  const completedTasks = tasks.filter(
-    (task) => task.status === "Completed"
-  ).length;
-
-  const inProgressTasks = tasks.filter(
-    (task) => task.status === "In Progress"
-  ).length;
-
-  const pendingTasks = tasks.filter(
-    (task) => task.status === "Pending"
-  ).length;
-
+  // ✏️ OPEN EDIT
   const handleEditTask = (task) => {
-  setEditedTask(task);
+    setEditedTask({
+      ...task,
+    });
 
-  setIsEditOpen(true);
-};
-
-const handleUpdateTask = () => {
-  const updatedTasks = tasks.map((task) =>
-    task.id === editedTask.id
-      ? editedTask
-      : task
-  );
-
-  setTasks(updatedTasks);
-
-  setIsEditOpen(false);
-};
-
-const handleCreateTask = () => {
-  if (
-    !newTask.title ||
-    !newTask.assignee
-  )
-    return;
-
-  const task = {
-    id: Date.now(),
-    ...newTask,
+    setIsEditOpen(true);
   };
 
-  setTasks([task, ...tasks]);
+  // 💾 UPDATE TASK
+  const handleUpdateTask =
+    async () => {
+      try {
+        const payload = {
+          title: editedTask.title,
+          description:
+            editedTask.description,
+          project_id:
+            editedTask.project_id,
+          status: editedTask.status,
+          priority:
+            editedTask.priority,
+          progress:
+            editedTask.progress,
+          due_date:
+            editedTask.due_date,
+        };
 
-  setNewTask({
-    title: "",
-    description: "",
-    project: "",
-    assignee: "",
-    status: "Pending",
-    priority: "Medium",
-    progress: 0,
-    dueDate: "",
-  });
+        const updated =
+          await updateTask(
+            editedTask.id,
+            payload
+          );
 
-  setIsCreateOpen(false);
-};
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === updated.id
+              ? {
+                  ...task,
+                  ...updated,
+                }
+              : task
+          )
+        );
+
+        setIsEditOpen(false);
+
+        setEditedTask(null);
+      } catch (error) {
+        console.error(
+          "UPDATE ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // ➕ CREATE TASK
+  const handleCreateTask =
+    async () => {
+      if (!newTask.title) return;
+
+      try {
+        // 🔥 CREATE TASK
+        const createdTask =
+          await createTask({
+            title: newTask.title,
+            description:
+              newTask.description,
+            project_id:
+              newTask.project_id ||
+              null,
+            status: newTask.status,
+            priority:
+              newTask.priority,
+            progress:
+              newTask.progress,
+            due_date:
+              newTask.due_date ||
+              null,
+            created_by:
+              user?.id || null,
+          });
+
+        // 👥 ASSIGN USERS
+        if (
+          selectedUsers.length > 0
+        ) {
+          await assignTaskUsers(
+            createdTask.id,
+            selectedUsers
+          );
+        }
+
+        // 🔄 REFRESH TASKS
+        await fetchTasks();
+
+        // 🔥 RESET FORM
+        setNewTask({
+          title: "",
+          description: "",
+          project_id: "",
+          status: "Pending",
+          priority: "Medium",
+          progress: 0,
+          due_date: "",
+        });
+
+        setSelectedUsers([]);
+
+        setUserSearch("");
+
+        setIsCreateOpen(false);
+      } catch (error) {
+        console.error(
+          "CREATE ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // 📊 STATS
+  const completedTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "Completed"
+    ).length;
+
+  const inProgressTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "In Progress"
+    ).length;
+
+  const pendingTasks =
+    tasks.filter(
+      (task) =>
+        task.status === "Pending"
+    ).length;
+
+  // 🎨 PRIORITY COLORS
+  const getPriorityColor = (
+    priority
+  ) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700";
+
+      case "Medium":
+        return "bg-amber-100 text-amber-700";
+
+      case "Low":
+        return "bg-emerald-100 text-emerald-700";
+
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
+  };
+
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading tasks...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
 

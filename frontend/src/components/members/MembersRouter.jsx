@@ -10,7 +10,7 @@ export default function MembersRouter() {
     return <AdminMembers />;
   }
 
-  if (profile?.role === "manager") {
+  if (profile?.role === "Team Manager") {
     return <ManagerMembers />;
   }
 

@@ -1,6 +1,6 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-
-import { performanceData } from "../../data/performanceData";
+import { supabase } from "../../lib/supabase";
 
 import {
   Users,
@@ -13,47 +13,98 @@ import {
 function ManagerPerformance() {
   const { profile } = useAuth();
 
-  // SIMULATED TEAM FILTER
-  // Later Supabase will filter real team members
-  const teamMembers = performanceData.filter(
-    (member) =>
-      member.member !== profile?.full_name
+  const [profiles, setProfiles] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 LOAD SUPABASE DATA
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [{ data: users }, { data: taskData }] =
+        await Promise.all([
+          supabase.from("profiles").select("*"),
+          supabase.from("tasks").select("*"),
+        ]);
+
+      setProfiles(users || []);
+      setTasks(taskData || []);
+    } catch (error) {
+      console.error("MANAGER PERF ERROR:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 👥 TEAM = exclude manager themselves (simple version)
+  const teamMembers = profiles.filter(
+    (p) => p.id !== profile?.id
   );
 
-  // STATS
-  const totalMembers =
-    teamMembers.length;
-
-  const totalCompleted =
-    teamMembers.reduce(
-      (acc, member) =>
-        acc + member.completedTasks,
-      0
+  // 📊 BUILD TEAM PERFORMANCE FROM REAL TASKS
+  const teamPerformance = teamMembers.map((member) => {
+    const memberTasks = tasks.filter(
+      (task) =>
+        task.assignee === member.full_name ||
+        task.assigned_to_email === member.email
     );
 
-  const totalPending =
-    teamMembers.reduce(
-      (acc, member) =>
-        acc + member.pendingTasks,
-      0
-    );
+    const completedTasks = memberTasks.filter(
+      (t) => t.status === "Completed"
+    ).length;
+
+    const pendingTasks = memberTasks.filter(
+      (t) => t.status !== "Completed"
+    ).length;
+
+    const productivity =
+      memberTasks.length === 0
+        ? 0
+        : Math.round(
+            (completedTasks / memberTasks.length) * 100
+          );
+
+    return {
+      id: member.id,
+      member: member.full_name,
+      role: member.role,
+      completedTasks,
+      pendingTasks,
+      productivity,
+    };
+  });
+
+  // 📊 STATS
+  const totalMembers = teamPerformance.length;
+
+  const totalCompleted = teamPerformance.reduce(
+    (acc, m) => acc + m.completedTasks,
+    0
+  );
+
+  const totalPending = teamPerformance.reduce(
+    (acc, m) => acc + m.pendingTasks,
+    0
+  );
 
   const averageProductivity = Math.round(
-    teamMembers.reduce(
-      (acc, member) =>
-        acc + member.productivity,
+    teamPerformance.reduce(
+      (acc, m) => acc + m.productivity,
       0
-    ) / teamMembers.length
+    ) / (teamPerformance.length || 1)
   );
 
-  // BEST MEMBER
-  const bestMember =
-    teamMembers.reduce((prev, current) =>
-      prev.productivity >
-      current.productivity
+  // 🏆 BEST MEMBER
+  const bestMember = teamPerformance.reduce(
+    (prev, current) =>
+      prev.productivity > current.productivity
         ? prev
-        : current
-    );
+        : current,
+    {}
+  );
 
   return (
     <div className="space-y-8">

@@ -11,7 +11,7 @@ function TasksRouter() {
     return <AdminTasks />;
   }
 
-  if (profile?.role === "manager") {
+  if (profile?.role === "Team Manager") {
     return <ManagerTasks />;
   }
 

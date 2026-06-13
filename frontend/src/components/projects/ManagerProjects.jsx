@@ -25,15 +25,19 @@ import ProjectDetailsModal from "./ProjectDetailsModal";
 function ManagerProjects() {
   const { profile } = useAuth();
 
+  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
+  // LOADING
   const [loading, setLoading] =
     useState(true);
 
+  // SEARCH
   const [search, setSearch] =
     useState("");
 
+  // MODALS
   const [isEditOpen, setIsEditOpen] =
     useState(false);
 
@@ -42,6 +46,7 @@ function ManagerProjects() {
     setIsDetailsOpen,
   ] = useState(false);
 
+  // SELECTED PROJECTS
   const [editProject, setEditProject] =
     useState(null);
 
@@ -50,6 +55,7 @@ function ManagerProjects() {
     setSelectedProject,
   ] = useState(null);
 
+  // FETCH PROJECTS
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -60,63 +66,63 @@ function ManagerProjects() {
         const data =
           await getProjects();
 
+        // 🔥 MANAGER PROJECTS ONLY
         const managerProjects =
           data.filter(
             (project) =>
               project.manager ===
-              profile?.full_name
+                profile?.full_name ||
+              project.project_members?.some(
+                (member) =>
+                  member.user_id ===
+                    profile?.id &&
+                  member.role ===
+                    "manager"
+              )
           );
 
         setProjects(
           managerProjects
         );
       } catch (error) {
-        console.error(error);
+        console.error(
+          "FETCH PROJECTS ERROR:",
+          error.message
+        );
       } finally {
         setLoading(false);
       }
     };
 
+  // ✏️ OPEN EDIT
   const handleOpenEdit = (
     project
   ) => {
-    setEditProject({
-      ...project,
-
-      members:
-        Array.isArray(
-          project.members
-        )
-          ? project.members.join(
-              ", "
-            )
-          : "",
-    });
+    setEditProject(project);
 
     setIsEditOpen(true);
   };
 
+  // 👁 OPEN DETAILS
+  const handleOpenDetails = (
+    project
+  ) => {
+    setSelectedProject(project);
+
+    setIsDetailsOpen(true);
+  };
+
+  // 💾 UPDATE PROJECT
   const handleUpdateProject =
     async () => {
+      if (!editProject?.id)
+        return;
+
       try {
-        const updatedData = {
-          ...editProject,
-
-          members:
-            typeof editProject.members ===
-            "string"
-              ? editProject.members
-                  .split(",")
-                  .map((member) =>
-                    member.trim()
-                  )
-              : [],
-        };
-
         const updatedProject =
           await updateProject(
             editProject.id,
-            updatedData
+            editProject
           );
 
         setProjects(
@@ -129,11 +135,17 @@ function ManagerProjects() {
         );
 
         setIsEditOpen(false);
+
+        setEditProject(null);
       } catch (error) {
-        console.error(error);
+        console.error(
+          "UPDATE PROJECT ERROR:",
+          error.message
+        );
       }
     };
 
+  // 🔎 FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -143,6 +155,29 @@ function ManagerProjects() {
         )
     );
 
+  // 📊 STATS
+  const completedProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Completed"
+    ).length;
+
+  const activeProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "In Progress"
+    ).length;
+
+  const planningProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Planning"
+    ).length;
+
+  // 🎨 PRIORITY COLOR
   const getPriorityColor = (
     priority
   ) => {
@@ -161,6 +196,7 @@ function ManagerProjects() {
     }
   };
 
+  // ⏳ LOADING
   if (loading) {
     return (
       <div className="p-10 dark:text-white">

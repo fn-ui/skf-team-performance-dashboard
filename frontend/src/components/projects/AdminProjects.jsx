@@ -1,7 +1,6 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
+
+import AssignMembersModal from "./AssignMembersModal";
 
 import {
   FolderKanban,
@@ -20,6 +19,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  assignProjectMembers,
 } from "../../services/projectsService";
 
 import CreateProjectModal from "./CreateProjectModal";
@@ -27,26 +27,32 @@ import EditProjectModal from "./EditProjectModal";
 import ProjectDetailsModal from "./ProjectDetailsModal";
 
 function AdminProjects() {
+  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
+  // LOADING
   const [loading, setLoading] =
     useState(true);
 
+  // SEARCH
   const [search, setSearch] =
     useState("");
 
+  // MODALS
   const [isCreateOpen, setIsCreateOpen] =
     useState(false);
 
   const [isEditOpen, setIsEditOpen] =
     useState(false);
 
-  const [
-    isDetailsOpen,
-    setIsDetailsOpen,
-  ] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] =
+    useState(false);
 
+  const [isAssignOpen, setIsAssignOpen] =
+    useState(false);
+
+  // SELECTED PROJECTS
   const [
     selectedProject,
     setSelectedProject,
@@ -55,12 +61,12 @@ function AdminProjects() {
   const [editProject, setEditProject] =
     useState(null);
 
+  // NEW PROJECT
   const [newProject, setNewProject] =
     useState({
       name: "",
       description: "",
       manager: "",
-      members: "",
       status: "Planning",
       priority: "Medium",
       progress: 0,
@@ -69,6 +75,7 @@ function AdminProjects() {
       total_tasks: 0,
     });
 
+  // FETCH PROJECTS
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -81,37 +88,34 @@ function AdminProjects() {
 
         setProjects(data || []);
       } catch (error) {
-        console.error(error);
+        console.error(
+          "SUPABASE ERROR:",
+          error.message,
+          error.details,
+          error.hint,
+          error.code
+        );
       } finally {
         setLoading(false);
       }
     };
 
+  // ➕ CREATE PROJECT
   const handleAddProject =
     async () => {
       try {
-        const project = {
+        const payload = {
           ...newProject,
-
-          members:
-            typeof newProject.members ===
-            "string"
-              ? newProject.members
-                  .split(",")
-                  .map((member) =>
-                    member.trim()
-                  )
-              : [],
         };
 
         const createdProject =
           await createProject(
-            project
+            payload
           );
 
-        setProjects([
+        setProjects((prev) => [
           createdProject,
-          ...projects,
+          ...prev,
         ]);
 
         setIsCreateOpen(false);
@@ -120,7 +124,6 @@ function AdminProjects() {
           name: "",
           description: "",
           manager: "",
-          members: "",
           status: "Planning",
           priority: "Medium",
           progress: 0,
@@ -129,70 +132,74 @@ function AdminProjects() {
           total_tasks: 0,
         });
       } catch (error) {
-        console.error(error);
+        console.error(
+          "CREATE PROJECT ERROR:",
+          error.message
+        );
       }
     };
 
+  // 🗑 DELETE PROJECT
   const handleDeleteProject =
     async (id) => {
       try {
         await deleteProject(id);
 
-        setProjects(
-          projects.filter(
+        setProjects((prev) =>
+          prev.filter(
             (project) =>
               project.id !== id
           )
         );
       } catch (error) {
-        console.error(error);
+        console.error(
+          "DELETE ERROR:",
+          error.message
+        );
       }
     };
 
+  // ✏️ OPEN EDIT
   const handleOpenEdit = (
     project
   ) => {
-    setEditProject({
-      ...project,
-
-      members:
-        Array.isArray(
-          project.members
-        )
-          ? project.members.join(
-              ", "
-            )
-          : "",
-    });
+    setEditProject(project);
 
     setIsEditOpen(true);
   };
 
+  // 👁 OPEN DETAILS
+  const handleOpenDetails = (
+    project
+  ) => {
+    setSelectedProject(project);
+
+    setIsDetailsOpen(true);
+  };
+
+  // 👥 OPEN ASSIGN MEMBERS
+  const handleOpenAssignMembers =
+    (project) => {
+      setSelectedProject(project);
+
+      setIsAssignOpen(true);
+    };
+
+  // 💾 UPDATE PROJECT
   const handleUpdateProject =
     async () => {
+      if (!editProject?.id)
+        return;
+
       try {
-        const updatedData = {
-          ...editProject,
-
-          members:
-            typeof editProject.members ===
-            "string"
-              ? editProject.members
-                  .split(",")
-                  .map((member) =>
-                    member.trim()
-                  )
-              : [],
-        };
-
         const updatedProject =
           await updateProject(
             editProject.id,
-            updatedData
+            editProject
           );
 
-        setProjects(
-          projects.map((project) =>
+        setProjects((prev) =>
+          prev.map((project) =>
             project.id ===
             updatedProject.id
               ? updatedProject
@@ -201,11 +208,41 @@ function AdminProjects() {
         );
 
         setIsEditOpen(false);
+
+        setEditProject(null);
       } catch (error) {
-        console.error(error);
+        console.error(
+          "UPDATE ERROR:",
+          error.message
+        );
       }
     };
 
+  // 👥 ASSIGN MEMBERS
+  const handleAssignMembers =
+    async (members) => {
+      try {
+        if (!selectedProject?.id)
+          return;
+
+        await assignProjectMembers(
+          selectedProject.id,
+          members
+        );
+
+        // REFRESH PROJECTS
+        await fetchProjects();
+
+        setIsAssignOpen(false);
+      } catch (error) {
+        console.error(
+          "ASSIGN MEMBERS ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // 🔎 FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -215,6 +252,29 @@ function AdminProjects() {
         )
     );
 
+  // 📊 STATS
+  const completedProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Completed"
+    ).length;
+
+  const activeProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "In Progress"
+    ).length;
+
+  const planningProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Planning"
+    ).length;
+
+  // 🎨 PRIORITY COLOR
   const getPriorityColor = (
     priority
   ) => {
@@ -233,6 +293,7 @@ function AdminProjects() {
     }
   };
 
+  // ⏳ LOADING
   if (loading) {
     return (
       <div className="p-10 dark:text-white">
@@ -381,32 +442,44 @@ function AdminProjects() {
                 </button>
 
                 <button
-                  onClick={() =>
-                    handleOpenEdit(
-                      project
-                    )
-                  }
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white"
-                >
+  onClick={() =>
+    handleOpenEdit(
+      project
+    )
+  }
+  className="flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/20 transition"
+>
 
-                  <Pencil size={18} />
+  <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
 
-                  Edit
+    <Pencil size={16} />
 
-                </button>
+  </div>
 
-                <button
-                  onClick={() =>
-                    handleDeleteProject(
-                      project.id
-                    )
-                  }
-                  className="px-4 py-3 rounded-xl bg-red-600 text-white"
-                >
+  Edit
 
-                  <Trash2 size={18} />
+</button>
 
-                </button>
+<button
+  onClick={() =>
+    handleDeleteProject(
+      project.id
+    )
+  }
+  className="px-4 py-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition"
+>
+
+  <Trash2 size={18} />
+
+</button>
+<button
+  onClick={() => {
+    setSelectedProject(project);
+    setIsAssignOpen(true);
+  }}
+>
+  <Users size={16} />
+</button>
 
               </div>
 
@@ -447,6 +520,11 @@ function AdminProjects() {
         }
         project={selectedProject}
       />
+      <AssignMembersModal
+  isOpen={isAssignOpen}
+  onClose={() => setIsAssignOpen(false)}
+  project={selectedProject}
+/>
 
     </div>
   );

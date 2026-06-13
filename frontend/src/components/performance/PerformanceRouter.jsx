@@ -18,7 +18,7 @@ function PerformanceRouter() {
 
   // MANAGER
   if (
-    role === "manager" ||
+    role === "Team Manager" ||
     role === "team manager"
   ) {
     return <ManagerPerformance />;

@@ -20,15 +20,19 @@ import ProjectDetailsModal from "./ProjectDetailsModal";
 function MemberProjects() {
   const { profile } = useAuth();
 
+  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
+  // LOADING
   const [loading, setLoading] =
     useState(true);
 
+  // SEARCH
   const [search, setSearch] =
     useState("");
 
+  // DETAILS MODAL
   const [
     isDetailsOpen,
     setIsDetailsOpen,
@@ -39,33 +43,56 @@ function MemberProjects() {
     setSelectedProject,
   ] = useState(null);
 
+  // FETCH PROJECTS
   useEffect(() => {
+    if (!profile?.id) return;
+
     fetchProjects();
-  }, []);
+  }, [profile?.id]);
 
   const fetchProjects =
     async () => {
+      setLoading(true);
+
       try {
         const data =
           await getProjects();
 
+        // 🔥 RELATIONAL FILTER
         const memberProjects =
-          data.filter((project) =>
-            project.members?.includes(
-              profile?.full_name
-            )
+          (data || []).filter(
+            (project) => {
+              const members =
+                Array.isArray(
+                  project.project_members
+                )
+                  ? project.project_members
+                  : [];
+
+              return members.some(
+                (member) =>
+                  member.user_id ===
+                  profile?.id
+              );
+            }
           );
 
         setProjects(
           memberProjects
         );
       } catch (error) {
-        console.error(error);
+        console.error(
+          "FETCH PROJECTS ERROR:",
+          error.message
+        );
+
+        setProjects([]);
       } finally {
         setLoading(false);
       }
     };
 
+  // 🔎 FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -75,6 +102,38 @@ function MemberProjects() {
         )
     );
 
+  // 👁 OPEN DETAILS
+  const handleOpenDetails = (
+    project
+  ) => {
+    setSelectedProject(project);
+
+    setIsDetailsOpen(true);
+  };
+
+  // 📊 STATS
+  const completedProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Completed"
+    ).length;
+
+  const activeProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "In Progress"
+    ).length;
+
+  const planningProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Planning"
+    ).length;
+
+  // 🎨 PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -93,6 +152,7 @@ function MemberProjects() {
     }
   };
 
+  // ⏳ LOADING
   if (loading) {
     return (
       <div className="p-10 dark:text-white">
@@ -101,6 +161,7 @@ function MemberProjects() {
     );
   }
 
+  
   return (
     <div className="space-y-8">
 

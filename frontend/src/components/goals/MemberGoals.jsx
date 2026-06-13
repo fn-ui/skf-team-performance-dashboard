@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-import { goalsData } from "../../data/goalsData";
+import { getGoals } from "../../services/goalsService";
 
 import {
   Target,
@@ -16,24 +16,55 @@ import {
 function MemberGoals() {
   const { profile } = useAuth();
 
-  // ONLY MEMBER GOALS
-  const memberGoals = goalsData.filter(
-    (goal) =>
-      goal.assignedTo ===
-      profile?.full_name
-  );
+  // GOALS
+  const [goals, setGoals] =
+    useState([]);
 
+  // LOADING
+  const [loading, setLoading] =
+    useState(true);
+
+  // FILTERS
   const [search, setSearch] =
     useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  // FILTERS
-  const filteredGoals = memberGoals
+  // FETCH GOALS
+  useEffect(() => {
+    fetchGoals();
+  }, []);
+
+  const fetchGoals = async () => {
+    try {
+      const goalsData =
+        await getGoals();
+
+      // 🔥 ONLY MEMBER GOALS
+      const memberGoals =
+        goalsData.filter(
+          (goal) =>
+            goal.owner_id ===
+            profile?.id
+        );
+
+      setGoals(memberGoals);
+    } catch (error) {
+      console.error(
+        "MEMBER GOALS ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // FILTERED GOALS
+  const filteredGoals = goals
     .filter((goal) =>
       goal.title
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase())
     )
     .filter((goal) =>
@@ -42,6 +73,29 @@ function MemberGoals() {
         : goal.status === statusFilter
     );
 
+  // STATS
+  const completedGoals =
+    goals.filter(
+      (goal) =>
+        goal.status ===
+        "Completed"
+    ).length;
+
+  const activeGoals =
+    goals.filter(
+      (goal) =>
+        goal.status ===
+        "Active"
+    ).length;
+
+  const inProgressGoals =
+    goals.filter(
+      (goal) =>
+        goal.status ===
+        "In Progress"
+    ).length;
+
+  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -59,6 +113,15 @@ function MemberGoals() {
         return "bg-slate-100 text-slate-700";
     }
   };
+
+  // LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading goals...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

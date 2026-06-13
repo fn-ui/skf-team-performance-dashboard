@@ -16,7 +16,7 @@ function ReportsRouter() {
 
   // MANAGER
   if (
-    role === "manager" ||
+    role === "Team Manager" ||
     role === "team manager"
   ) {
     return <ManagerReports />;

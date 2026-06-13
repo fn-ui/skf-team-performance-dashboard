@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-import { tasks as tasksData } from "../../data/tasksData";
+import {
+  getTasks,
+  updateTask,
+} from "../../services/tasksService";
 
 import {
   Search,
@@ -10,6 +13,7 @@ import {
   Clock,
   AlertTriangle,
   Eye,
+  FolderKanban,
 } from "lucide-react";
 
 import TaskDetailsModal from "./TaskDetailsModal";
@@ -18,7 +22,10 @@ function MemberTasks() {
   const { profile } = useAuth();
 
   const [tasks, setTasks] =
-    useState(tasksData);
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   const [search, setSearch] =
     useState("");
@@ -26,86 +33,190 @@ function MemberTasks() {
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  // DETAILS MODAL
   const [selectedTask, setSelectedTask] =
     useState(null);
 
   const [isDetailsOpen, setIsDetailsOpen] =
     useState(false);
 
-  // FILTER MEMBER TASKS
-  const memberTasks = tasks
-    .filter(
-      (task) =>
-        task.assignee ===
-        profile?.full_name
-    )
+  // 🔥 LOAD TASKS
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    loadTasks();
+  }, [profile?.id]);
+
+  // 📦 FETCH TASKS
+  const loadTasks = async () => {
+    try {
+      setLoading(true);
+
+      const data =
+        await getTasks();
+
+      setTasks(data || []);
+    } catch (error) {
+      console.error(
+        "FETCH TASKS ERROR:",
+        error.message
+      );
+
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔥 MEMBER TASKS
+  const memberTasks = (tasks || [])
+    .filter((task) => {
+      const assignees =
+        Array.isArray(
+          task.task_assignees
+        )
+          ? task.task_assignees
+          : [];
+
+      return assignees.some(
+        (assignee) =>
+          assignee?.user_id ===
+          profile?.id
+      );
+    })
     .filter((task) =>
-      task.title.toLowerCase().includes(
-        search.toLowerCase()
-      )
+      task.title
+        ?.toLowerCase()
+        .includes(
+          search.toLowerCase()
+        )
     )
     .filter((task) =>
       statusFilter === "All"
         ? true
-        : task.status === statusFilter
+        : task.status ===
+          statusFilter
     );
 
-  // STATS
+  // 📊 STATS
   const completedTasks =
     memberTasks.filter(
       (task) =>
-        task.status === "Completed"
+        task.status ===
+        "Completed"
     ).length;
 
   const inProgressTasks =
     memberTasks.filter(
       (task) =>
-        task.status === "In Progress"
+        task.status ===
+        "In Progress"
     ).length;
 
   const pendingTasks =
     memberTasks.filter(
       (task) =>
-        task.status === "Pending"
+        task.status ===
+        "Pending"
     ).length;
 
-  // DETAILS
-  const handleOpenDetails = (task) => {
+  // 👁 OPEN DETAILS
+  const handleOpenDetails = (
+    task
+  ) => {
     setSelectedTask(task);
 
     setIsDetailsOpen(true);
   };
 
-  // UPDATE TASK STATUS
-  const handleStatusChange = (
-    id,
-    newStatus
-  ) => {
-    const updatedTasks = tasks.map(
-      (task) => {
-        if (task.id === id) {
-          return {
-            ...task,
-            status: newStatus,
+  // 🔄 UPDATE STATUS
+  const handleStatusChange =
+    async (
+      id,
+      newStatus
+    ) => {
+      try {
+        const updates = {
+          status: newStatus,
 
-            progress:
-              newStatus === "Completed"
-                ? 100
-                : newStatus ===
-                  "In Progress"
-                ? 60
-                : 0,
-          };
+          progress:
+            newStatus ===
+            "Completed"
+              ? 100
+              : newStatus ===
+                "In Progress"
+              ? 60
+              : 0,
+        };
+
+        // 🔥 COMPLETED DATE
+        if (
+          newStatus ===
+          "Completed"
+        ) {
+          updates.completed_at =
+            new Date().toISOString();
         }
 
-        return task;
-      }
-    );
+        const updated =
+          await updateTask(
+            id,
+            updates
+          );
 
-    setTasks(updatedTasks);
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === updated.id
+              ? {
+                  ...task,
+                  ...updated,
+                }
+              : task
+          )
+        );
+      } catch (error) {
+        console.error(
+          "UPDATE TASK ERROR:",
+          error.message
+        );
+      }
+    };
+
+  // 🎨 PRIORITY COLORS
+  const getPriorityColor = (
+    priority
+  ) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700";
+
+      case "Medium":
+        return "bg-amber-100 text-amber-700";
+
+      case "Low":
+        return "bg-emerald-100 text-emerald-700";
+
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
   };
 
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading tasks...
+      </div>
+    );
+  }
+
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading tasks...
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
 

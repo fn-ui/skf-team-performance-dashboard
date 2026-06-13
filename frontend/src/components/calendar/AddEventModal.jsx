@@ -15,28 +15,30 @@ function AddEventModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-2xl border border-slate-200 dark:border-zinc-800">
+      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
 
           <div>
 
             <h2 className="text-2xl font-bold dark:text-white">
-              {isEditing ? "Edit Event" : "Add Event"}
+              {isEditing
+                ? "Edit Event"
+                : "Create Event"}
             </h2>
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-slate-500 dark:text-zinc-400">
               {isEditing
-                ? "Update this calendar event."
-                : "Create a new calendar event."}
+                ? "Update calendar event information"
+                : "Create a new calendar event"}
             </p>
 
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+            className="rounded-xl p-2 transition hover:bg-slate-100 dark:hover:bg-zinc-800"
           >
 
             <X
@@ -49,12 +51,12 @@ function AddEventModal({
         </div>
 
         {/* BODY */}
-        <div className="p-6 space-y-5">
+        <div className="space-y-5 p-6">
 
           {/* TITLE */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Event Title
             </label>
 
@@ -67,7 +69,8 @@ function AddEventModal({
                   title: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+              placeholder="Enter event title"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
             />
 
           </div>
@@ -75,7 +78,7 @@ function AddEventModal({
           {/* DESCRIPTION */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Description
             </label>
 
@@ -89,19 +92,20 @@ function AddEventModal({
                     e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none resize-none"
+              placeholder="Enter event description"
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
             />
 
           </div>
 
-          {/* GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* DATE + TIME */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
             {/* DATE */}
             <div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
-                Date
+              <label className="mb-2 block text-sm font-medium dark:text-white">
+                Event Date
               </label>
 
               <input
@@ -113,7 +117,7 @@ function AddEventModal({
                     date: e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               />
 
             </div>
@@ -121,8 +125,8 @@ function AddEventModal({
             {/* TIME */}
             <div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
-                Time
+              <label className="mb-2 block text-sm font-medium dark:text-white">
+                Event Time
               </label>
 
               <input
@@ -134,21 +138,21 @@ function AddEventModal({
                     time: e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               />
 
             </div>
 
           </div>
 
-          {/* GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* TYPE + PRIORITY */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
             {/* TYPE */}
             <div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
-                Type
+              <label className="mb-2 block text-sm font-medium dark:text-white">
+                Event Type
               </label>
 
               <select
@@ -159,23 +163,23 @@ function AddEventModal({
                     type: e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               >
 
-                <option>
+                <option value="Meeting">
                   Meeting
                 </option>
 
-                <option>
+                <option value="Deadline">
                   Deadline
                 </option>
 
-                <option>
-                  Review
+                <option value="Sprint">
+                  Sprint
                 </option>
 
-                <option>
-                  Sprint
+                <option value="Review">
+                  Review
                 </option>
 
               </select>
@@ -185,7 +189,7 @@ function AddEventModal({
             {/* PRIORITY */}
             <div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
+              <label className="mb-2 block text-sm font-medium dark:text-white">
                 Priority
               </label>
 
@@ -198,18 +202,18 @@ function AddEventModal({
                       e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               >
 
-                <option>
+                <option value="High">
                   High
                 </option>
 
-                <option>
+                <option value="Medium">
                   Medium
                 </option>
 
-                <option>
+                <option value="Low">
                   Low
                 </option>
 
@@ -217,49 +221,52 @@ function AddEventModal({
 
             </div>
 
-            {/* ASSIGNED */}
-            <div>
+          </div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
-                Assigned To
-              </label>
+          {/* ASSIGNED TO */}
+          <div>
 
-              <input
-                type="text"
-                value={
-                  newEvent.assignedTo
-                }
-                onChange={(e) =>
-                  setNewEvent({
-                    ...newEvent,
-                    assignedTo:
-                      e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              />
+            <label className="mb-2 block text-sm font-medium dark:text-white">
+              Assigned To
+            </label>
 
-            </div>
+            <input
+              type="text"
+              value={
+                newEvent.assignedTo
+              }
+              onChange={(e) =>
+                setNewEvent({
+                  ...newEvent,
+                  assignedTo:
+                    e.target.value,
+                })
+              }
+              placeholder="Enter assignee name"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            />
 
           </div>
 
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center justify-end gap-4 border-t border-slate-200 p-6 dark:border-zinc-800">
 
           <button
             onClick={onClose}
-            className="px-5 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:text-white"
+            className="rounded-xl border border-slate-200 px-5 py-3 transition hover:bg-slate-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
           >
             Cancel
           </button>
 
           <button
             onClick={handleAddEvent}
-            className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition"
+            className="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
           >
-            {isEditing ? "Save Changes" : "Create Event"}
+            {isEditing
+              ? "Save Changes"
+              : "Create Event"}
           </button>
 
         </div>

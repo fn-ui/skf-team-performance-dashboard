@@ -1,4 +1,5 @@
-import { performanceData } from "../../data/performanceData";
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 
 import {
   TrendingUp,
@@ -9,41 +10,94 @@ import {
 } from "lucide-react";
 
 function AdminPerformance() {
+  const [profiles, setProfiles] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // STATS
-  const totalEmployees =
-    performanceData.length;
+  // 🔥 LOAD REAL DATA FROM SUPABASE
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const totalCompleted =
-    performanceData.reduce(
-      (acc, member) =>
-        acc + member.completedTasks,
-      0
+  const loadData = async () => {
+    try {
+      const [{ data: users }, { data: taskData }] =
+        await Promise.all([
+          supabase.from("profiles").select("*"),
+          supabase.from("tasks").select("*"),
+        ]);
+
+      setProfiles(users || []);
+      setTasks(taskData || []);
+    } catch (error) {
+      console.error("PERFORMANCE ERROR:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔥 BUILD PERFORMANCE DATA (NO MOCKS)
+  const performanceData = profiles.map((user) => {
+    const userTasks = tasks.filter(
+      (task) =>
+        task.assignee === user.full_name ||
+        task.assigned_to_email === user.email
     );
 
-  const totalPending =
-    performanceData.reduce(
-      (acc, member) =>
-        acc + member.pendingTasks,
-      0
-    );
+    const completedTasks = userTasks.filter(
+      (t) => t.status === "Completed"
+    ).length;
+
+    const pendingTasks = userTasks.filter(
+      (t) => t.status !== "Completed"
+    ).length;
+
+    const productivity =
+      userTasks.length === 0
+        ? 0
+        : Math.round(
+            (completedTasks / userTasks.length) * 100
+          );
+
+    return {
+      id: user.id,
+      member: user.full_name,
+      role: user.role,
+      completedTasks,
+      pendingTasks,
+      productivity,
+      attendance: 100,
+    };
+  });
+
+  // 📊 STATS (REAL DATA)
+  const totalEmployees = performanceData.length;
+
+  const totalCompleted = performanceData.reduce(
+    (acc, member) => acc + member.completedTasks,
+    0
+  );
+
+  const totalPending = performanceData.reduce(
+    (acc, member) => acc + member.pendingTasks,
+    0
+  );
 
   const averageProductivity = Math.round(
     performanceData.reduce(
-      (acc, member) =>
-        acc + member.productivity,
+      (acc, member) => acc + member.productivity,
       0
-    ) / performanceData.length
+    ) / (performanceData.length || 1)
   );
 
-  // TOP PERFORMER
-  const topPerformer =
-    performanceData.reduce((prev, current) =>
-      prev.productivity >
-      current.productivity
+  // 🏆 TOP PERFORMER
+  const topPerformer = performanceData.reduce(
+    (prev, current) =>
+      prev.productivity > current.productivity
         ? prev
-        : current
-    );
+        : current,
+    {}
+  );
 
   return (
     <div className="space-y-8">

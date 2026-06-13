@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { reportsData } from "../../data/reportsData";
+import { getAdminReportStats } from "../../services/reportsService";
+
 import GenerateReportModal from "./GenerateReportModal";
 import ExportReportModal from "./ExportReportModal";
 
@@ -16,40 +17,130 @@ import {
 } from "lucide-react";
 
 function AdminReports() {
+  const [loading, setLoading] =
+    useState(true);
 
-    const [isModalOpen, setIsModalOpen] =
-  useState(false);
+  // 🔥 REAL DATA
+  const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] =
+    useState([]);
+  const [users, setUsers] = useState([]);
 
-const [reportList, setReportList] =
-  useState(reportsData);
+  // 🔥 REPORTS STATE
+  const [reportList, setReportList] =
+    useState([]);
 
-const [newReport, setNewReport] =
-  useState({
-    title: "",
-    category: "Performance",
-    project: "",
-    generatedBy: "Admin",
-    date: "2026-06-10",
-    status: "Completed",
-    type: "PDF",
-  });
+  // 🔥 MODALS
+  const [isModalOpen, setIsModalOpen] =
+    useState(false);
 
-  const [isExportModalOpen, setIsExportModalOpen] =
-  useState(false);
+  const [
+    isExportModalOpen,
+    setIsExportModalOpen,
+  ] = useState(false);
 
-const [selectedFormat, setSelectedFormat] =
-  useState("PDF");
+  // 🔥 EXPORT FORMAT
+  const [
+    selectedFormat,
+    setSelectedFormat,
+  ] = useState("PDF");
 
-  const [search, setSearch] = useState("");
+  // 🔥 SEARCH/FILTERS
+  const [search, setSearch] =
+    useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  // FILTER REPORTS
+  // 🔥 NEW REPORT
+  const [newReport, setNewReport] =
+    useState({
+      title: "",
+      category: "Performance",
+      project: "",
+      generatedBy: "Admin",
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
+      status: "Completed",
+      type: "PDF",
+    });
+
+  // 🔥 LOAD REPORT DATA
+  useEffect(() => {
+    loadReportsData();
+  }, []);
+
+  const loadReportsData = async () => {
+    try {
+      setLoading(true);
+
+      const data =
+        await getAdminReportStats();
+
+      setTasks(data.tasks || []);
+      setProjects(data.projects || []);
+      setUsers(data.users || []);
+
+      // 🔥 AUTO GENERATED REPORTS
+      const generatedReports = [
+        {
+          id: 1,
+          title:
+            "Company Performance Report",
+          category: "Performance",
+          project: "All Projects",
+          generatedBy: "System",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status: "Completed",
+          type: "PDF",
+        },
+
+        {
+          id: 2,
+          title: "Projects Summary",
+          category: "Projects",
+          project: "All Projects",
+          generatedBy: "System",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status: "Completed",
+          type: "Excel",
+        },
+
+        {
+          id: 3,
+          title: "Tasks Analytics",
+          category: "Tasks",
+          project: "All Projects",
+          generatedBy: "System",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status: "Completed",
+          type: "PDF",
+        },
+      ];
+
+      setReportList(generatedReports);
+    } catch (error) {
+      console.error(
+        "REPORT FETCH ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔎 FILTER REPORTS
   const filteredReports = reportList
     .filter((report) =>
       report.title
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase())
     )
     .filter((report) =>
@@ -58,7 +149,7 @@ const [selectedFormat, setSelectedFormat] =
         : report.status === statusFilter
     );
 
-  // STATS
+  // 📊 REAL STATS
   const totalReports =
     reportList.length;
 
@@ -74,49 +165,81 @@ const [selectedFormat, setSelectedFormat] =
         report.status === "Pending"
     ).length;
 
-    const handleGenerateReport = () => {
-  if (
-    !newReport.title ||
-    !newReport.project
-  )
-    return;
+  const totalProjects =
+    projects.length;
 
-  const report = {
-    id: Date.now(),
-    ...newReport,
+  const totalTasks = tasks.length;
+
+  const completedTasks = tasks.filter(
+    (task) =>
+      task.status === "Completed"
+  ).length;
+
+  const productivity =
+    totalTasks === 0
+      ? 0
+      : Math.round(
+          (completedTasks / totalTasks) *
+            100
+        );
+
+  // ➕ GENERATE REPORT
+  const handleGenerateReport = () => {
+    if (
+      !newReport.title ||
+      !newReport.project
+    )
+      return;
+
+    const report = {
+      id: Date.now(),
+      ...newReport,
+    };
+
+    setReportList((prev) => [
+      report,
+      ...prev,
+    ]);
+
+    setNewReport({
+      title: "",
+      category: "Performance",
+      project: "",
+      generatedBy: "Admin",
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
+      status: "Completed",
+      type: "PDF",
+    });
+
+    setIsModalOpen(false);
   };
 
-  setReportList([
-    report,
-    ...reportList,
-  ]);
+  // 📥 EXPORT
+  const handleExport = () => {
+    console.log(
+      `Exporting reports as ${selectedFormat}`
+    );
 
-  setNewReport({
-    title: "",
-    category: "Performance",
-    project: "",
-    generatedBy: "Admin",
-    date: "2026-06-10",
-    status: "Completed",
-    type: "PDF",
-  });
+    setIsExportModalOpen(false);
+  };
 
-  setIsModalOpen(false);
-};
+  // ⬇ DOWNLOAD
+  const handleDownload = (report) => {
+    console.log(
+      `Downloading ${report.title}`
+    );
+  };
 
-const handleExport = () => {
-  console.log(
-    `Exporting reports as ${selectedFormat}`
-  );
-
-  setIsExportModalOpen(false);
-};
-
-const handleDownload = (report) => {
-  console.log(
-    `Downloading ${report.title}`
-  );
-};
+  // ⏳ LOADING
+  if (loading) {
+    return (
+      <div className="p-10 dark:text-white">
+        Loading reports...
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
 
