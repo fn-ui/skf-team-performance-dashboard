@@ -6,6 +6,7 @@ function CreateGoalModal({
   newGoal,
   setNewGoal,
   handleCreateGoal,
+  users,
 }) {
   if (!isOpen) return null;
 
@@ -101,19 +102,33 @@ function CreateGoalModal({
                 Assigned To
               </label>
 
-              <input
-                type="text"
-                value={newGoal.assignedTo}
+              <select
+                value={newGoal.owner_id}
                 onChange={(e) =>
                   setNewGoal({
                     ...newGoal,
-                    assignedTo:
-                      e.target.value,
+                    owner_id: e.target.value,
                   })
                 }
-                placeholder="Member or Manager"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              />
+              >
+
+                <option value="">
+                  Select User
+                </option>
+
+                {users?.map((user) => (
+
+                  <option
+                    key={user.id}
+                    value={user.id}
+                  >
+                    {user.full_name}
+                  </option>
+
+                ))}
+
+              </select>
 
             </div>
 
@@ -126,7 +141,7 @@ function CreateGoalModal({
 
               <input
                 type="text"
-                value={newGoal.department}
+                value={newGoal.department || ""}
                 onChange={(e) =>
                   setNewGoal({
                     ...newGoal,
@@ -142,91 +157,55 @@ function CreateGoalModal({
 
           </div>
 
-          {/* PRIORITY + STATUS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            {/* PRIORITY */}
-            <div>
-
-              <label className="block mb-2 font-semibold dark:text-white">
-                Priority
-              </label>
-
-              <select
-                value={newGoal.priority}
-                onChange={(e) =>
-                  setNewGoal({
-                    ...newGoal,
-                    priority:
-                      e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              >
-
-                <option>
-                  High
-                </option>
-
-                <option>
-                  Medium
-                </option>
-
-                <option>
-                  Low
-                </option>
-
-              </select>
-
-            </div>
-
-            {/* STATUS */}
-            <div>
-
-              <label className="block mb-2 font-semibold dark:text-white">
-                Status
-              </label>
-
-              <select
-                value={newGoal.status}
-                onChange={(e) =>
-                  setNewGoal({
-                    ...newGoal,
-                    status:
-                      e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              >
-
-                <option>
-                  In Progress
-                </option>
-
-                <option>
-                  Completed
-                </option>
-
-              </select>
-
-            </div>
-
-          </div>
-
-          {/* DEADLINE */}
+          {/* PRIORITY */}
           <div>
 
             <label className="block mb-2 font-semibold dark:text-white">
-              Deadline
+              Priority
+            </label>
+
+            <select
+              value={newGoal.priority}
+              onChange={(e) =>
+                setNewGoal({
+                  ...newGoal,
+                  priority:
+                    e.target.value,
+                })
+              }
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+            >
+
+              <option>
+                High
+              </option>
+
+              <option>
+                Medium
+              </option>
+
+              <option>
+                Low
+              </option>
+
+            </select>
+
+          </div>
+
+          {/* TARGET DATE */}
+          <div>
+
+            <label className="block mb-2 font-semibold dark:text-white">
+              Target Date
             </label>
 
             <input
               type="date"
-              value={newGoal.deadline}
+              value={newGoal.target_date || ""}
               onChange={(e) =>
                 setNewGoal({
                   ...newGoal,
-                  deadline:
+                  target_date:
                     e.target.value,
                 })
               }

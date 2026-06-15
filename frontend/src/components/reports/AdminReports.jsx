@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getAdminReportStats } from "../../services/reportsService";
 
@@ -14,6 +14,9 @@ import {
   Clock,
   BarChart3,
   FolderKanban,
+  Users,
+  FolderOpen,
+  TrendingUp,
 } from "lucide-react";
 
 function AdminReports() {
@@ -21,12 +24,16 @@ function AdminReports() {
     useState(true);
 
   // 🔥 REAL DATA
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] =
+    useState([]);
+
   const [projects, setProjects] =
     useState([]);
-  const [users, setUsers] = useState([]);
 
-  // 🔥 REPORTS STATE
+  const [users, setUsers] =
+    useState([]);
+
+  // 🔥 REPORTS
   const [reportList, setReportList] =
     useState([]);
 
@@ -39,13 +46,13 @@ function AdminReports() {
     setIsExportModalOpen,
   ] = useState(false);
 
-  // 🔥 EXPORT FORMAT
+  // 🔥 EXPORT
   const [
     selectedFormat,
     setSelectedFormat,
   ] = useState("PDF");
 
-  // 🔥 SEARCH/FILTERS
+  // 🔥 FILTERS
   const [search, setSearch] =
     useState("");
 
@@ -66,7 +73,8 @@ function AdminReports() {
       type: "PDF",
     });
 
-  // 🔥 LOAD REPORT DATA
+  /* ================= LOAD DATA ================= */
+
   useEffect(() => {
     loadReportsData();
   }, []);
@@ -78,11 +86,51 @@ function AdminReports() {
       const data =
         await getAdminReportStats();
 
-      setTasks(data.tasks || []);
-      setProjects(data.projects || []);
-      setUsers(data.users || []);
+      const tasksData =
+        data?.tasks || [];
 
-      // 🔥 AUTO GENERATED REPORTS
+      const projectsData =
+        data?.projects || [];
+
+      const usersData =
+        data?.users || [];
+
+      setTasks(tasksData);
+
+      setProjects(projectsData);
+
+      setUsers(usersData);
+
+      /* ================= AUTO GENERATED REPORTS ================= */
+
+      const completedTasks =
+        tasksData.filter(
+          (task) =>
+            task.status === "Completed"
+        ).length;
+
+      const pendingTasks =
+        tasksData.filter(
+          (task) =>
+            task.status !== "Completed"
+        ).length;
+
+      const activeProjects =
+        projectsData.filter(
+          (project) =>
+            project.status !==
+            "Completed"
+        ).length;
+
+      const productivity =
+        tasksData.length === 0
+          ? 0
+          : Math.round(
+              (completedTasks /
+                tasksData.length) *
+                100
+            );
+
       const generatedReports = [
         {
           id: 1,
@@ -96,11 +144,14 @@ function AdminReports() {
             .split("T")[0],
           status: "Completed",
           type: "PDF",
+          metric:
+            productivity + "% Productivity",
         },
 
         {
           id: 2,
-          title: "Projects Summary",
+          title:
+            "Projects Overview Report",
           category: "Projects",
           project: "All Projects",
           generatedBy: "System",
@@ -109,11 +160,15 @@ function AdminReports() {
             .split("T")[0],
           status: "Completed",
           type: "Excel",
+          metric:
+            activeProjects +
+            " Active Projects",
         },
 
         {
           id: 3,
-          title: "Tasks Analytics",
+          title:
+            "Task Analytics Report",
           category: "Tasks",
           project: "All Projects",
           generatedBy: "System",
@@ -122,6 +177,46 @@ function AdminReports() {
             .split("T")[0],
           status: "Completed",
           type: "PDF",
+          metric:
+            completedTasks +
+            " Completed Tasks",
+        },
+
+        {
+          id: 4,
+          title:
+            "Team Activity Report",
+          category: "Employees",
+          project: "Company Wide",
+          generatedBy: "System",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status: "Completed",
+          type: "PDF",
+          metric:
+            usersData.length +
+            " Employees",
+        },
+
+        {
+          id: 5,
+          title:
+            "Pending Tasks Summary",
+          category: "Tasks",
+          project: "All Projects",
+          generatedBy: "System",
+          date: new Date()
+            .toISOString()
+            .split("T")[0],
+          status:
+            pendingTasks > 0
+              ? "Pending"
+              : "Completed",
+          type: "Excel",
+          metric:
+            pendingTasks +
+            " Pending Tasks",
         },
       ];
 
@@ -136,20 +231,26 @@ function AdminReports() {
     }
   };
 
-  // 🔎 FILTER REPORTS
-  const filteredReports = reportList
-    .filter((report) =>
-      report.title
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-    )
-    .filter((report) =>
-      statusFilter === "All"
-        ? true
-        : report.status === statusFilter
-    );
+  /* ================= FILTER REPORTS ================= */
 
-  // 📊 REAL STATS
+  const filteredReports =
+    reportList
+      .filter((report) =>
+        report.title
+          ?.toLowerCase()
+          .includes(
+            search.toLowerCase()
+          )
+      )
+      .filter((report) =>
+        statusFilter === "All"
+          ? true
+          : report.status ===
+            statusFilter
+      );
+
+  /* ================= REAL STATS ================= */
+
   const totalReports =
     reportList.length;
 
@@ -168,55 +269,117 @@ function AdminReports() {
   const totalProjects =
     projects.length;
 
+  const totalUsers = users.length;
+
   const totalTasks = tasks.length;
 
-  const completedTasks = tasks.filter(
-    (task) =>
-      task.status === "Completed"
-  ).length;
+  const completedTasks =
+    tasks.filter(
+      (task) =>
+        task.status === "Completed"
+    ).length;
 
   const productivity =
     totalTasks === 0
       ? 0
       : Math.round(
-          (completedTasks / totalTasks) *
+          (completedTasks /
+            totalTasks) *
             100
         );
 
-  // ➕ GENERATE REPORT
-  const handleGenerateReport = () => {
-    if (
-      !newReport.title ||
-      !newReport.project
-    )
-      return;
+  /* ================= TOP PERFORMER ================= */
 
-    const report = {
-      id: Date.now(),
-      ...newReport,
+  const topPerformer = useMemo(() => {
+    const memberStats = users.map(
+      (user) => {
+        const userTasks =
+          tasks.filter(
+            (task) =>
+              task.assignee ===
+                user.full_name ||
+              task.assigned_to_email ===
+                user.email
+          );
+
+        const completed =
+          userTasks.filter(
+            (task) =>
+              task.status ===
+              "Completed"
+          ).length;
+
+        const score =
+          userTasks.length === 0
+            ? 0
+            : Math.round(
+                (completed /
+                  userTasks.length) *
+                  100
+              );
+
+        return {
+          name:
+            user.full_name,
+          role: user.role,
+          score,
+        };
+      }
+    );
+
+    return memberStats.reduce(
+      (prev, current) =>
+        prev.score > current.score
+          ? prev
+          : current,
+      {
+        name: "No Data",
+        role: "-",
+        score: 0,
+      }
+    );
+  }, [tasks, users]);
+
+  /* ================= GENERATE REPORT ================= */
+
+  const handleGenerateReport =
+    () => {
+      if (
+        !newReport.title ||
+        !newReport.project
+      )
+        return;
+
+      const report = {
+        id: Date.now(),
+        ...newReport,
+        metric:
+          productivity +
+          "% Productivity",
+      };
+
+      setReportList((prev) => [
+        report,
+        ...prev,
+      ]);
+
+      setNewReport({
+        title: "",
+        category: "Performance",
+        project: "",
+        generatedBy: "Admin",
+        date: new Date()
+          .toISOString()
+          .split("T")[0],
+        status: "Completed",
+        type: "PDF",
+      });
+
+      setIsModalOpen(false);
     };
 
-    setReportList((prev) => [
-      report,
-      ...prev,
-    ]);
+  /* ================= EXPORT ================= */
 
-    setNewReport({
-      title: "",
-      category: "Performance",
-      project: "",
-      generatedBy: "Admin",
-      date: new Date()
-        .toISOString()
-        .split("T")[0],
-      status: "Completed",
-      type: "PDF",
-    });
-
-    setIsModalOpen(false);
-  };
-
-  // 📥 EXPORT
   const handleExport = () => {
     console.log(
       `Exporting reports as ${selectedFormat}`
@@ -225,14 +388,18 @@ function AdminReports() {
     setIsExportModalOpen(false);
   };
 
-  // ⬇ DOWNLOAD
-  const handleDownload = (report) => {
+  /* ================= DOWNLOAD ================= */
+
+  const handleDownload = (
+    report
+  ) => {
     console.log(
       `Downloading ${report.title}`
     );
   };
 
-  // ⏳ LOADING
+  /* ================= LOADING ================= */
+
   if (loading) {
     return (
       <div className="p-10 dark:text-white">
@@ -240,6 +407,7 @@ function AdminReports() {
       </div>
     );
   }
+
   return (
     <div className="space-y-8">
 
@@ -253,7 +421,9 @@ function AdminReports() {
           </h1>
 
           <p className="text-slate-500 dark:text-zinc-400 mt-2">
-            Generate, monitor, and export company-wide reports.
+            Generate, monitor, and
+            export real-time company
+            reports.
           </p>
 
         </div>
@@ -262,24 +432,31 @@ function AdminReports() {
 
           <button
             onClick={() =>
-                setIsExportModalOpen(true)
+              setIsExportModalOpen(
+                true
+              )
             }
             className="flex items-center gap-2 border border-slate-200 dark:border-zinc-800 px-5 py-3 rounded-xl dark:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
-            >
+          >
 
             <Download size={18} />
 
             Export
 
-            </button>
+          </button>
 
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() =>
+              setIsModalOpen(true)
+            }
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl transition"
-            >
+          >
+
             <Plus size={18} />
+
             Generate Report
-            </button>
+
+          </button>
 
         </div>
 
@@ -288,7 +465,7 @@ function AdminReports() {
       {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* TOTAL */}
+        {/* TOTAL REPORTS */}
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
 
           <div className="flex items-center justify-between">
@@ -305,39 +482,9 @@ function AdminReports() {
 
             </div>
 
-            <div className="bg-blue-100 p-3 rounded-xl">
-
-              <FileText
-                size={24}
-                className="text-blue-600"
-              />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Completed
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {completedReports}
-              </h2>
-
-            </div>
-
             <div className="bg-emerald-100 p-3 rounded-xl">
 
-              <CheckCircle
+              <FileText
                 size={24}
                 className="text-emerald-600"
               />
@@ -348,7 +495,7 @@ function AdminReports() {
 
         </div>
 
-        {/* PENDING */}
+        {/* PROJECTS */}
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
 
           <div className="flex items-center justify-between">
@@ -356,20 +503,20 @@ function AdminReports() {
             <div>
 
               <p className="text-slate-500 dark:text-zinc-400">
-                Pending
+                Projects
               </p>
 
               <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {pendingReports}
+                {totalProjects}
               </h2>
 
             </div>
 
-            <div className="bg-amber-100 p-3 rounded-xl">
+            <div className="bg-emerald-100 p-3 rounded-xl">
 
-              <Clock
+              <FolderOpen
                 size={24}
-                className="text-amber-600"
+                className="text-emerald-600"
               />
 
             </div>
@@ -378,7 +525,7 @@ function AdminReports() {
 
         </div>
 
-        {/* CATEGORIES */}
+        {/* EMPLOYEES */}
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
 
           <div className="flex items-center justify-between">
@@ -386,23 +533,96 @@ function AdminReports() {
             <div>
 
               <p className="text-slate-500 dark:text-zinc-400">
-                Categories
+                Employees
               </p>
 
               <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                4
+                {totalUsers}
               </h2>
 
             </div>
 
-            <div className="bg-purple-100 p-3 rounded-xl">
+            <div className="bg-emerald-100 p-3 rounded-xl">
 
-              <BarChart3
+              <Users
                 size={24}
-                className="text-purple-600"
+                className="text-emerald-600"
               />
 
             </div>
+
+          </div>
+
+        </div>
+
+        {/* PRODUCTIVITY */}
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <p className="text-slate-500 dark:text-zinc-400">
+                Productivity
+              </p>
+
+              <h2 className="text-3xl font-bold mt-3 dark:text-white">
+                {productivity}%
+              </h2>
+
+            </div>
+
+            <div className="bg-emerald-100 p-3 rounded-xl">
+
+              <TrendingUp
+                size={24}
+                className="text-emerald-600"
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* TOP PERFORMER */}
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
+
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+
+          <div>
+
+            <div className="flex items-center gap-3">
+
+              <BarChart3 size={28} />
+
+              <h2 className="text-2xl font-bold">
+                Top Performer
+              </h2>
+
+            </div>
+
+            <p className="mt-4 text-lg">
+              {topPerformer.name}
+            </p>
+
+            <p className="text-emerald-100 mt-2">
+              {topPerformer.role}
+            </p>
+
+          </div>
+
+          <div className="text-center lg:text-right">
+
+            <h1 className="text-6xl font-bold">
+              {topPerformer.score}%
+            </h1>
+
+            <p className="mt-2 text-emerald-100">
+              Performance Score
+            </p>
 
           </div>
 
@@ -426,7 +646,9 @@ function AdminReports() {
             placeholder="Search reports..."
             value={search}
             onChange={(e) =>
-              setSearch(e.target.value)
+              setSearch(
+                e.target.value
+              )
             }
             className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
           />
@@ -437,14 +659,24 @@ function AdminReports() {
         <select
           value={statusFilter}
           onChange={(e) =>
-            setStatusFilter(e.target.value)
+            setStatusFilter(
+              e.target.value
+            )
           }
           className="px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
         >
 
-          <option>All</option>
-          <option>Completed</option>
-          <option>Pending</option>
+          <option>
+            All
+          </option>
+
+          <option>
+            Completed
+          </option>
+
+          <option>
+            Pending
+          </option>
 
         </select>
 
@@ -470,7 +702,7 @@ function AdminReports() {
                 </th>
 
                 <th className="text-left p-5 dark:text-white">
-                  Project
+                  Metric
                 </th>
 
                 <th className="text-left p-5 dark:text-white">
@@ -499,77 +731,97 @@ function AdminReports() {
 
             <tbody>
 
-              {filteredReports.map((report) => (
+              {filteredReports.map(
+                (report) => (
 
-                <tr
-                  key={report.id}
-                  className="border-t border-slate-200 dark:border-zinc-800"
-                >
+                  <tr
+                    key={
+                      report.id
+                    }
+                    className="border-t border-slate-200 dark:border-zinc-800"
+                  >
 
-                  <td className="p-5 font-semibold dark:text-white">
-                    {report.title}
-                  </td>
+                    <td className="p-5 font-semibold dark:text-white">
+                      {
+                        report.title
+                      }
+                    </td>
 
-                  <td className="p-5 text-slate-500 dark:text-zinc-400">
-                    {report.category}
-                  </td>
+                    <td className="p-5 text-slate-500 dark:text-zinc-400">
+                      {
+                        report.category
+                      }
+                    </td>
 
-                  <td className="p-5 dark:text-white">
-                    {report.project}
-                  </td>
+                    <td className="p-5 dark:text-white">
+                      {
+                        report.metric
+                      }
+                    </td>
 
-                  <td className="p-5 dark:text-white">
-                    {report.generatedBy}
-                  </td>
+                    <td className="p-5 dark:text-white">
+                      {
+                        report.generatedBy
+                      }
+                    </td>
 
-                  <td className="p-5 dark:text-white">
-                    {report.date}
-                  </td>
-
-                  <td className="p-5">
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold
-                        ${
-                          report.status === "Completed"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-100 text-amber-700"
-                        }
-                      `}
-                    >
-                      {report.status}
-                    </span>
-
-                  </td>
-
-                  <td className="p-5 dark:text-white">
-                    {report.type}
-                  </td>
-
-                  <td className="p-5">
+                    <td className="p-5 dark:text-white">
+                      {
+                        report.date
+                      }
+                    </td>
 
                     <td className="p-5">
 
-                <button
-                    onClick={() =>
-                    handleDownload(report)
-                    }
-                    className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold transition"
-                >
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          report.status ===
+                          "Completed"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
 
-                    <Download size={18} />
+                        {
+                          report.status
+                        }
 
-                    Download
+                      </span>
 
-                </button>
+                    </td>
 
-                </td>
+                    <td className="p-5 dark:text-white">
+                      {
+                        report.type
+                      }
+                    </td>
 
-                  </td>
+                    <td className="p-5">
 
-                </tr>
+                      <button
+                        onClick={() =>
+                          handleDownload(
+                            report
+                          )
+                        }
+                        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold transition"
+                      >
 
-              ))}
+                        <Download
+                          size={
+                            18
+                          }
+                        />
+
+                        Download
+
+                      </button>
+
+                    </td>
+
+                  </tr>
+                )
+              )}
 
             </tbody>
 
@@ -580,8 +832,8 @@ function AdminReports() {
       </div>
 
       {/* EMPTY STATE */}
-      {filteredReports.length === 0 && (
-
+      {filteredReports.length ===
+        0 && (
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
 
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
@@ -598,29 +850,48 @@ function AdminReports() {
           </h2>
 
           <p className="text-slate-500 dark:text-zinc-400 mt-3">
-            No reports match your search or filters.
+            No reports match
+            your search or
+            filters.
           </p>
 
         </div>
-
       )}
+
+      {/* MODALS */}
       <GenerateReportModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() =>
+          setIsModalOpen(false)
+        }
         newReport={newReport}
-        setNewReport={setNewReport}
-        handleGenerateReport={handleGenerateReport}
-        />
+        setNewReport={
+          setNewReport
+        }
+        handleGenerateReport={
+          handleGenerateReport
+        }
+      />
 
-            <ExportReportModal
-            isOpen={isExportModalOpen}
-            onClose={() =>
-                setIsExportModalOpen(false)
-            }
-            selectedFormat={selectedFormat}
-            setSelectedFormat={setSelectedFormat}
-            handleExport={handleExport}
-            />
+      <ExportReportModal
+        isOpen={
+          isExportModalOpen
+        }
+        onClose={() =>
+          setIsExportModalOpen(
+            false
+          )
+        }
+        selectedFormat={
+          selectedFormat
+        }
+        setSelectedFormat={
+          setSelectedFormat
+        }
+        handleExport={
+          handleExport
+        }
+      />
 
     </div>
   );

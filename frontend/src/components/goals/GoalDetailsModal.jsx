@@ -5,6 +5,7 @@ import {
   Flag,
   TrendingUp,
   CheckCircle2,
+  FolderKanban,
 } from "lucide-react";
 
 function GoalDetailsModal({
@@ -19,6 +20,7 @@ function GoalDetailsModal({
     priority
   ) => {
     switch (priority) {
+
       case "High":
         return "bg-red-100 text-red-700";
 
@@ -36,7 +38,7 @@ function GoalDetailsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl border border-slate-200 dark:border-zinc-800 overflow-hidden max-h-[90vh] overflow-y-auto">
 
         {/* HEADER */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-zinc-800">
@@ -48,8 +50,7 @@ function GoalDetailsModal({
             </h2>
 
             <p className="text-slate-500 dark:text-zinc-400 mt-1">
-              Full goal information and
-              progress.
+              Full goal information and progress.
             </p>
 
           </div>
@@ -85,13 +86,14 @@ function GoalDetailsModal({
                   goal.priority
                 )}`}
               >
-                {goal.priority}
+                {goal.priority || "Medium"}
               </span>
 
             </div>
 
             <p className="text-slate-500 dark:text-zinc-400 mt-4 leading-relaxed">
-              {goal.description}
+              {goal.description ||
+                "No description provided."}
             </p>
 
           </div>
@@ -115,7 +117,7 @@ function GoalDetailsModal({
               </div>
 
               <p className="font-bold dark:text-white">
-                {goal.progress}%
+                {goal.progress || 0}%
               </p>
 
             </div>
@@ -125,7 +127,9 @@ function GoalDetailsModal({
               <div
                 className="bg-emerald-500 h-4 rounded-full transition-all duration-500"
                 style={{
-                  width: `${goal.progress}%`,
+                  width: `${
+                    goal.progress || 0
+                  }%`,
                 }}
               />
 
@@ -150,7 +154,9 @@ function GoalDetailsModal({
                   </p>
 
                   <h3 className="font-bold dark:text-white mt-1">
-                    {goal.assignedTo}
+                    {goal.profiles
+                      ?.full_name ||
+                      "Not Assigned"}
                   </h3>
 
                 </div>
@@ -159,7 +165,31 @@ function GoalDetailsModal({
 
             </div>
 
-            {/* DEADLINE */}
+            {/* PROJECT */}
+            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
+
+              <div className="flex items-center gap-3">
+
+                <FolderKanban className="text-violet-500" />
+
+                <div>
+
+                  <p className="text-slate-500 dark:text-zinc-400 text-sm">
+                    Project
+                  </p>
+
+                  <h3 className="font-bold dark:text-white mt-1">
+                    {goal.projects?.name ||
+                      "No Project"}
+                  </h3>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* TARGET DATE */}
             <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
 
               <div className="flex items-center gap-3">
@@ -169,11 +199,12 @@ function GoalDetailsModal({
                 <div>
 
                   <p className="text-slate-500 dark:text-zinc-400 text-sm">
-                    Deadline
+                    Target Date
                   </p>
 
                   <h3 className="font-bold dark:text-white mt-1">
-                    {goal.deadline}
+                    {goal.target_date ||
+                      "No Date"}
                   </h3>
 
                 </div>
@@ -196,7 +227,8 @@ function GoalDetailsModal({
                   </p>
 
                   <h3 className="font-bold dark:text-white mt-1">
-                    {goal.status}
+                    {goal.status ||
+                      "In Progress"}
                   </h3>
 
                 </div>
@@ -206,7 +238,7 @@ function GoalDetailsModal({
             </div>
 
             {/* PRIORITY */}
-            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
+            <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5 md:col-span-2">
 
               <div className="flex items-center gap-3">
 
@@ -219,68 +251,13 @@ function GoalDetailsModal({
                   </p>
 
                   <h3 className="font-bold dark:text-white mt-1">
-                    {goal.priority}
+                    {goal.priority ||
+                      "Medium"}
                   </h3>
 
                 </div>
 
               </div>
-
-            </div>
-
-          </div>
-
-          {/* MILESTONES */}
-          <div>
-
-            <h3 className="text-xl font-bold dark:text-white mb-5">
-              Milestones
-            </h3>
-
-            <div className="space-y-4">
-
-              {goal.milestones?.map(
-                (milestone, index) => (
-
-                  <div
-                    key={index}
-                    className="flex items-center justify-between bg-slate-50 dark:bg-zinc-950 rounded-2xl p-4"
-                  >
-
-                    <div className="flex items-center gap-4">
-
-                      <div
-                        className={`w-4 h-4 rounded-full ${
-                          milestone.completed
-                            ? "bg-emerald-500"
-                            : "bg-slate-300 dark:bg-zinc-700"
-                        }`}
-                      />
-
-                      <p className="dark:text-white font-medium">
-                        {
-                          milestone.title
-                        }
-                      </p>
-
-                    </div>
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        milestone.completed
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {milestone.completed
-                        ? "Completed"
-                        : "Pending"}
-                    </span>
-
-                  </div>
-
-                )
-              )}
 
             </div>
 

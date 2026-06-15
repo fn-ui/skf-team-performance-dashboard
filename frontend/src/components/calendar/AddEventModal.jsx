@@ -1,4 +1,13 @@
-import { X } from "lucide-react";
+import { useMemo } from "react";
+
+import {
+  X,
+  CalendarDays,
+  Clock3,
+  Flag,
+  Users,
+  FileText,
+} from "lucide-react";
 
 function AddEventModal({
   isOpen,
@@ -8,37 +17,93 @@ function AddEventModal({
   handleAddEvent,
   mode = "add",
 }) {
+
+  const isEditing =
+    mode === "edit";
+
+  // ========================================
+  // VALIDATION
+  // ========================================
+
+  const isDisabled =
+    !newEvent.title ||
+    !newEvent.date ||
+    !newEvent.time;
+
+  // ========================================
+  // PRIORITY COLORS
+  // ========================================
+
+  const priorityColor =
+    useMemo(() => {
+
+      switch (
+        newEvent.priority
+      ) {
+
+        case "High":
+          return "text-red-500";
+
+        case "Medium":
+          return "text-amber-500";
+
+        case "Low":
+          return "text-emerald-500";
+
+        default:
+          return "text-slate-500";
+      }
+
+    }, [newEvent.priority]);
+
   if (!isOpen) return null;
 
-  const isEditing = mode === "edit";
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+
+      <div className="w-full max-w-2xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
 
           <div>
 
-            <h2 className="text-2xl font-bold dark:text-white">
-              {isEditing
-                ? "Edit Event"
-                : "Create Event"}
-            </h2>
+            <div className="flex items-center gap-3">
 
-            <p className="mt-1 text-slate-500 dark:text-zinc-400">
-              {isEditing
-                ? "Update calendar event information"
-                : "Create a new calendar event"}
-            </p>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+
+                <CalendarDays size={22} />
+
+              </div>
+
+              <div>
+
+                <h2 className="text-2xl font-bold dark:text-white">
+
+                  {isEditing
+                    ? "Edit Event"
+                    : "Create Event"}
+
+                </h2>
+
+                <p className="mt-1 text-slate-500 dark:text-zinc-400">
+
+                  {isEditing
+                    ? "Update event details and schedule."
+                    : "Schedule a new meeting, review or deadline."}
+
+                </p>
+
+              </div>
+
+            </div>
 
           </div>
 
           <button
             onClick={onClose}
-            className="rounded-xl p-2 transition hover:bg-slate-100 dark:hover:bg-zinc-800"
+            className="rounded-2xl p-2 transition hover:bg-slate-100 dark:hover:bg-zinc-800"
           >
 
             <X
@@ -51,13 +116,17 @@ function AddEventModal({
         </div>
 
         {/* BODY */}
-        <div className="space-y-5 p-6">
+        <div className="space-y-6 p-6">
 
           {/* TITLE */}
           <div>
 
-            <label className="mb-2 block text-sm font-medium dark:text-white">
+            <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+              <FileText size={16} />
+
               Event Title
+
             </label>
 
             <input
@@ -66,11 +135,12 @@ function AddEventModal({
               onChange={(e) =>
                 setNewEvent({
                   ...newEvent,
-                  title: e.target.value,
+                  title:
+                    e.target.value,
                 })
               }
               placeholder="Enter event title"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
             />
 
           </div>
@@ -78,13 +148,19 @@ function AddEventModal({
           {/* DESCRIPTION */}
           <div>
 
-            <label className="mb-2 block text-sm font-medium dark:text-white">
+            <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+              <FileText size={16} />
+
               Description
+
             </label>
 
             <textarea
               rows={4}
-              value={newEvent.description}
+              value={
+                newEvent.description
+              }
               onChange={(e) =>
                 setNewEvent({
                   ...newEvent,
@@ -92,8 +168,8 @@ function AddEventModal({
                     e.target.value,
                 })
               }
-              placeholder="Enter event description"
-              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+              placeholder="Describe the event..."
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
             />
 
           </div>
@@ -104,8 +180,12 @@ function AddEventModal({
             {/* DATE */}
             <div>
 
-              <label className="mb-2 block text-sm font-medium dark:text-white">
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+                <CalendarDays size={16} />
+
                 Event Date
+
               </label>
 
               <input
@@ -114,10 +194,11 @@ function AddEventModal({
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
-                    date: e.target.value,
+                    date:
+                      e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
               />
 
             </div>
@@ -125,8 +206,12 @@ function AddEventModal({
             {/* TIME */}
             <div>
 
-              <label className="mb-2 block text-sm font-medium dark:text-white">
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+                <Clock3 size={16} />
+
                 Event Time
+
               </label>
 
               <input
@@ -135,10 +220,11 @@ function AddEventModal({
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
-                    time: e.target.value,
+                    time:
+                      e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
               />
 
             </div>
@@ -151,7 +237,7 @@ function AddEventModal({
             {/* TYPE */}
             <div>
 
-              <label className="mb-2 block text-sm font-medium dark:text-white">
+              <label className="mb-2 block text-sm font-semibold dark:text-white">
                 Event Type
               </label>
 
@@ -160,10 +246,11 @@ function AddEventModal({
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
-                    type: e.target.value,
+                    type:
+                      e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
               >
 
                 <option value="Meeting">
@@ -182,6 +269,10 @@ function AddEventModal({
                   Review
                 </option>
 
+                <option value="Workshop">
+                  Workshop
+                </option>
+
               </select>
 
             </div>
@@ -189,12 +280,23 @@ function AddEventModal({
             {/* PRIORITY */}
             <div>
 
-              <label className="mb-2 block text-sm font-medium dark:text-white">
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+                <Flag
+                  size={16}
+                  className={
+                    priorityColor
+                  }
+                />
+
                 Priority
+
               </label>
 
               <select
-                value={newEvent.priority}
+                value={
+                  newEvent.priority
+                }
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
@@ -202,7 +304,7 @@ function AddEventModal({
                       e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
               >
 
                 <option value="High">
@@ -226,8 +328,12 @@ function AddEventModal({
           {/* ASSIGNED TO */}
           <div>
 
-            <label className="mb-2 block text-sm font-medium dark:text-white">
+            <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+              <Users size={16} />
+
               Assigned To
+
             </label>
 
             <input
@@ -242,8 +348,8 @@ function AddEventModal({
                     e.target.value,
                 })
               }
-              placeholder="Enter assignee name"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+              placeholder="Team / Member / Department"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
             />
 
           </div>
@@ -251,22 +357,31 @@ function AddEventModal({
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-end gap-4 border-t border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-center justify-end gap-4 border-t border-slate-200 bg-slate-50 p-6 dark:border-zinc-800 dark:bg-zinc-950/40">
 
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-5 py-3 transition hover:bg-slate-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+            className="rounded-2xl border border-slate-200 px-5 py-3 font-medium transition hover:bg-slate-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
           >
+
             Cancel
+
           </button>
 
           <button
-            onClick={handleAddEvent}
-            className="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
+            onClick={
+              handleAddEvent
+            }
+            disabled={
+              isDisabled
+            }
+            className="rounded-2xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
+
             {isEditing
               ? "Save Changes"
               : "Create Event"}
+
           </button>
 
         </div>

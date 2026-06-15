@@ -4,6 +4,7 @@ function EditProjectModal({
   editProject,
   setEditProject,
   handleUpdateProject,
+  isManager = false,
 }) {
   if (!isOpen || !editProject)
     return null;
@@ -11,26 +12,30 @@ function EditProjectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
 
-      <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between">
 
           <div>
 
             <h2 className="text-3xl font-bold dark:text-white">
-              Edit Project
+              {isManager
+                ? "Update Project"
+                : "Edit Project"}
             </h2>
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-2">
-              Update project information.
+            <p className="mt-2 text-slate-500 dark:text-zinc-400">
+              {isManager
+                ? "Update project progress and status."
+                : "Update project information."}
             </p>
 
           </div>
 
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
+            className="h-10 w-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
           >
             ✕
           </button>
@@ -38,25 +43,30 @@ function EditProjectModal({
         </div>
 
         {/* FORM */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
           {/* PROJECT NAME */}
           <div className="md:col-span-2">
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Project Name
             </label>
 
             <input
               type="text"
-              value={editProject.name}
+              disabled={isManager}
+              value={editProject.name || ""}
               onChange={(e) =>
                 setEditProject({
                   ...editProject,
                   name: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+              className={`w-full rounded-xl border px-4 py-3 outline-none dark:border-zinc-800 dark:text-white ${
+                isManager
+                  ? "border-slate-200 bg-slate-100 dark:bg-zinc-950"
+                  : "border-slate-200 bg-white dark:bg-zinc-900"
+              }`}
             />
 
           </div>
@@ -64,14 +74,15 @@ function EditProjectModal({
           {/* DESCRIPTION */}
           <div className="md:col-span-2">
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Description
             </label>
 
             <textarea
               rows={4}
+              disabled={isManager}
               value={
-                editProject.description
+                editProject.description || ""
               }
               onChange={(e) =>
                 setEditProject({
@@ -80,46 +91,50 @@ function EditProjectModal({
                     e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none resize-none"
+              className={`w-full resize-none rounded-xl border px-4 py-3 outline-none dark:border-zinc-800 dark:text-white ${
+                isManager
+                  ? "border-slate-200 bg-slate-100 dark:bg-zinc-950"
+                  : "border-slate-200 bg-white dark:bg-zinc-900"
+              }`}
             />
 
           </div>
 
           {/* MANAGER */}
-          <div>
+          {/* MANAGER */}
+            {!isManager && (
+              <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
-              Manager
-            </label>
+                <label className="mb-2 block text-sm font-medium dark:text-white">
+                  Project Manager
+                  </label>
 
-            <input
-              type="text"
-              value={
-                editProject.manager
-              }
-              onChange={(e) =>
-                setEditProject({
-                  ...editProject,
-                  manager:
-                    e.target.value,
-                })
-              }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
-            />
+                  <input
+                    type="text"
+                    disabled
+                    value={
+                      editProject.manager
+                        ?.full_name ||
+                      editProject.manager_name ||
+                      ""
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                  />
 
-          </div>
-
+                </div>
+              )}
           {/* DEADLINE */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Deadline
             </label>
 
             <input
               type="date"
+              disabled={isManager}
               value={
-                editProject.deadline
+                editProject.deadline || ""
               }
               onChange={(e) =>
                 setEditProject({
@@ -128,7 +143,11 @@ function EditProjectModal({
                     e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+              className={`w-full rounded-xl border px-4 py-3 outline-none dark:border-zinc-800 dark:text-white ${
+                isManager
+                  ? "border-slate-200 bg-slate-100 dark:bg-zinc-950"
+                  : "border-slate-200 bg-white dark:bg-zinc-900"
+              }`}
             />
 
           </div>
@@ -136,13 +155,14 @@ function EditProjectModal({
           {/* STATUS */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Status
             </label>
 
             <select
               value={
-                editProject.status
+                editProject.status ||
+                "Planning"
               }
               onChange={(e) =>
                 setEditProject({
@@ -151,7 +171,7 @@ function EditProjectModal({
                     e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
             >
 
               <option>
@@ -177,13 +197,15 @@ function EditProjectModal({
           {/* PRIORITY */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Priority
             </label>
 
             <select
+              disabled={isManager}
               value={
-                editProject.priority
+                editProject.priority ||
+                "Medium"
               }
               onChange={(e) =>
                 setEditProject({
@@ -192,7 +214,11 @@ function EditProjectModal({
                     e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+              className={`w-full rounded-xl border px-4 py-3 outline-none dark:border-zinc-800 dark:text-white ${
+                isManager
+                  ? "border-slate-200 bg-slate-100 dark:bg-zinc-950"
+                  : "border-slate-200 bg-white dark:bg-zinc-900"
+              }`}
             >
 
               <option>
@@ -211,32 +237,29 @@ function EditProjectModal({
 
           </div>
 
-          {/* MEMBERS */}
+          {/* PROGRESS */}
           <div className="md:col-span-2">
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
-              Team Members
+            <label className="mb-2 block text-sm font-medium dark:text-white">
+              Progress (%)
             </label>
 
             <input
-              type="text"
+              type="number"
+              min="0"
+              max="100"
               value={
-                Array.isArray(
-                  editProject.members
-                )
-                  ? editProject.members.join(
-                      ", "
-                    )
-                  : editProject.members
+                editProject.progress || 0
               }
               onChange={(e) =>
                 setEditProject({
                   ...editProject,
-                  members:
-                    e.target.value,
+                  progress: Number(
+                    e.target.value
+                  ),
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-white outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
             />
 
           </div>
@@ -244,11 +267,11 @@ function EditProjectModal({
         </div>
 
         {/* ACTIONS */}
-        <div className="flex items-center justify-end gap-4 mt-8">
+        <div className="mt-8 flex items-center justify-end gap-4">
 
           <button
             onClick={onClose}
-            className="px-6 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 dark:text-white"
+            className="rounded-xl border border-slate-200 px-6 py-3 dark:border-zinc-800 dark:text-white"
           >
             Cancel
           </button>
@@ -257,7 +280,7 @@ function EditProjectModal({
             onClick={
               handleUpdateProject
             }
-            className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition"
+            className="rounded-xl bg-emerald-600 px-6 py-3 text-white transition hover:bg-emerald-700"
           >
             Save Changes
           </button>

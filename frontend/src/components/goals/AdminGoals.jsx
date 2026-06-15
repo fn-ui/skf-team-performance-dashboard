@@ -8,6 +8,7 @@ import {
 } from "../../services/goalsService";
 
 import { getProjects } from "../../services/projectsService";
+import { getUsers } from "../../services/userService";
 
 import CreateGoalModal from "./CreateGoalModal";
 import EditGoalModal from "./EditGoalModal";
@@ -24,17 +25,27 @@ import {
 } from "lucide-react";
 
 function AdminGoals() {
+
   // GOALS
-  const [goalList, setGoalList] = useState([]);
+  const [goalList, setGoalList] =
+    useState([]);
 
   // PROJECTS
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] =
+    useState([]);
+
+  // USERS
+  const [users, setUsers] =
+    useState([]);
 
   // LOADING
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
   // SEARCH/FILTERS
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
+
   const [statusFilter, setStatusFilter] =
     useState("All");
 
@@ -59,35 +70,46 @@ function AdminGoals() {
       description: "",
       project_id: "",
       owner_id: "",
-      goal_type: "Personal",
-      status: "Active",
+      department: "",
       progress: 0,
       priority: "Medium",
-      target_date: "",
+      deadline: "",
     });
 
-  // FETCH GOALS + PROJECTS
+  // FETCH GOALS + PROJECTS + USERS
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const goalsData = await getGoals();
+
+      const goalsData =
+        await getGoals();
 
       const projectsData =
         await getProjects();
 
-      setGoalList(goalsData);
+      const usersData =
+        await getUsers();
 
-      setProjects(projectsData);
+      setGoalList(goalsData || []);
+
+      setProjects(projectsData || []);
+
+      setUsers(usersData || []);
+
     } catch (error) {
+
       console.error(
         "GOALS FETCH ERROR:",
         error.message
       );
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
@@ -96,97 +118,167 @@ function AdminGoals() {
     .filter((goal) =>
       goal.title
         ?.toLowerCase()
-        .includes(search.toLowerCase())
+        .includes(
+          search.toLowerCase()
+        )
     )
     .filter((goal) =>
       statusFilter === "All"
         ? true
-        : goal.status === statusFilter
+        : goal.status ===
+          statusFilter
     );
 
   // CREATE GOAL
-  const handleCreateGoal =
-    async () => {
-      if (!newGoal.title) return;
+  // CREATE GOAL
+const handleCreateGoal =
+  async () => {
 
-      try {
-        const createdGoal =
-          await createGoal(newGoal);
+    if (!newGoal.title)
+      return;
 
-        setGoalList([
-          createdGoal,
-          ...goalList,
-        ]);
+    try {
 
-        setNewGoal({
-          title: "",
-          description: "",
-          project_id: "",
-          owner_id: "",
-          goal_type: "Personal",
-          status: "Active",
-          progress: 0,
-          priority: "Medium",
-          target_date: "",
-        });
+      const payload = {
+        title: newGoal.title,
 
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error(
-          "CREATE GOAL ERROR:",
-          error.message
-        );
-      }
-    };
+        description:
+          newGoal.description,
+
+        project_id:
+          newGoal.project_id || null,
+
+        owner_id:
+          newGoal.owner_id || null,
+
+        progress:
+          newGoal.progress,
+
+        priority:
+          newGoal.priority,
+
+        target_date:
+          newgoal.target_date || "No Date" || null,
+      };
+
+      const createdGoal =
+        await createGoal(payload);
+
+      setGoalList([
+        createdGoal,
+        ...goalList,
+      ]);
+
+      // RESET FORM
+      setNewGoal({
+        title: "",
+        description: "",
+        project_id: "",
+        owner_id: "",
+        progress: 0,
+        priority: "Medium",
+        deadline: "",
+      });
+
+      setIsModalOpen(false);
+
+    } catch (error) {
+
+      console.error(
+        "CREATE GOAL ERROR:",
+        error.message
+      );
+
+    }
+  };
 
   // OPEN DETAILS
   const handleOpenDetails = (
     goal
   ) => {
+
     setSelectedGoal(goal);
 
     setIsDetailsOpen(true);
+
   };
 
   // OPEN EDIT
-  const handleEditGoal = (goal) => {
-    setSelectedGoal(goal);
+  const handleEditGoal = (
+    goal
+  ) => {
+
+    setSelectedGoal({
+      ...goal,
+      owner_id:
+        goal.owner_id || "",
+    });
 
     setIsEditOpen(true);
+
   };
 
   // UPDATE GOAL
   const handleUpdateGoal =
-    async () => {
-      try {
-        const updatedGoal =
-          await updateGoal(
-            selectedGoal.id,
-            selectedGoal
-          );
+  async () => {
 
-        setGoalList(
-          goalList.map((goal) =>
-            goal.id ===
-            updatedGoal.id
-              ? updatedGoal
-              : goal
-          )
+    try {
+
+      const payload = {
+        title:
+          selectedGoal.title,
+
+        description:
+          selectedGoal.description,
+
+        project_id:
+          selectedGoal.project_id || null,
+
+        owner_id:
+          selectedGoal.owner_id || null,
+
+        progress:
+          selectedGoal.progress,
+
+        priority:
+          selectedGoal.priority,
+
+        target_date:
+          selectedGoal.target_date || null,
+      };
+
+      const updatedGoal =
+        await updateGoal(
+          selectedGoal.id,
+          payload
         );
 
-        setIsEditOpen(false);
-      } catch (error) {
-        console.error(
-          "UPDATE GOAL ERROR:",
-          error.message
-        );
-      }
-    };
+      setGoalList(
+        goalList.map((goal) =>
+          goal.id === updatedGoal.id
+            ? updatedGoal
+            : goal
+        )
+      );
+
+      setIsEditOpen(false);
+
+    } catch (error) {
+
+      console.error(
+        "UPDATE GOAL ERROR:",
+        error.message
+      );
+
+    }
+  };
 
   // DELETE GOAL
   const handleDeleteGoal =
     async (id) => {
+
       try {
+
         await deleteGoal(id);
 
         setGoalList(
@@ -195,11 +287,14 @@ function AdminGoals() {
               goal.id !== id
           )
         );
+
       } catch (error) {
+
         console.error(
           "DELETE GOAL ERROR:",
           error.message
         );
+
       }
     };
 
@@ -207,13 +302,15 @@ function AdminGoals() {
   const completedGoals =
     goalList.filter(
       (goal) =>
-        goal.status === "Completed"
+        goal.status ===
+        "Completed"
     ).length;
 
   const activeGoals =
     goalList.filter(
       (goal) =>
-        goal.status === "Active"
+        goal.status ===
+        "Active"
     ).length;
 
   const inProgressGoals =
@@ -227,7 +324,9 @@ function AdminGoals() {
   const getPriorityColor = (
     priority
   ) => {
+
     switch (priority) {
+
       case "High":
         return "bg-red-100 text-red-700";
 
@@ -244,6 +343,7 @@ function AdminGoals() {
 
   // LOADING
   if (loading) {
+
     return (
       <div className="p-10 dark:text-white">
         Loading goals...
@@ -508,7 +608,7 @@ function AdminGoals() {
                 </p>
 
                 <p className="font-semibold dark:text-white">
-                  {goal.assignedTo}
+                  {goal.profiles?.full_name || "Unassigned"}
                 </p>
 
               </div>
@@ -539,7 +639,7 @@ function AdminGoals() {
                   />
 
                   <p className="font-semibold dark:text-white">
-                    {goal.deadline}
+                    {goal.target_date || "No Date"}
                   </p>
 
                 </div>
@@ -548,33 +648,16 @@ function AdminGoals() {
 
             </div>
 
-            {/* MILESTONES */}
-            <div className="mt-6">
+            {/* PROJECT */}
+<div className="mt-6 flex items-center justify-between">
 
-              <p className="font-semibold dark:text-white mb-3">
-                Milestones
+              <p className="text-slate-500 dark:text-zinc-400">
+                Project
               </p>
 
-              <div className="space-y-2">
-
-                {goal.milestones.map(
-                  (milestone, index) => (
-
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 text-sm text-slate-600 dark:text-zinc-300"
-                    >
-
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-
-                      {milestone}
-
-                    </div>
-
-                  )
-                )}
-
-              </div>
+              <p className="font-semibold dark:text-white">
+                {goal.projects?.name || "No Project"}
+              </p>
 
             </div>
             <div className="flex items-center gap-3 mt-6">
@@ -650,16 +733,15 @@ function AdminGoals() {
 
       {/* CREATE GOAL MODAL */}
       <CreateGoalModal
-        isOpen={isModalOpen}
-        onClose={() =>
-          setIsModalOpen(false)
-        }
-        newGoal={newGoal}
-        setNewGoal={setNewGoal}
-        handleCreateGoal={
-          handleCreateGoal
-        }
-      />
+          isOpen={isModalOpen}
+          onClose={() =>
+            setIsModalOpen(false)
+          }
+          newGoal={newGoal}
+          setNewGoal={setNewGoal}
+          handleCreateGoal={handleCreateGoal}
+          users={users}
+        />
 
       {/* EDIT MODAL */}
 <EditGoalModal
@@ -668,12 +750,10 @@ function AdminGoals() {
     setIsEditOpen(false)
   }
   selectedGoal={selectedGoal}
-  setSelectedGoal={
-    setSelectedGoal
-  }
-  handleUpdateGoal={
-    handleUpdateGoal
-  }
+  setSelectedGoal={setSelectedGoal}
+  handleUpdateGoal={handleUpdateGoal}
+  projects={projects}
+  users={users}
 />
 
 {/* DETAILS MODAL */}

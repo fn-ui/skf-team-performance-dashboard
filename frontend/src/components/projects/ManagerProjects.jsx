@@ -60,39 +60,35 @@ function ManagerProjects() {
     fetchProjects();
   }, []);
 
-  const fetchProjects =
-    async () => {
-      try {
-        const data =
-          await getProjects();
+const fetchProjects =
+  async () => {
+    try {
+      const data =
+        await getProjects();
 
-        // 🔥 MANAGER PROJECTS ONLY
-        const managerProjects =
-          data.filter(
-            (project) =>
-              project.manager ===
-                profile?.full_name ||
-              project.project_members?.some(
-                (member) =>
-                  member.user_id ===
-                    profile?.id &&
-                  member.role ===
-                    "manager"
-              )
-          );
+      /* ONLY PROJECTS
+         ASSIGNED TO
+         CURRENT MANAGER */
 
-        setProjects(
-          managerProjects
+      const managerProjects =
+        data.filter(
+          (project) =>
+            project.manager_id ===
+            profile?.id
         );
-      } catch (error) {
-        console.error(
-          "FETCH PROJECTS ERROR:",
-          error.message
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+
+      setProjects(
+        managerProjects
+      );
+    } catch (error) {
+      console.error(
+        "FETCH PROJECTS ERROR:",
+        error.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ✏️ OPEN EDIT
   const handleOpenEdit = (
@@ -445,27 +441,27 @@ function ManagerProjects() {
 
       </div>
 
-      <EditProjectModal
-        isOpen={isEditOpen}
-        onClose={() =>
-          setIsEditOpen(false)
-        }
-        editProject={editProject}
-        setEditProject={
-          setEditProject
-        }
-        handleUpdateProject={
-          handleUpdateProject
-        }
-      />
+              <EditProjectModal
+          isOpen={isEditOpen}
+          onClose={() =>
+            setIsEditOpen(false)
+          }
+          editProject={editProject}
+          setEditProject={setEditProject}
+          handleUpdateProject={
+            handleUpdateProject
+          }
+          isManager={true}
+        />
 
-      <ProjectDetailsModal
-        isOpen={isDetailsOpen}
-        onClose={() =>
-          setIsDetailsOpen(false)
-        }
-        project={selectedProject}
-      />
+    <ProjectDetailsModal
+  isOpen={isDetailsOpen}
+  onClose={() =>
+    setIsDetailsOpen(false)
+  }
+  project={selectedProject}
+  mode="manager"
+/>
 
     </div>
   );

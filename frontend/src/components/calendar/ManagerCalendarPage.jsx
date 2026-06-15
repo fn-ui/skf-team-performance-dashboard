@@ -10,6 +10,7 @@ import {
   Clock3,
   Users,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -28,7 +29,8 @@ function ManagerCalendarPage() {
   const { profile } = useAuth();
 
   // EVENTS
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] =
+    useState([]);
 
   // LOADING
   const [loading, setLoading] =
@@ -42,16 +44,22 @@ function ManagerCalendarPage() {
   const [isAddOpen, setIsAddOpen] =
     useState(false);
 
-  const [isDetailsOpen, setIsDetailsOpen] =
-    useState(false);
+  const [
+    isDetailsOpen,
+    setIsDetailsOpen,
+  ] = useState(false);
 
   // SELECTED EVENT
-  const [selectedEvent, setSelectedEvent] =
-    useState(null);
+  const [
+    selectedEvent,
+    setSelectedEvent,
+  ] = useState(null);
 
   // EDIT MODE
-  const [editingEventId, setEditingEventId] =
-    useState(null);
+  const [
+    editingEventId,
+    setEditingEventId,
+  ] = useState(null);
 
   // NEW EVENT
   const [newEvent, setNewEvent] =
@@ -66,14 +74,15 @@ function ManagerCalendarPage() {
       createdBy:
         profile?.full_name ||
         "Manager",
+      status: "Upcoming",
     });
 
-  // 🔥 LOAD EVENTS
+  // LOAD EVENTS
   useEffect(() => {
     loadEvents();
   }, []);
 
-  // 📦 FETCH EVENTS
+  // FETCH EVENTS
   const loadEvents = async () => {
     try {
       setLoading(true);
@@ -92,7 +101,7 @@ function ManagerCalendarPage() {
     }
   };
 
-  // 🔎 FILTER EVENTS
+  // FILTER EVENTS
   const filteredEvents =
     events.filter((event) =>
       event.title
@@ -102,7 +111,7 @@ function ManagerCalendarPage() {
         )
     );
 
-  // 📊 STATS
+  // STATS
   const totalEvents =
     events.length;
 
@@ -123,7 +132,13 @@ function ManagerCalendarPage() {
         event.priority === "High"
     ).length;
 
-  // 👁 OPEN DETAILS
+  const completedEvents =
+    events.filter(
+      (event) =>
+        event.status === "Completed"
+    ).length;
+
+  // OPEN DETAILS
   const handleOpenDetails = (
     event
   ) => {
@@ -132,32 +147,40 @@ function ManagerCalendarPage() {
     setIsDetailsOpen(true);
   };
 
-  // ✏️ OPEN EDIT
+  // OPEN EDIT
   const handleEditEvent = (
     event
   ) => {
     setEditingEventId(event.id);
 
     setNewEvent({
-      title: event.title,
+      title: event.title || "",
       description:
-        event.description,
-      date: event.date,
-      time: event.time,
-      type: event.type,
+        event.description || "",
+      date: event.date || "",
+      time: event.time || "",
+      type:
+        event.type || "Meeting",
       priority:
-        event.priority,
+        event.priority ||
+        "Medium",
       assignedTo:
         event.assigned_to ||
-        event.assignedTo,
+        event.assignedTo ||
+        "",
       createdBy:
-        event.createdBy,
+        event.created_by_name ||
+        profile?.full_name ||
+        "Manager",
+      status:
+        event.status ||
+        "Upcoming",
     });
 
     setIsAddOpen(true);
   };
 
-  // 🗑 DELETE EVENT
+  // DELETE EVENT
   const handleDeleteEvent =
     async (id) => {
       try {
@@ -177,14 +200,17 @@ function ManagerCalendarPage() {
       }
     };
 
-  // ➕ CREATE / UPDATE EVENT
+  // CREATE / UPDATE EVENT
   const handleAddEvent =
     async () => {
-      if (!newEvent.title)
+      if (
+        !newEvent.title ||
+        !newEvent.date
+      )
         return;
 
       try {
-        // ✏️ UPDATE
+        // UPDATE
         if (editingEventId) {
           const updated =
             await updateEvent(
@@ -201,20 +227,22 @@ function ManagerCalendarPage() {
                   newEvent.priority,
                 assigned_to:
                   newEvent.assignedTo,
+                status:
+                  newEvent.status,
               }
             );
 
           setEvents((prev) =>
             prev.map((event) =>
               event.id ===
-              updated.id
+              editingEventId
                 ? updated
                 : event
             )
           );
         }
 
-        // ➕ CREATE
+        // CREATE
         else {
           const created =
             await createEvent({
@@ -229,6 +257,8 @@ function ManagerCalendarPage() {
                 newEvent.priority,
               assigned_to:
                 newEvent.assignedTo,
+              status:
+                newEvent.status,
               created_by:
                 profile?.id,
             });
@@ -251,6 +281,7 @@ function ManagerCalendarPage() {
           createdBy:
             profile?.full_name ||
             "Manager",
+          status: "Upcoming",
         });
 
         setEditingEventId(null);
@@ -264,39 +295,56 @@ function ManagerCalendarPage() {
       }
     };
 
-  // 🎨 PRIORITY COLORS
+  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
     switch (priority) {
       case "High":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
 
       case "Medium":
-        return "bg-amber-100 text-amber-700";
+        return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
 
       case "Low":
-        return "bg-emerald-100 text-emerald-700";
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
 
       default:
-        return "bg-slate-100 text-slate-700";
+        return "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
     }
   };
 
-  // ⏳ LOADING
+  // STATUS COLORS
+  const getStatusColor = (
+    status
+  ) => {
+    switch (status) {
+      case "Completed":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
+
+      default:
+        return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400";
+    }
+  };
+
+  // LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="flex items-center gap-3 p-10 dark:text-white">
+
+        <Loader2 className="animate-spin" />
+
         Loading calendar...
+
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
 
       {/* HEADER */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
         <div>
 
@@ -304,9 +352,10 @@ function ManagerCalendarPage() {
             Manager Calendar
           </h1>
 
-          <p className="text-slate-500 dark:text-zinc-400 mt-1">
-            Schedule meetings, reviews
-            and team deadlines.
+          <p className="text-slate-500 dark:text-zinc-400 mt-2">
+            Schedule meetings,
+            deadlines, reviews,
+            and team events.
           </p>
 
         </div>
@@ -315,7 +364,7 @@ function ManagerCalendarPage() {
           onClick={() =>
             setIsAddOpen(true)
           }
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl transition"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl transition shadow-lg shadow-emerald-500/20"
         >
 
           <Plus size={18} />
@@ -327,7 +376,7 @@ function ManagerCalendarPage() {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
         {/* TOTAL */}
         <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
@@ -340,15 +389,15 @@ function ManagerCalendarPage() {
                 Total Events
               </p>
 
-              <h2 className="text-3xl font-bold mt-2 dark:text-white">
+              <h2 className="text-3xl font-bold mt-3 dark:text-white">
                 {totalEvents}
               </h2>
 
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
 
-              <CalendarDays />
+              <CalendarDays className="text-emerald-600 dark:text-emerald-400" />
 
             </div>
 
@@ -367,15 +416,15 @@ function ManagerCalendarPage() {
                 Upcoming
               </p>
 
-              <h2 className="text-3xl font-bold mt-2 dark:text-white">
+              <h2 className="text-3xl font-bold mt-3 dark:text-white">
                 {upcomingEvents}
               </h2>
 
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
+            <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
 
-              <Clock3 />
+              <Clock3 className="text-blue-600 dark:text-blue-400" />
 
             </div>
 
@@ -394,7 +443,7 @@ function ManagerCalendarPage() {
                 High Priority
               </p>
 
-              <h2 className="text-3xl font-bold mt-2 dark:text-white">
+              <h2 className="text-3xl font-bold mt-3 dark:text-white">
                 {
                   highPriorityEvents
                 }
@@ -402,9 +451,38 @@ function ManagerCalendarPage() {
 
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center text-red-600">
+            <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950 flex items-center justify-center">
 
-              <CheckCircle2 />
+              <CheckCircle2 className="text-red-600 dark:text-red-400" />
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* COMPLETED */}
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <p className="text-slate-500 dark:text-zinc-400">
+                Completed
+              </p>
+
+              <h2 className="text-3xl font-bold mt-3 dark:text-white">
+                {
+                  completedEvents
+                }
+              </h2>
+
+            </div>
+
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
+
+              <Users className="text-emerald-600 dark:text-emerald-400" />
 
             </div>
 
@@ -421,7 +499,7 @@ function ManagerCalendarPage() {
 
           <Search
             size={18}
-            className="absolute left-4 top-3.5 text-slate-400"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
           />
 
           <input
@@ -433,7 +511,7 @@ function ManagerCalendarPage() {
                 e.target.value
               )
             }
-            className="w-full rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 pl-11 pr-4 py-3 dark:text-white outline-none"
+            className="w-full rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 pl-11 pr-4 py-3 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"
           />
 
         </div>
@@ -441,29 +519,30 @@ function ManagerCalendarPage() {
       </div>
 
       {/* EVENTS */}
-      <div className="space-y-4">
+      <div className="space-y-5">
 
         {filteredEvents.map(
           (event) => (
             <div
               key={event.id}
-              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800"
+              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800 hover:shadow-xl hover:shadow-emerald-500/5 transition"
             >
 
-              <div className="flex items-start justify-between gap-5 flex-wrap">
+              <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
 
-                <div className="space-y-3">
+                {/* LEFT */}
+                <div className="space-y-4 flex-1">
 
                   <div className="flex items-center gap-3 flex-wrap">
 
-                    <h2 className="text-xl font-bold dark:text-white">
+                    <h2 className="text-2xl font-bold dark:text-white">
                       {
                         event.title
                       }
                     </h2>
 
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getPriorityColor(
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(
                         event.priority
                       )}`}
                     >
@@ -472,39 +551,80 @@ function ManagerCalendarPage() {
                       }
                     </span>
 
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                        event.status
+                      )}`}
+                    >
+                      {event.status}
+                    </span>
+
                   </div>
 
-                  <p className="text-slate-500 dark:text-zinc-400">
+                  <p className="text-slate-500 dark:text-zinc-400 leading-relaxed">
                     {
                       event.description
                     }
                   </p>
 
-                  <div className="flex items-center gap-5 flex-wrap text-sm text-slate-500 dark:text-zinc-400">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-                    <span>
-                      📅 {event.date}
-                    </span>
+                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
 
-                    <span>
-                      ⏰ {event.time}
-                    </span>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                        Date
+                      </p>
 
-                    <span className="flex items-center gap-2">
+                      <h3 className="font-semibold mt-2 dark:text-white">
+                        {event.date}
+                      </h3>
 
-                      <Users size={14} />
+                    </div>
 
-                      {event.assigned_to ||
-                        "Team"}
+                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
 
-                    </span>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                        Time
+                      </p>
+
+                      <h3 className="font-semibold mt-2 dark:text-white">
+                        {event.time}
+                      </h3>
+
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
+
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                        Type
+                      </p>
+
+                      <h3 className="font-semibold mt-2 dark:text-white">
+                        {event.type}
+                      </h3>
+
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
+
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                        Assigned To
+                      </p>
+
+                      <h3 className="font-semibold mt-2 dark:text-white">
+                        {event.assigned_to ||
+                          event.assignedTo ||
+                          "Team"}
+                      </h3>
+
+                    </div>
 
                   </div>
 
                 </div>
 
                 {/* ACTIONS */}
-                <div className="flex items-center gap-3">
+                <div className="flex xl:flex-col items-center gap-3">
 
                   <button
                     onClick={() =>
@@ -512,7 +632,7 @@ function ManagerCalendarPage() {
                         event
                       )
                     }
-                    className="w-11 h-11 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center"
+                    className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:scale-105 transition"
                   >
                     <Eye size={18} />
                   </button>
@@ -523,7 +643,7 @@ function ManagerCalendarPage() {
                         event
                       )
                     }
-                    className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center"
+                    className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center hover:scale-105 transition"
                   >
                     <Pencil size={18} />
                   </button>
@@ -534,7 +654,7 @@ function ManagerCalendarPage() {
                         event.id
                       )
                     }
-                    className="w-11 h-11 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center"
+                    className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center hover:scale-105 transition"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -548,6 +668,32 @@ function ManagerCalendarPage() {
         )}
 
       </div>
+
+      {/* EMPTY STATE */}
+      {filteredEvents.length ===
+        0 && (
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-16 text-center">
+
+          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
+
+            <CalendarDays
+              size={36}
+              className="text-slate-400"
+            />
+
+          </div>
+
+          <h2 className="text-3xl font-bold dark:text-white">
+            No Events Found
+          </h2>
+
+          <p className="text-slate-500 dark:text-zinc-400 mt-3">
+            No events match your
+            current search.
+          </p>
+
+        </div>
+      )}
 
       {/* ADD / EDIT MODAL */}
       <AddEventModal

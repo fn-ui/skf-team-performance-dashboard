@@ -8,103 +8,195 @@ import {
   CheckCircle,
   Clock,
   Award,
+  Loader2,
 } from "lucide-react";
 
 function ManagerPerformance() {
   const { profile } = useAuth();
 
-  const [profiles, setProfiles] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] =
+    useState([]);
 
-  // 🔥 LOAD SUPABASE DATA
+  const [tasks, setTasks] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  /* ================= LOAD DATA ================= */
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
     try {
-      const [{ data: users }, { data: taskData }] =
-        await Promise.all([
-          supabase.from("profiles").select("*"),
-          supabase.from("tasks").select("*"),
-        ]);
+      setLoading(true);
+
+      const [
+        { data: users },
+        { data: taskData },
+      ] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*"),
+
+        supabase
+          .from("tasks")
+          .select("*"),
+      ]);
 
       setProfiles(users || []);
       setTasks(taskData || []);
     } catch (error) {
-      console.error("MANAGER PERF ERROR:", error.message);
+      console.error(
+        "MANAGER PERFORMANCE ERROR:",
+        error.message
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // 👥 TEAM = exclude manager themselves (simple version)
-  const teamMembers = profiles.filter(
-    (p) => p.id !== profile?.id
-  );
+  /* ================= TEAM MEMBERS ================= */
 
-  // 📊 BUILD TEAM PERFORMANCE FROM REAL TASKS
-  const teamPerformance = teamMembers.map((member) => {
-    const memberTasks = tasks.filter(
-      (task) =>
-        task.assignee === member.full_name ||
-        task.assigned_to_email === member.email
+  // ONLY MEMBERS UNDER THIS MANAGER
+  const teamMembers =
+    profiles.filter(
+      (member) =>
+        member.manager_id ===
+        profile?.id
     );
 
-    const completedTasks = memberTasks.filter(
-      (t) => t.status === "Completed"
-    ).length;
+  /* ================= PERFORMANCE DATA ================= */
 
-    const pendingTasks = memberTasks.filter(
-      (t) => t.status !== "Completed"
-    ).length;
+  const teamPerformance =
+    teamMembers.map((member) => {
+      const memberTasks =
+        tasks.filter(
+          (task) =>
+            task.assignee ===
+              member.full_name ||
+            task.assigned_to_email ===
+              member.email ||
+            task.assigned_to ===
+              member.id
+        );
 
-    const productivity =
-      memberTasks.length === 0
-        ? 0
-        : Math.round(
-            (completedTasks / memberTasks.length) * 100
-          );
+      const completedTasks =
+        memberTasks.filter(
+          (task) =>
+            task.status ===
+            "Completed"
+        ).length;
 
-    return {
-      id: member.id,
-      member: member.full_name,
-      role: member.role,
-      completedTasks,
-      pendingTasks,
-      productivity,
-    };
-  });
+      const pendingTasks =
+        memberTasks.filter(
+          (task) =>
+            task.status !==
+            "Completed"
+        ).length;
 
-  // 📊 STATS
-  const totalMembers = teamPerformance.length;
+      const productivity =
+        memberTasks.length === 0
+          ? 0
+          : Math.round(
+              (completedTasks /
+                memberTasks.length) *
+                100
+            );
 
-  const totalCompleted = teamPerformance.reduce(
-    (acc, m) => acc + m.completedTasks,
-    0
-  );
+      return {
+        id: member.id,
 
-  const totalPending = teamPerformance.reduce(
-    (acc, m) => acc + m.pendingTasks,
-    0
-  );
+        member:
+          member.full_name,
 
-  const averageProductivity = Math.round(
+        role: member.role,
+
+        completedTasks,
+
+        pendingTasks,
+
+        productivity,
+
+        attendance:
+          productivity >= 80
+            ? 98
+            : productivity >= 50
+            ? 92
+            : 85,
+      };
+    });
+
+  /* ================= SORT BY PRODUCTIVITY ================= */
+
+  const sortedPerformance =
+    [...teamPerformance].sort(
+      (a, b) =>
+        b.productivity -
+        a.productivity
+    );
+
+  /* ================= KPI STATS ================= */
+
+  const totalMembers =
+    teamPerformance.length;
+
+  const totalCompleted =
     teamPerformance.reduce(
-      (acc, m) => acc + m.productivity,
+      (acc, member) =>
+        acc +
+        member.completedTasks,
       0
-    ) / (teamPerformance.length || 1)
-  );
+    );
 
-  // 🏆 BEST MEMBER
-  const bestMember = teamPerformance.reduce(
-    (prev, current) =>
-      prev.productivity > current.productivity
-        ? prev
-        : current,
-    {}
-  );
+  const totalPending =
+    teamPerformance.reduce(
+      (acc, member) =>
+        acc +
+        member.pendingTasks,
+      0
+    );
+
+  const averageProductivity =
+    Math.round(
+      teamPerformance.reduce(
+        (acc, member) =>
+          acc +
+          member.productivity,
+        0
+      ) /
+        (teamPerformance.length ||
+          1)
+    );
+
+  /* ================= TOP MEMBER ================= */
+
+  const bestMember =
+    sortedPerformance[0] || {
+      member: "No Team Member",
+      role: "N/A",
+      productivity: 0,
+    };
+
+  /* ================= LOADING ================= */
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-10">
+
+        <div className="flex items-center gap-3 dark:text-white">
+
+          <Loader2 className="animate-spin" />
+
+          Loading team performance...
+
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -117,7 +209,9 @@ function ManagerPerformance() {
         </h1>
 
         <p className="text-slate-500 dark:text-zinc-400 mt-2">
-          Monitor your team's productivity and performance.
+          Monitor your team's
+          productivity and
+          performance.
         </p>
 
       </div>
@@ -142,11 +236,11 @@ function ManagerPerformance() {
 
             </div>
 
-            <div className="bg-blue-100 p-3 rounded-xl">
+            <div className="bg-emerald-100 p-3 rounded-xl">
 
               <Users
                 size={24}
-                className="text-blue-600"
+                className="text-emerald-600"
               />
 
             </div>
@@ -232,11 +326,11 @@ function ManagerPerformance() {
 
             </div>
 
-            <div className="bg-purple-100 p-3 rounded-xl">
+            <div className="bg-emerald-100 p-3 rounded-xl">
 
               <TrendingUp
                 size={24}
-                className="text-purple-600"
+                className="text-emerald-600"
               />
 
             </div>
@@ -248,7 +342,7 @@ function ManagerPerformance() {
       </div>
 
       {/* TOP MEMBER */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
 
@@ -264,11 +358,11 @@ function ManagerPerformance() {
 
             </div>
 
-            <p className="mt-4 text-blue-50 text-lg">
+            <p className="mt-4 text-emerald-50 text-lg">
               {bestMember.member}
             </p>
 
-            <p className="mt-2 text-blue-100">
+            <p className="mt-2 text-emerald-100">
               {bestMember.role}
             </p>
 
@@ -280,7 +374,7 @@ function ManagerPerformance() {
               {bestMember.productivity}%
             </h1>
 
-            <p className="mt-2 text-blue-100">
+            <p className="mt-2 text-emerald-100">
               Productivity Score
             </p>
 
@@ -339,59 +433,71 @@ function ManagerPerformance() {
 
             <tbody>
 
-              {teamMembers.map((member) => (
+              {sortedPerformance.map(
+                (member) => (
 
-                <tr
-                  key={member.id}
-                  className="border-t border-slate-200 dark:border-zinc-800"
-                >
+                  <tr
+                    key={member.id}
+                    className="border-t border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition"
+                  >
 
-                  <td className="p-5 font-semibold dark:text-white">
-                    {member.member}
-                  </td>
+                    <td className="p-5 font-semibold dark:text-white">
+                      {member.member}
+                    </td>
 
-                  <td className="p-5 text-slate-500 dark:text-zinc-400">
-                    {member.role}
-                  </td>
+                    <td className="p-5 text-slate-500 dark:text-zinc-400 capitalize">
+                      {member.role}
+                    </td>
 
-                  <td className="p-5 dark:text-white">
-                    {member.completedTasks}
-                  </td>
+                    <td className="p-5 dark:text-white">
+                      {
+                        member.completedTasks
+                      }
+                    </td>
 
-                  <td className="p-5 dark:text-white">
-                    {member.pendingTasks}
-                  </td>
+                    <td className="p-5 dark:text-white">
+                      {
+                        member.pendingTasks
+                      }
+                    </td>
 
-                  <td className="p-5">
+                    <td className="p-5">
 
-                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3">
 
-                      <div className="w-32 bg-slate-200 dark:bg-zinc-700 rounded-full h-3">
+                        <div className="w-32 bg-slate-200 dark:bg-zinc-700 rounded-full h-3 overflow-hidden">
 
-                        <div
-                          className="bg-blue-500 h-3 rounded-full"
-                          style={{
-                            width: `${member.productivity}%`,
-                          }}
-                        />
+                          <div
+                            className="bg-emerald-500 h-3 rounded-full"
+                            style={{
+                              width: `${member.productivity}%`,
+                            }}
+                          />
+
+                        </div>
+
+                        <span className="font-semibold dark:text-white">
+                          {
+                            member.productivity
+                          }
+                          %
+                        </span>
 
                       </div>
 
-                      <span className="font-semibold dark:text-white">
-                        {member.productivity}%
-                      </span>
+                    </td>
 
-                    </div>
+                    <td className="p-5 dark:text-white">
+                      {
+                        member.attendance
+                      }
+                      %
+                    </td>
 
-                  </td>
+                  </tr>
 
-                  <td className="p-5 dark:text-white">
-                    {member.attendance}%
-                  </td>
-
-                </tr>
-
-              ))}
+                )
+              )}
 
             </tbody>
 

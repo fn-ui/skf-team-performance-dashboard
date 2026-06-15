@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import AssignMembersModal from "./AssignMembersModal";
+
+import { supabase } from "../../lib/supabase";
 
 import {
   FolderKanban,
@@ -49,8 +50,7 @@ function AdminProjects() {
   const [isDetailsOpen, setIsDetailsOpen] =
     useState(false);
 
-  const [isAssignOpen, setIsAssignOpen] =
-    useState(false);
+  
 
   // SELECTED PROJECTS
   const [
@@ -60,14 +60,16 @@ function AdminProjects() {
 
   const [editProject, setEditProject] =
     useState(null);
+//managers
+    const [managers, setManagers] =
+  useState([]);
 
   // NEW PROJECT
   const [newProject, setNewProject] =
     useState({
       name: "",
       description: "",
-      manager: "",
-      status: "Planning",
+      manager_id: "",
       priority: "Medium",
       progress: 0,
       deadline: "",
@@ -75,10 +77,32 @@ function AdminProjects() {
       total_tasks: 0,
     });
 
+    const fetchManagers =
+  async () => {
+    const { data, error } =
+      await supabase
+        .from("profiles")
+        .select(
+          "id, full_name"
+        )
+        .eq(
+          "role",
+          "Team Manager"
+        );
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setManagers(data || []);
+  };
+
   // FETCH PROJECTS
   useEffect(() => {
-    fetchProjects();
-  }, []);
+  fetchProjects();
+  fetchManagers();
+}, []);
 
   const fetchProjects =
     async () => {
@@ -121,16 +145,15 @@ function AdminProjects() {
         setIsCreateOpen(false);
 
         setNewProject({
-          name: "",
-          description: "",
-          manager: "",
-          status: "Planning",
-          priority: "Medium",
-          progress: 0,
-          deadline: "",
-          completed_tasks: 0,
-          total_tasks: 0,
-        });
+            name: "",
+            description: "",
+            manager_id: "",
+            priority: "Medium",
+            progress: 0,
+            deadline: "",
+            completed_tasks: 0,
+            total_tasks: 0,
+          });
       } catch (error) {
         console.error(
           "CREATE PROJECT ERROR:",
@@ -177,13 +200,7 @@ function AdminProjects() {
     setIsDetailsOpen(true);
   };
 
-  // 👥 OPEN ASSIGN MEMBERS
-  const handleOpenAssignMembers =
-    (project) => {
-      setSelectedProject(project);
-
-      setIsAssignOpen(true);
-    };
+  
 
   // 💾 UPDATE PROJECT
   const handleUpdateProject =
@@ -218,30 +235,7 @@ function AdminProjects() {
       }
     };
 
-  // 👥 ASSIGN MEMBERS
-  const handleAssignMembers =
-    async (members) => {
-      try {
-        if (!selectedProject?.id)
-          return;
-
-        await assignProjectMembers(
-          selectedProject.id,
-          members
-        );
-
-        // REFRESH PROJECTS
-        await fetchProjects();
-
-        setIsAssignOpen(false);
-      } catch (error) {
-        console.error(
-          "ASSIGN MEMBERS ERROR:",
-          error.message
-        );
-      }
-    };
-
+  
   // 🔎 FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
@@ -472,14 +466,7 @@ function AdminProjects() {
   <Trash2 size={18} />
 
 </button>
-<button
-  onClick={() => {
-    setSelectedProject(project);
-    setIsAssignOpen(true);
-  }}
->
-  <Users size={16} />
-</button>
+
 
               </div>
 
@@ -490,14 +477,15 @@ function AdminProjects() {
       </div>
 
       {/* MODALS */}
-      <CreateProjectModal
-        isOpen={isCreateOpen}
-        onClose={() =>
+     <CreateProjectModal
+          isOpen={isCreateOpen}
+          onClose={() =>
             setIsCreateOpen(false)
-        }
-        newProject={newProject}
-        setNewProject={setNewProject}
-        handleAddProject={handleAddProject}
+          }
+          newProject={newProject}
+          setNewProject={setNewProject}
+          handleAddProject={handleAddProject}
+          managers={managers}
         />
       <EditProjectModal
         isOpen={isEditOpen}
@@ -520,11 +508,7 @@ function AdminProjects() {
         }
         project={selectedProject}
       />
-      <AssignMembersModal
-  isOpen={isAssignOpen}
-  onClose={() => setIsAssignOpen(false)}
-  project={selectedProject}
-/>
+      
 
     </div>
   );

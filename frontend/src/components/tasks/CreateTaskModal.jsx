@@ -4,6 +4,10 @@ function CreateTaskModal({
   newTask,
   setNewTask,
   handleCreateTask,
+  projects,
+  members,
+  selectedUsers,
+  setSelectedUsers,
 }) {
   if (!isOpen) return null;
 
@@ -91,18 +95,31 @@ function CreateTaskModal({
                 Project
               </label>
 
-              <input
-                type="text"
-                placeholder="Project name"
-                value={newTask.project}
-                onChange={(e) =>
-                  setNewTask({
-                    ...newTask,
-                    project: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              />
+              <select
+                    value={newTask.project_id || ""}
+                    onChange={(e) =>
+                      setNewTask({
+                        ...newTask,
+                        project_id: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                  >
+
+              <option value="">
+                Select Project
+              </option>
+
+              {projects?.map((project) => (
+                <option
+                  key={project.id}
+                  value={project.id}
+                >
+                  {project.name}
+                </option>
+              ))}
+
+            </select>
 
             </div>
 
@@ -113,18 +130,32 @@ function CreateTaskModal({
                 Assign Member
               </label>
 
-              <input
-                type="text"
-                placeholder="Member name"
-                value={newTask.assignee}
-                onChange={(e) =>
-                  setNewTask({
-                    ...newTask,
-                    assignee: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              />
+              <select
+                  value={selectedUsers[0] || ""}
+                  onChange={(e) =>
+                    setSelectedUsers(
+                      e.target.value
+                        ? [e.target.value]
+                        : []
+                    )
+                  }
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                >
+
+            <option value="">
+              Assign Member
+            </option>
+
+            {members?.map((member) => (
+              <option
+                key={member.id}
+                value={member.id}
+              >
+                {member.full_name}
+              </option>
+            ))}
+
+          </select>
 
             </div>
 
@@ -133,29 +164,7 @@ function CreateTaskModal({
           {/* STATUS + PRIORITY */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* STATUS */}
-            <div>
-
-              <label className="block text-sm font-semibold dark:text-white mb-2">
-                Status
-              </label>
-
-              <select
-                value={newTask.status}
-                onChange={(e) =>
-                  setNewTask({
-                    ...newTask,
-                    status: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              >
-                <option>Pending</option>
-                <option>In Progress</option>
-                <option>Completed</option>
-              </select>
-
-            </div>
+           
 
             {/* PRIORITY */}
             <div>
@@ -183,29 +192,6 @@ function CreateTaskModal({
 
           </div>
 
-          {/* PROGRESS */}
-          <div>
-
-            <label className="block text-sm font-semibold dark:text-white mb-2">
-              Progress ({newTask.progress}%)
-            </label>
-
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={newTask.progress}
-              onChange={(e) =>
-                setNewTask({
-                  ...newTask,
-                  progress: Number(e.target.value),
-                })
-              }
-              className="w-full"
-            />
-
-          </div>
-
           {/* DUE DATE */}
           <div>
 
@@ -215,11 +201,11 @@ function CreateTaskModal({
 
             <input
               type="date"
-              value={newTask.dueDate}
+              value={newTask.due_date}
               onChange={(e) =>
                 setNewTask({
                   ...newTask,
-                  dueDate: e.target.value,
+                  due_date: e.target.value,
                 })
               }
               className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"

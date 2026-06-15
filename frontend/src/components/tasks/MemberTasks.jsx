@@ -13,10 +13,11 @@ import {
   Clock,
   AlertTriangle,
   Eye,
-  FolderKanban,
+  Pencil,
 } from "lucide-react";
 
 import TaskDetailsModal from "./TaskDetailsModal";
+import EditTaskModal from "./EditTaskModal";
 
 function MemberTasks() {
   const { profile } = useAuth();
@@ -38,6 +39,18 @@ function MemberTasks() {
 
   const [isDetailsOpen, setIsDetailsOpen] =
     useState(false);
+    const [isEditOpen, setIsEditOpen] =
+  useState(false);
+
+const [editedTask, setEditedTask] =
+  useState(null);
+  const handleEditTask = (
+  task
+) => {
+  setEditedTask(task);
+
+  setIsEditOpen(true);
+};
 
   // 🔥 LOAD TASKS
   useEffect(() => {
@@ -129,57 +142,91 @@ function MemberTasks() {
   };
 
   // 🔄 UPDATE STATUS
-  const handleStatusChange =
-    async (
-      id,
-      newStatus
-    ) => {
-      try {
-        const updates = {
-          status: newStatus,
+ const handleStatusChange =
+  async (
+    id,
+    newStatus
+  ) => {
+    try {
 
-          progress:
-            newStatus ===
-            "Completed"
-              ? 100
-              : newStatus ===
-                "In Progress"
-              ? 60
-              : 0,
-        };
+      const updates = {
+        status: newStatus,
+      };
 
-        // 🔥 COMPLETED DATE
-        if (
-          newStatus ===
-          "Completed"
-        ) {
-          updates.completed_at =
-            new Date().toISOString();
-        }
-
-        const updated =
-          await updateTask(
-            id,
-            updates
-          );
-
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id === updated.id
-              ? {
-                  ...task,
-                  ...updated,
-                }
-              : task
-          )
-        );
-      } catch (error) {
-        console.error(
-          "UPDATE TASK ERROR:",
-          error.message
-        );
+      if (
+        newStatus ===
+        "Completed"
+      ) {
+        updates.completed_at =
+          new Date().toISOString();
       }
-    };
+
+      const updated =
+        await updateTask(
+          id,
+          updates
+        );
+
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === updated.id
+            ? {
+                ...task,
+                ...updated,
+              }
+            : task
+        )
+      );
+
+    } catch (error) {
+      console.error(
+        "UPDATE TASK ERROR:",
+        error.message
+      );
+    }
+  };
+
+  const handleUpdateTask =
+  async () => {
+    if (!editedTask?.id)
+      return;
+
+    try {
+      const updated =
+        await updateTask(
+          editedTask.id,
+          {
+            status:
+              editedTask.status,
+
+            progress:
+              editedTask.progress,
+          }
+        );
+
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id ===
+          updated.id
+            ? {
+                ...task,
+                ...updated,
+              }
+            : task
+        )
+      );
+
+      setIsEditOpen(false);
+
+      setEditedTask(null);
+
+    } catch (error) {
+      console.error(
+        "UPDATE ERROR:",
+        error.message
+      );
+    }
+  };
 
   // 🎨 PRIORITY COLORS
   const getPriorityColor = (
@@ -200,14 +247,7 @@ function MemberTasks() {
     }
   };
 
-  // ⏳ LOADING
-  if (loading) {
-    return (
-      <div className="p-10 dark:text-white">
-        Loading tasks...
-      </div>
-    );
-  }
+ 
 
   // ⏳ LOADING
   if (loading) {
@@ -386,7 +426,7 @@ function MemberTasks() {
                 </h2>
 
                 <p className="text-slate-500 mt-2">
-                  {task.project}
+                  {task.projects?.name || "No Project"}
                 </p>
 
               </div>
@@ -444,7 +484,7 @@ function MemberTasks() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-6">
 
               <p className="text-sm text-slate-500">
-                Due: {task.dueDate}
+                Due: {task.due_date}
               </p>
 
               <div className="flex items-center gap-3">
@@ -460,22 +500,19 @@ function MemberTasks() {
                   <Eye size={16} />
 
                 </button>
-
-                {/* STATUS */}
-                <select
-                  value={task.status}
-                  onChange={(e) =>
-                    handleStatusChange(
-                      task.id,
-                      e.target.value
-                    )
+                {/* EDIT */}
+                <button
+                  onClick={() =>
+                    handleEditTask(task)
                   }
-                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none text-sm"
+                  className="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
                 >
-                  <option>Pending</option>
-                  <option>In Progress</option>
-                  <option>Completed</option>
-                </select>
+
+                  <Pencil size={16} />
+
+                </button>
+
+                
 
               </div>
 
@@ -521,6 +558,16 @@ function MemberTasks() {
         }
         task={selectedTask}
       />
+      <EditTaskModal
+  isOpen={isEditOpen}
+  onClose={() =>
+    setIsEditOpen(false)
+  }
+  editedTask={editedTask}
+  setEditedTask={setEditedTask}
+  handleUpdateTask={handleUpdateTask}
+  role="member"
+/>
 
     </div>
   );

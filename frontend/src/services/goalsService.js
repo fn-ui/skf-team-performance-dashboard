@@ -2,18 +2,20 @@ import { supabase } from "../lib/supabase";
 
 // GET GOALS
 export async function getGoals() {
-  const { data, error } = await supabase
-    .from("goals")
-    .select(`
-      *,
-      projects (
-        id,
-        name
-      )
-    `)
-    .order("created_at", {
-      ascending: false,
-    });
+
+  const { data, error } =
+    await supabase
+      .from("goals")
+      .select(`
+        *,
+        projects (
+          id,
+          name
+        )
+      `)
+      .order("created_at", {
+        ascending: false,
+      });
 
   if (error) throw error;
 
@@ -22,10 +24,18 @@ export async function getGoals() {
 
 // CREATE GOAL
 export async function createGoal(goal) {
-  const { data, error } = await supabase
-    .from("goals")
-    .insert([goal])
-    .select();
+
+  const { data, error } =
+    await supabase
+      .from("goals")
+      .insert([goal])
+      .select(`
+        *,
+        projects (
+          id,
+          name
+        )
+      `);
 
   if (error) throw error;
 
@@ -33,12 +43,23 @@ export async function createGoal(goal) {
 }
 
 // UPDATE GOAL
-export async function updateGoal(id, updates) {
-  const { data, error } = await supabase
-    .from("goals")
-    .update(updates)
-    .eq("id", id)
-    .select();
+export async function updateGoal(
+  id,
+  updates
+) {
+
+  const { data, error } =
+    await supabase
+      .from("goals")
+      .update(updates)
+      .eq("id", id)
+      .select(`
+        *,
+        projects (
+          id,
+          name
+        )
+      `);
 
   if (error) throw error;
 
@@ -47,10 +68,12 @@ export async function updateGoal(id, updates) {
 
 // DELETE GOAL
 export async function deleteGoal(id) {
-  const { error } = await supabase
-    .from("goals")
-    .delete()
-    .eq("id", id);
+
+  const { error } =
+    await supabase
+      .from("goals")
+      .delete()
+      .eq("id", id);
 
   if (error) throw error;
 }

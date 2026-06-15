@@ -429,7 +429,7 @@ function MemberGoals() {
                   />
 
                   <p className="font-semibold dark:text-white">
-                    {goal.deadline}
+                    {goal.target_date || "No Date"}
                   </p>
 
                 </div>

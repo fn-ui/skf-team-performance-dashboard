@@ -1,6 +1,5 @@
 import {
   CalendarDays,
-  User,
   FolderKanban,
   Flag,
   CheckCircle2,
@@ -90,33 +89,7 @@ function TaskDetailsModal({
         {/* TASK INFO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
 
-          {/* ASSIGNEE */}
-          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
-
-            <div className="flex items-center gap-3">
-
-              <div className="bg-blue-100 p-3 rounded-xl">
-                <User
-                  size={22}
-                  className="text-blue-600"
-                />
-              </div>
-
-              <div>
-                <p className="text-slate-500 text-sm">
-                  Assignee
-                </p>
-
-                <h3 className="font-bold dark:text-white mt-1">
-                  {task.assignee}
-                </h3>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* PROJECT */}
+         {/* PROJECT */}
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
             <div className="flex items-center gap-3">
@@ -134,7 +107,8 @@ function TaskDetailsModal({
                 </p>
 
                 <h3 className="font-bold dark:text-white mt-1">
-                  {task.project}
+              {task.projects?.name ||
+              "No project"}
                 </h3>
               </div>
 
@@ -160,7 +134,8 @@ function TaskDetailsModal({
                 </p>
 
                 <h3 className="font-bold dark:text-white mt-1">
-                  {task.dueDate}
+                  {task.due_date ||
+                   "No due date"}
                 </h3>
               </div>
 

@@ -1,12 +1,16 @@
 function EditTaskModal({
   isOpen,
   onClose,
-  selectedTask,
   editedTask,
   setEditedTask,
   handleUpdateTask,
+  users,
+  projects,
+  selectedUsers,
+  toggleUserSelection,
+  role,
 }) {
-  if (!isOpen || !selectedTask) return null;
+  if (!isOpen || !editedTask) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -37,7 +41,8 @@ function EditTaskModal({
 
         {/* FORM */}
         <div className="space-y-6 mt-8">
-
+         {role !== "member" && (
+          <>
           {/* TASK TITLE */}
           <div>
 
@@ -59,74 +64,96 @@ function EditTaskModal({
 
           </div>
 
-          {/* ASSIGNEE */}
-          <div>
+          
+          {/* ASSIGN MEMBERS */}
+<div>
 
-            <label className="block text-sm font-semibold dark:text-white mb-2">
-              Assignee
-            </label>
+  <label className="block text-sm font-semibold dark:text-white mb-3">
+    Assigned Members
+  </label>
 
-            <input
-              type="text"
-              value={editedTask.assignee}
-              onChange={(e) =>
-                setEditedTask({
-                  ...editedTask,
-                  assignee: e.target.value,
-                })
-              }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-            />
+  <div className="space-y-3 max-h-52 overflow-y-auto border border-slate-200 dark:border-zinc-800 rounded-2xl p-4">
+
+    {users.map((user) => {
+
+      const isSelected =
+        selectedUsers.includes(user.id);
+
+      return (
+        <button
+          key={user.id}
+          type="button"
+          onClick={() =>
+            toggleUserSelection(
+              user.id
+            )
+          }
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition ${
+            isSelected
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-slate-100 dark:bg-zinc-800 dark:text-white"
+          }`}
+        >
+
+          <div className="text-left">
+
+            <p className="font-semibold">
+              {user.full_name}
+            </p>
+
+            <p className="text-xs opacity-70">
+              {user.email}
+            </p>
 
           </div>
 
+          {isSelected && (
+            <div className="w-3 h-3 rounded-full bg-emerald-600" />
+          )}
+
+        </button>
+      );
+    })}
+
+  </div>
+
+</div>
           {/* PROJECT */}
-          <div>
+<div>
 
-            <label className="block text-sm font-semibold dark:text-white mb-2">
-              Project
-            </label>
+  <label className="block text-sm font-semibold dark:text-white mb-2">
+    Project
+  </label>
 
-            <input
-              type="text"
-              value={editedTask.project}
-              onChange={(e) =>
-                setEditedTask({
-                  ...editedTask,
-                  project: e.target.value,
-                })
-              }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-            />
+  <select
+    value={editedTask.project_id || ""}
+    onChange={(e) =>
+      setEditedTask({
+        ...editedTask,
+        project_id: e.target.value,
+      })
+    }
+    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+  >
 
-          </div>
+    <option value="">
+      Select Project
+    </option>
 
+    {projects?.map((project) => (
+      <option
+        key={project.id}
+        value={project.id}
+      >
+        {project.name}
+      </option>
+    ))}
+
+  </select>
+
+</div>
           {/* STATUS + PRIORITY */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            {/* STATUS */}
-            <div>
-
-              <label className="block text-sm font-semibold dark:text-white mb-2">
-                Status
-              </label>
-
-              <select
-                value={editedTask.status}
-                onChange={(e) =>
-                  setEditedTask({
-                    ...editedTask,
-                    status: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-              >
-                <option>Pending</option>
-                <option>In Progress</option>
-                <option>Completed</option>
-              </select>
-
-            </div>
 
             {/* PRIORITY */}
             <div>
@@ -154,30 +181,7 @@ function EditTaskModal({
 
           </div>
 
-          {/* PROGRESS */}
-          <div>
-
-            <label className="block text-sm font-semibold dark:text-white mb-2">
-              Progress ({editedTask.progress}%)
-            </label>
-
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={editedTask.progress}
-              onChange={(e) =>
-                setEditedTask({
-                  ...editedTask,
-                  progress: Number(e.target.value),
-                })
-              }
-              className="w-full"
-            />
-
-          </div>
-
-          {/* DUE DATE */}
+         {/* DUE DATE */}
           <div>
 
             <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -186,11 +190,11 @@ function EditTaskModal({
 
             <input
               type="date"
-              value={editedTask.dueDate}
+              value={editedTask.due_date}
               onChange={(e) =>
                 setEditedTask({
                   ...editedTask,
-                  dueDate: e.target.value,
+                  due_date: e.target.value,
                 })
               }
               className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
@@ -219,7 +223,63 @@ function EditTaskModal({
 
           </div>
 
-        </div>
+        
+        </>
+            )}
+            {/* MEMBER EDIT SECTION */}
+     {role === "member" && (
+      
+  <div className="space-y-6">
+
+    {/* STATUS */}
+    <div>
+
+      <label className="block text-sm font-semibold dark:text-white mb-2">
+        Status
+      </label>
+
+      <select
+        value={editedTask.status}
+        onChange={(e) =>
+          setEditedTask({
+            ...editedTask,
+            status: e.target.value,
+          })
+        }
+        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+      >
+        <option>Pending</option>
+        <option>In Progress</option>
+        <option>Completed</option>
+      </select>
+
+    </div>
+
+    {/* PROGRESS */}
+    <div>
+
+      <label className="block text-sm font-semibold dark:text-white mb-2">
+        Progress (%)
+      </label>
+
+      <input
+        type="number"
+        min="0"
+        max="100"
+        value={editedTask.progress}
+        onChange={(e) =>
+          setEditedTask({
+            ...editedTask,
+            progress: Number(e.target.value),
+          })
+        }
+        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+      />
+
+    </div>
+
+  </div>
+)}
 
         {/* FOOTER */}
         <div className="flex items-center justify-end gap-4 mt-10">
@@ -242,6 +302,7 @@ function EditTaskModal({
 
       </div>
 
+    </div>
     </div>
   );
 }

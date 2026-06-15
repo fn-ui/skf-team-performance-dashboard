@@ -5,32 +5,42 @@ export async function getTasks() {
   const { data, error } =
     await supabase
       .from("tasks")
-      .select(`
-        *,
-        projects (
-          id,
-          name,
-          status
-        ),
+   .select(`
+  id,
+  title,
+  description,
+  status,
+  priority,
+  progress,
+  due_date,
+  created_at,
+  project_id,
+  created_by,
 
-        creator:profiles!tasks_created_by_fkey (
-          id,
-          full_name,
-          role
-        ),
+  projects (
+    id,
+    name,
+    status
+  ),
 
-        task_assignees (
-          id,
-          user_id,
+  creator:profiles!tasks_created_by_fkey (
+    id,
+    full_name,
+    role
+  ),
 
-          profiles (
-            id,
-            full_name,
-            role,
-            email
-          )
-        )
-      `)
+  task_assignees (
+    id,
+    user_id,
+
+    profiles (
+      id,
+      full_name,
+      role,
+      email
+    )
+  )
+`)
       .order(
         "created_at",
         {
@@ -127,61 +137,41 @@ export async function deleteTask(
 }
 
 // 👥 ASSIGN USERS TO TASK
-export async function assignTaskUsers(
-  task_id,
-  user_ids = []
-) {
-  if (!task_id) return [];
+export const assignTaskUsers = async (
+  taskId,
+  userIds
+) => {
 
-  // 🔥 REMOVE OLD ASSIGNEES
-  await supabase
-    .from("task_assignees")
-    .delete()
-    .eq("task_id", task_id);
-
-  // 🔥 NO USERS
-  if (
-    !Array.isArray(user_ids) ||
-    user_ids.length === 0
-  ) {
-    return [];
-  }
-
-  const rows = user_ids.map(
-    (user_id) => ({
-      task_id,
-      user_id,
-    })
-  );
-
-  const { data, error } =
+  // DELETE OLD ASSIGNEES
+  const { error: deleteError } =
     await supabase
       .from("task_assignees")
-      .insert(rows)
-      .select(`
-        id,
-        task_id,
-        user_id,
+      .delete()
+      .eq("task_id", taskId);
 
-        profiles (
-          id,
-          full_name,
-          role,
-          email
-        )
-      `);
-
-  if (error) {
-    console.error(
-      "ASSIGN TASK USERS ERROR:",
-      error
-    );
-
-    throw error;
+  if (deleteError) {
+    throw deleteError;
   }
 
-  return data || [];
-}
+  // NO USERS SELECTED
+  if (!userIds.length) return;
+
+  // INSERT NEW ASSIGNEES
+  const assignments =
+    userIds.map((userId) => ({
+      task_id: taskId,
+      user_id: userId,
+    }));
+
+  const { error } =
+    await supabase
+      .from("task_assignees")
+      .insert(assignments);
+
+  if (error) {
+    throw error;
+  }
+};
 
 // 🔍 GET TASK ASSIGNEES
 export async function getTaskAssignees(

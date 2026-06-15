@@ -1,20 +1,31 @@
 import { supabase } from "../lib/supabase";
 
-// 🔥 GET PROJECTS
+/* ================= GET PROJECTS ================= */
+
 export async function getProjects() {
   const { data, error } =
     await supabase
       .from("projects")
       .select(`
         *,
+        
+        manager:profiles!projects_manager_id_fkey (
+          id,
+          full_name,
+          email,
+          role
+        ),
+
         project_members (
           id,
           user_id,
           role,
+
           profiles (
             id,
             full_name,
-            role
+            role,
+            email
           )
         )
       `)
@@ -31,18 +42,88 @@ export async function getProjects() {
     throw error;
   }
 
-  return data || [];
+  /* FORMAT DATA */
+
+  const formatted =
+    (data || []).map(
+      (project) => ({
+        ...project,
+
+        manager_name:
+          project.manager
+            ?.full_name || "",
+
+        members:
+          project.project_members?.map(
+            (member) => ({
+              id:
+                member.profiles?.id,
+
+              full_name:
+                member.profiles
+                  ?.full_name,
+
+              role:
+                member.profiles
+                  ?.role,
+            })
+          ) || [],
+      })
+    );
+
+  return formatted;
 }
 
-// ➕ CREATE PROJECT
+/* ================= CREATE PROJECT ================= */
+
 export async function createProject(
   project
 ) {
+  const payload = {
+    name: project.name,
+
+    description:
+      project.description,
+
+    manager_id:
+      project.manager_id || null,
+
+    status:
+      project.status ||
+      "Planning",
+
+    priority:
+      project.priority ||
+      "Medium",
+
+    progress:
+      project.progress || 0,
+
+    deadline:
+      project.deadline || null,
+
+    completed_tasks:
+      project.completed_tasks ||
+      0,
+
+    total_tasks:
+      project.total_tasks || 0,
+  };
+
   const { data, error } =
     await supabase
       .from("projects")
-      .insert([project])
-      .select()
+      .insert([payload])
+      .select(`
+        *,
+        
+        manager:profiles!projects_manager_id_fkey (
+          id,
+          full_name,
+          email,
+          role
+        )
+      `)
       .maybeSingle();
 
   if (error) {
@@ -54,24 +135,68 @@ export async function createProject(
     throw error;
   }
 
-  return data;
+  return {
+    ...data,
+
+    manager_name:
+      data.manager
+        ?.full_name || "",
+  };
 }
 
-// ✏️ UPDATE PROJECT
+/* ================= UPDATE PROJECT ================= */
+
 export async function updateProject(
   id,
   updates
 ) {
+  const payload = {
+    name: updates.name,
+
+    description:
+      updates.description,
+
+    manager_id:
+      updates.manager_id ||
+      null,
+
+    status:
+      updates.status,
+
+    priority:
+      updates.priority,
+
+    progress:
+      updates.progress,
+
+    deadline:
+      updates.deadline,
+
+    completed_tasks:
+      updates.completed_tasks,
+
+    total_tasks:
+      updates.total_tasks,
+
+    updated_at:
+      new Date().toISOString(),
+  };
+
   const { data, error } =
     await supabase
       .from("projects")
-      .update({
-        ...updates,
-        updated_at:
-          new Date().toISOString(),
-      })
+      .update(payload)
       .eq("id", id)
-      .select()
+      .select(`
+        *,
+
+        manager:profiles!projects_manager_id_fkey (
+          id,
+          full_name,
+          email,
+          role
+        )
+      `)
       .maybeSingle();
 
   if (error) {
@@ -83,10 +208,17 @@ export async function updateProject(
     throw error;
   }
 
-  return data;
+  return {
+    ...data,
+
+    manager_name:
+      data.manager
+        ?.full_name || "",
+  };
 }
 
-// 🗑 DELETE PROJECT
+/* ================= DELETE PROJECT ================= */
+
 export async function deleteProject(
   id
 ) {
@@ -108,17 +240,20 @@ export async function deleteProject(
   return true;
 }
 
-// 👥 ASSIGN MEMBERS TO PROJECT
+/* ================= ASSIGN MEMBERS ================= */
+
 export async function assignProjectMembers(
   projectId,
   members
 ) {
-  // REMOVE OLD MEMBERS
-  const { error: deleteError } =
-    await supabase
-      .from("project_members")
-      .delete()
-      .eq("project_id", projectId);
+  /* REMOVE OLD MEMBERS */
+
+  const {
+    error: deleteError,
+  } = await supabase
+    .from("project_members")
+    .delete()
+    .eq("project_id", projectId);
 
   if (deleteError) {
     console.error(
@@ -129,16 +264,20 @@ export async function assignProjectMembers(
     throw deleteError;
   }
 
-  // NO MEMBERS
+  /* NO MEMBERS */
+
   if (!members?.length) {
     return [];
   }
 
-  // INSERT NEW MEMBERS
+  /* INSERT NEW MEMBERS */
+
   const membersToInsert =
     members.map((userId) => ({
       project_id: projectId,
+
       user_id: userId,
+
       role: "member",
     }));
 
@@ -160,7 +299,8 @@ export async function assignProjectMembers(
   return data;
 }
 
-// 👤 GET SINGLE PROJECT
+/* ================= GET SINGLE PROJECT ================= */
+
 export async function getProjectById(
   id
 ) {
@@ -169,14 +309,24 @@ export async function getProjectById(
       .from("projects")
       .select(`
         *,
+
+        manager:profiles!projects_manager_id_fkey (
+          id,
+          full_name,
+          email,
+          role
+        ),
+
         project_members (
           id,
           user_id,
           role,
+
           profiles (
             id,
             full_name,
-            role
+            role,
+            email
           )
         )
       `)
@@ -192,5 +342,27 @@ export async function getProjectById(
     throw error;
   }
 
-  return data;
+  return {
+    ...data,
+
+    manager_name:
+      data.manager
+        ?.full_name || "",
+
+    members:
+      data.project_members?.map(
+        (member) => ({
+          id:
+            member.profiles?.id,
+
+          full_name:
+            member.profiles
+              ?.full_name,
+
+          role:
+            member.profiles
+              ?.role,
+        })
+      ) || [],
+  };
 }

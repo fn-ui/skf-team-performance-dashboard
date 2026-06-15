@@ -5,10 +5,17 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
+  Loader2,
 } from "lucide-react";
 
+import { supabase } from "../../lib/supabase";
+
 function SecuritySettings() {
+
   const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [saving, setSaving] =
     useState(false);
 
   const [securityData, setSecurityData] =
@@ -20,6 +27,7 @@ function SecuritySettings() {
     });
 
   const handleChange = (e) => {
+
     const {
       name,
       value,
@@ -34,17 +42,84 @@ function SecuritySettings() {
           ? checked
           : value,
     });
+
   };
 
-  const handleSave = () => {
-    console.log(
-      "Security Settings:",
-      securityData
-    );
+  // UPDATE PASSWORD
+  const handleSave = async () => {
 
-    alert(
-      "Security settings updated!"
-    );
+    // VALIDATION
+    if (
+      !securityData.newPassword ||
+      !securityData.confirmPassword
+    ) {
+
+      return alert(
+        "Please fill in all password fields."
+      );
+    }
+
+    if (
+      securityData.newPassword !==
+      securityData.confirmPassword
+    ) {
+
+      return alert(
+        "Passwords do not match."
+      );
+    }
+
+    if (
+      securityData.newPassword.length <
+      6
+    ) {
+
+      return alert(
+        "Password must be at least 6 characters."
+      );
+    }
+
+    try {
+
+      setSaving(true);
+
+      const { error } =
+        await supabase.auth.updateUser({
+          password:
+            securityData.newPassword,
+        });
+
+      if (error) throw error;
+
+      alert(
+        "Password updated successfully!"
+      );
+
+      // RESET FORM
+      setSecurityData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        twoFactor: false,
+      });
+
+    } catch (error) {
+
+      console.error(
+        "PASSWORD UPDATE ERROR:",
+        error.message
+      );
+
+      alert(
+        error.message ||
+          "Failed to update password."
+      );
+
+    } finally {
+
+      setSaving(false);
+
+    }
   };
 
   return (
@@ -58,9 +133,8 @@ function SecuritySettings() {
         </h2>
 
         <p className="text-slate-500 dark:text-zinc-400 mt-2">
-          Manage your password,
-          authentication, and account
-          protection.
+          Manage your admin password
+          and account protection.
         </p>
 
       </div>
@@ -95,6 +169,7 @@ function SecuritySettings() {
               onChange={
                 handleChange
               }
+              placeholder="Enter current password"
               className="w-full pl-11 pr-12 py-3 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
             />
 
@@ -147,6 +222,7 @@ function SecuritySettings() {
               onChange={
                 handleChange
               }
+              placeholder="Enter new password"
               className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
             />
 
@@ -181,6 +257,7 @@ function SecuritySettings() {
               onChange={
                 handleChange
               }
+              placeholder="Confirm new password"
               className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
             />
 
@@ -190,54 +267,31 @@ function SecuritySettings() {
 
       </div>
 
-      {/* 2FA */}
+      {/* SECURITY INFO */}
       <div className="mt-10 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
 
-          <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
 
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-
-              <ShieldCheck className="text-emerald-600" />
-
-            </div>
-
-            <div>
-
-              <h3 className="text-lg font-bold dark:text-white">
-                Two-Factor Authentication
-              </h3>
-
-              <p className="text-slate-500 dark:text-zinc-400 mt-1">
-                Add an extra layer of
-                security to your account.
-              </p>
-
-            </div>
+            <ShieldCheck className="text-emerald-600" />
 
           </div>
 
-          {/* TOGGLE */}
-          <label className="relative inline-flex items-center cursor-pointer">
+          <div>
 
-            <input
-              type="checkbox"
-              name="twoFactor"
-              checked={
-                securityData.twoFactor
-              }
-              onChange={
-                handleChange
-              }
-              className="sr-only peer"
-            />
+            <h3 className="text-lg font-bold dark:text-white">
+              Account Protection
+            </h3>
 
-            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:bg-emerald-600 transition-all"></div>
+            <p className="text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+              Keep your admin account
+              secure by using a strong
+              password and updating it
+              regularly.
+            </p>
 
-            <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-5"></div>
-
-          </label>
+          </div>
 
         </div>
 
@@ -248,9 +302,21 @@ function SecuritySettings() {
 
         <button
           onClick={handleSave}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl transition font-medium"
+          disabled={saving}
+          className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-6 py-3 rounded-2xl transition font-medium flex items-center gap-2"
         >
-          Save Security Settings
+
+          {saving && (
+            <Loader2
+              size={18}
+              className="animate-spin"
+            />
+          )}
+
+          {saving
+            ? "Saving..."
+            : "Save Security Settings"}
+
         </button>
 
       </div>

@@ -193,8 +193,7 @@ function ManagerGoals() {
   const inProgressGoals =
     goalList.filter(
       (goal) =>
-        goal.status ===
-        "In Progress"
+       goal.status === "Active"
     ).length;
 
   // PRIORITY COLORS
@@ -340,8 +339,7 @@ function ManagerGoals() {
                 {
                   filteredGoals.filter(
                     (goal) =>
-                      goal.status ===
-                      "In Progress"
+                      goal.status === "Active"
                   ).length
                 }
 
@@ -376,7 +374,7 @@ function ManagerGoals() {
                   new Set(
                     filteredGoals.map(
                       (goal) =>
-                        goal.assignedTo
+                        goal.owner_id
                     )
                   ).size
                 }
@@ -508,43 +506,45 @@ function ManagerGoals() {
 
             </div>
 
-            {/* DETAILS */}
-            <div className="space-y-3 mt-6">
+        {/* DETAILS */}
+<div className="space-y-3 mt-6">
 
-              <div className="flex items-center justify-between">
+  <div className="flex items-center justify-between">
 
-                <p className="text-slate-500 dark:text-zinc-400">
-                  Assigned To
-                </p>
+    <p className="text-slate-500 dark:text-zinc-400">
+      Assigned To
+    </p>
 
-                <p className="font-semibold dark:text-white">
-                  {goal.assignedTo}
-                </p>
+    <p className="font-semibold dark:text-white">
+      {goal.profiles?.full_name ||
+        "Unassigned"}
+    </p>
 
-              </div>
+  </div>
 
-              <div className="flex items-center justify-between">
+  <div className="flex items-center justify-between">
 
-                <p className="text-slate-500 dark:text-zinc-400">
-                  Deadline
-                </p>
+    <p className="text-slate-500 dark:text-zinc-400">
+      Target Date
+    </p>
 
-                <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2">
 
-                  <Clock3
-                    size={16}
-                    className="text-slate-400"
-                  />
+      <Clock3
+        size={16}
+        className="text-slate-400"
+      />
 
-                  <p className="font-semibold dark:text-white">
-                    {goal.deadline}
-                  </p>
+      <p className="font-semibold dark:text-white">
+        {goal.target_date ||
+          "No Date"}
+      </p>
 
-                </div>
+    </div>
 
-              </div>
+  </div>
 
-            </div>
+</div>
 
           </div>
 

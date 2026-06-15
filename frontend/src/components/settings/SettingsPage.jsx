@@ -4,8 +4,6 @@ import {
   User,
   ShieldCheck,
   Bell,
-  Settings2,
-  Building2,
 } from "lucide-react";
 
 import ProfileSettings from "./ProfileSettings";
@@ -14,11 +12,8 @@ import SecuritySettings from "./SecuritySettings";
 
 import NotificationSettings from "./NotificationSettings";
 
-import SystemSettings from "./SystemSettings";
-
-import CompanySettings from "./CompanySettings";
-
 function SettingsPage() {
+
   const [activeTab, setActiveTab] =
     useState("Profile");
 
@@ -37,20 +32,12 @@ function SettingsPage() {
       name: "Notifications",
       icon: Bell,
     },
-
-    {
-      name: "System",
-      icon: Settings2,
-    },
-
-    {
-      name: "Company",
-      icon: Building2,
-    },
   ];
 
   const renderContent = () => {
+
     switch (activeTab) {
+
       case "Profile":
         return <ProfileSettings />;
 
@@ -61,12 +48,6 @@ function SettingsPage() {
         return (
           <NotificationSettings />
         );
-
-      case "System":
-        return <SystemSettings />;
-
-      case "Company":
-        return <CompanySettings />;
 
       default:
         return <ProfileSettings />;
@@ -80,13 +61,13 @@ function SettingsPage() {
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
-          Settings
+          Admin Settings
         </h1>
 
         <p className="text-slate-500 dark:text-zinc-400 mt-2">
-          Manage your account,
-          system preferences, and
-          organization settings.
+          Manage your admin account,
+          security preferences, and
+          notifications.
         </p>
 
       </div>
@@ -100,6 +81,7 @@ function SettingsPage() {
           <div className="space-y-2">
 
             {tabs.map((tab) => {
+
               const Icon = tab.icon;
 
               return (
@@ -111,7 +93,7 @@ function SettingsPage() {
                     )
                   }
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition text-left
-                  
+
                   ${
                     activeTab ===
                     tab.name

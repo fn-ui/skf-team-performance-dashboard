@@ -206,61 +206,94 @@ function AdminTasks() {
     setIsDetailsOpen(true);
   };
 
+  
   // ✏️ OPEN EDIT
-  const handleEditTask = (task) => {
-    setEditedTask({
-      ...task,
-    });
+const handleEditTask = (task) => {
 
-    setIsEditOpen(true);
-  };
+  setEditedTask({
+    ...task,
+  });
 
+  // ✅ GET ASSIGNED USER IDS
+  const assignedUserIds =
+  (task.task_assignees ?? [])
+    .map(a => a.user_id)
+    .filter(Boolean);
+
+  // ✅ PRESELECT ASSIGNED USERS
+  setSelectedUsers(assignedUserIds);
+
+  // ✅ SORT USERS → ASSIGNED USERS FIRST
+  const sortedUsers = [...users].sort(
+    (a, b) => {
+      const aAssigned =
+        assignedUserIds.includes(a.id);
+
+      const bAssigned =
+        assignedUserIds.includes(b.id);
+
+      if (aAssigned && !bAssigned)
+        return -1;
+
+      if (!aAssigned && bAssigned)
+        return 1;
+
+      return 0;
+    }
+  );
+
+  setUsers(sortedUsers);
+
+  setIsEditOpen(true);
+};
   // 💾 UPDATE TASK
   const handleUpdateTask =
-    async () => {
-      try {
-        const payload = {
-          title: editedTask.title,
-          description:
-            editedTask.description,
-          project_id:
-            editedTask.project_id,
-          status: editedTask.status,
-          priority:
-            editedTask.priority,
-          progress:
-            editedTask.progress,
-          due_date:
-            editedTask.due_date,
-        };
+  async () => {
+    try {
 
-        const updated =
-          await updateTask(
-            editedTask.id,
-            payload
-          );
+      const payload = {
+        title:
+          editedTask.title,
 
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id === updated.id
-              ? {
-                  ...task,
-                  ...updated,
-                }
-              : task
-          )
+        description:
+          editedTask.description,
+
+        project_id:
+          editedTask.project_id,
+
+        priority:
+          editedTask.priority,
+
+        due_date:
+          editedTask.due_date,
+      };
+
+      const updated =
+        await updateTask(
+          editedTask.id,
+          payload
         );
 
-        setIsEditOpen(false);
+      // 🔥 UPDATE ASSIGNED USERS
+      await assignTaskUsers(
+        editedTask.id,
+        selectedUsers
+      );
+       await fetchTasks();
+      
 
-        setEditedTask(null);
-      } catch (error) {
-        console.error(
-          "UPDATE ERROR:",
-          error.message
-        );
-      }
-    };
+      setIsEditOpen(false);
+
+      setEditedTask(null);
+
+    } catch (error) {
+
+      console.error(
+        "UPDATE ERROR:",
+        error.message
+      );
+    }
+  };
 
   // ➕ CREATE TASK
   const handleCreateTask =
@@ -624,12 +657,14 @@ function AdminTasks() {
 
                   {/* PROJECT */}
                   <td className="px-6 py-5 dark:text-white">
-                    {task.project}
+                    {task.projects?.name || "No Project"}
                   </td>
 
                   {/* ASSIGNEE */}
                   <td className="px-6 py-5 dark:text-white">
-                    {task.assignee}
+                    {task.task_assignees?.map(
+                    (a) => a.profiles?.full_name
+                  ).join(", ") || "Unassigned"}
                   </td>
 
                   {/* STATUS */}
@@ -696,7 +731,7 @@ function AdminTasks() {
 
                   {/* DATE */}
                   <td className="px-6 py-5 dark:text-white">
-                    {task.dueDate}
+                    {task.due_date}
                   </td>
 
                   {/* ACTIONS */}
@@ -774,29 +809,51 @@ function AdminTasks() {
       )}
 
       {/* DETAILS MODAL */}
-      <TaskDetailsModal
-        isOpen={isDetailsOpen}
-        onClose={() =>
-          setIsDetailsOpen(false)
-        }
-        task={selectedTask}
-      />
+<TaskDetailsModal
+  isOpen={isDetailsOpen}
+  onClose={() =>
+    setIsDetailsOpen(false)
+  }
+  task={selectedTask}
+/>
 
-      <EditTaskModal
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        selectedTask={editedTask}
-        editedTask={editedTask}
-        setEditedTask={setEditedTask}
-        handleUpdateTask={handleUpdateTask}
-      />
-      <CreateTaskModal
-      isOpen={isCreateOpen}
-      onClose={() => setIsCreateOpen(false)}
-      newTask={newTask}
-      setNewTask={setNewTask}
-      handleCreateTask={handleCreateTask}
-    />
+{/* EDIT MODAL */}
+<EditTaskModal
+  isOpen={isEditOpen}
+  onClose={() =>
+    setIsEditOpen(false)
+  }
+  selectedTask={editedTask}
+  editedTask={editedTask}
+  setEditedTask={setEditedTask}
+  handleUpdateTask={handleUpdateTask}
+
+  // 👥 USERS
+  users={users}
+  selectedUsers={selectedUsers}
+  setSelectedUsers={setSelectedUsers}
+  userSearch={userSearch}
+  setUserSearch={setUserSearch}
+  role="admin"
+/>
+
+{/* CREATE MODAL */}
+<CreateTaskModal
+  isOpen={isCreateOpen}
+  onClose={() =>
+    setIsCreateOpen(false)
+  }
+  newTask={newTask}
+  setNewTask={setNewTask}
+  handleCreateTask={handleCreateTask}
+
+  // 👥 USERS
+  users={users}
+  selectedUsers={selectedUsers}
+  setSelectedUsers={setSelectedUsers}
+  userSearch={userSearch}
+  setUserSearch={setUserSearch}
+/>
 
     </div>
   );

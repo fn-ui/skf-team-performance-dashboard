@@ -6,32 +6,31 @@ function CreateProjectModal({
   newProject,
   setNewProject,
   handleAddProject,
+  managers,
 }) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-2xl p-8 border border-slate-200 dark:border-zinc-800">
+      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between">
 
           <div>
-
             <h2 className="text-3xl font-bold dark:text-white">
               Create Project
             </h2>
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-2">
+            <p className="mt-2 text-slate-500 dark:text-zinc-400">
               Add a new project.
             </p>
-
           </div>
 
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
+            className="h-10 w-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
           >
             ✕
           </button>
@@ -39,12 +38,12 @@ function CreateProjectModal({
         </div>
 
         {/* FORM */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
           {/* NAME */}
           <div className="md:col-span-2">
 
-            <label className="block text-sm font-medium mb-2 dark:text-white">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Project Name
             </label>
 
@@ -58,7 +57,7 @@ function CreateProjectModal({
                 })
               }
               placeholder="Enter project name"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
             />
 
           </div>
@@ -66,7 +65,7 @@ function CreateProjectModal({
           {/* DESCRIPTION */}
           <div className="md:col-span-2">
 
-            <label className="block text-sm font-medium mb-2 dark:text-white">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Description
             </label>
 
@@ -76,12 +75,11 @@ function CreateProjectModal({
               onChange={(e) =>
                 setNewProject({
                   ...newProject,
-                  description:
-                    e.target.value,
+                  description: e.target.value,
                 })
               }
               placeholder="Project description"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
             />
 
           </div>
@@ -89,29 +87,42 @@ function CreateProjectModal({
           {/* MANAGER */}
           <div>
 
-            <label className="block text-sm font-medium mb-2 dark:text-white">
-              Manager
+            <label className="mb-2 block text-sm font-medium dark:text-white">
+              Assign Manager
             </label>
 
-            <input
-              type="text"
-              value={newProject.manager}
+            <select
+              value={newProject.manager_id || ""}
               onChange={(e) =>
                 setNewProject({
                   ...newProject,
-                  manager: e.target.value,
+                  manager_id: e.target.value,
                 })
               }
-              placeholder="Manager name"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-            />
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+            >
+
+              <option value="">
+                Select manager
+              </option>
+
+              {managers.map((manager) => (
+                <option
+                  key={manager.id}
+                  value={manager.id}
+                >
+                  {manager.full_name}
+                </option>
+              ))}
+
+            </select>
 
           </div>
 
           {/* DEADLINE */}
           <div>
 
-            <label className="block text-sm font-medium mb-2 dark:text-white">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Deadline
             </label>
 
@@ -121,57 +132,18 @@ function CreateProjectModal({
               onChange={(e) =>
                 setNewProject({
                   ...newProject,
-                  deadline:
-                    e.target.value,
+                  deadline: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
             />
-
-          </div>
-
-          {/* STATUS */}
-          <div>
-
-            <label className="block text-sm font-medium mb-2 dark:text-white">
-              Status
-            </label>
-
-            <select
-              value={newProject.status}
-              onChange={(e) =>
-                setNewProject({
-                  ...newProject,
-                  status: e.target.value,
-                })
-              }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-            >
-
-              <option>
-                Planning
-              </option>
-
-              <option>
-                Development
-              </option>
-
-              <option>
-                Testing
-              </option>
-
-              <option>
-                Completed
-              </option>
-
-            </select>
 
           </div>
 
           {/* PRIORITY */}
           <div>
 
-            <label className="block text-sm font-medium mb-2 dark:text-white">
+            <label className="mb-2 block text-sm font-medium dark:text-white">
               Priority
             </label>
 
@@ -180,22 +152,21 @@ function CreateProjectModal({
               onChange={(e) =>
                 setNewProject({
                   ...newProject,
-                  priority:
-                    e.target.value,
+                  priority: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
             >
 
-              <option>
+              <option value="Low">
                 Low
               </option>
 
-              <option>
+              <option value="Medium">
                 Medium
               </option>
 
-              <option>
+              <option value="High">
                 High
               </option>
 
@@ -203,44 +174,21 @@ function CreateProjectModal({
 
           </div>
 
-          {/* MEMBERS */}
-          <div className="md:col-span-2">
-
-            <label className="block text-sm font-medium mb-2 dark:text-white">
-              Members
-            </label>
-
-            <input
-              type="text"
-              value={newProject.members}
-              onChange={(e) =>
-                setNewProject({
-                  ...newProject,
-                  members:
-                    e.target.value,
-                })
-              }
-              placeholder="John, Mary, Alex"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-            />
-
-          </div>
-
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-end gap-4 mt-10">
+        <div className="mt-10 flex items-center justify-end gap-4">
 
           <button
             onClick={onClose}
-            className="px-6 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 dark:text-white"
+            className="rounded-xl border border-slate-200 px-6 py-3 dark:border-zinc-800 dark:text-white"
           >
             Cancel
           </button>
 
           <button
             onClick={handleAddProject}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl transition"
+            className="rounded-xl bg-emerald-600 px-6 py-3 text-white transition hover:bg-emerald-700"
           >
             Create Project
           </button>

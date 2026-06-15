@@ -2,16 +2,19 @@ import { supabase } from "../lib/supabase";
 
 // 👥 GET ALL USERS
 export async function getUsers() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(`
-      id,
-      full_name,
-      role
-    `)
-    .order("full_name", {
-      ascending: true,
-    });
+  const { data, error } =
+    await supabase
+      .from("profiles")
+      .select(`
+        id,
+        full_name,
+        role,
+        manager_id,
+        email
+      `)
+      .order("full_name", {
+        ascending: true,
+      });
 
   if (error) {
     console.error(

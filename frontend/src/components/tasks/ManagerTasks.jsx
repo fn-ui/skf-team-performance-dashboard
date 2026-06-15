@@ -12,6 +12,7 @@ import {
 } from "../../services/tasksService";
 
 import { getUsers } from "../../services/userService";
+import { getProjects } from "../../services/projectsService";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -46,6 +47,9 @@ function ManagerTasks() {
   // LOADING
   const [loading, setLoading] =
     useState(true);
+//projects
+    const [projects, setProjects] =
+  useState([]);
 
   // FILTERS
   const [search, setSearch] =
@@ -85,15 +89,16 @@ function ManagerTasks() {
 
   // NEW TASK
   const [newTask, setNewTask] =
-    useState({
-      title: "",
-      description: "",
-      project_id: "",
-      status: "Pending",
-      priority: "Medium",
-      progress: 0,
-      due_date: "",
-    });
+  useState({
+    title: "",
+    description: "",
+    project_id: "",
+    
+    status: "Pending",
+    priority: "Medium",
+    progress: 0,
+    due_date: "",
+  });
 
   // 🔥 INITIAL LOAD
   useEffect(() => {
@@ -101,6 +106,7 @@ function ManagerTasks() {
 
     loadTasks();
     loadUsers();
+    loadProjects();
   }, [profile?.id]);
 
   // 📦 LOAD TASKS
@@ -136,30 +142,65 @@ function ManagerTasks() {
     };
 
   // 👥 LOAD USERS
-  const loadUsers =
-    async () => {
-      try {
-        const data =
-          await getUsers();
+ const loadUsers = async () => {
+  try {
+    const data = await getUsers();
 
-        // 🔥 MEMBERS ONLY
-        const membersOnly =
-          (data || []).filter(
-            (user) =>
-              user.role ===
-              "member"
-          );
+    console.table(data);
 
-        setUsers(membersOnly);
-      } catch (error) {
-        console.error(
-          "FETCH USERS ERROR:",
-          error.message
+    // 🔥 EXCLUDE ADMINS + MANAGERS
+    const membersOnly =
+  (data || []).filter(
+    (user) =>
+      user.manager_id ===
+      profile?.id
+  );
+
+    console.log(
+      "FILTERED MEMBERS:",
+      membersOnly
+    );
+
+    setUsers(membersOnly);
+
+  } catch (error) {
+    console.error(
+      "FETCH USERS ERROR:",
+      error.message
+    );
+
+    setUsers([]);
+  }
+};
+
+    const loadProjects =
+  async () => {
+    try {
+      const data =
+        await getProjects();
+
+      // 🔥 ONLY MANAGER PROJECTS
+      const managerProjects =
+        (data || []).filter(
+          (project) =>
+            project.manager_id ===
+              profile?.id ||
+            project.created_by ===
+              profile?.id
         );
 
-        setUsers([]);
-      }
-    };
+      setProjects(
+        managerProjects
+      );
+    } catch (error) {
+      console.error(
+        "FETCH PROJECTS ERROR:",
+        error.message
+      );
+
+      setProjects([]);
+    }
+  };
 
   // 🔎 FILTER USERS
   const filteredUsers =
@@ -226,14 +267,47 @@ function ManagerTasks() {
 
   // ✏️ OPEN EDIT
   const handleEditTask = (
-    task
-  ) => {
-    setEditedTask({
-      ...task,
-    });
+  task
+) => {
 
-    setIsEditOpen(true);
-  };
+  setEditedTask({
+    ...task,
+  });
+
+  // LOAD CURRENT ASSIGNED USERS
+ const assignedUsers =
+  task.task_assignees?.map(
+    (assignment) =>
+      assignment.user_id
+  ) || [];
+
+setSelectedUsers(
+  assignedUsers
+);
+
+// ✅ ASSIGNED USERS FIRST
+const sortedUsers =
+  [...users].sort((a, b) => {
+
+    const aAssigned =
+      assignedUsers.includes(a.id);
+
+    const bAssigned =
+      assignedUsers.includes(b.id);
+
+    if (aAssigned && !bAssigned)
+      return -1;
+
+    if (!aAssigned && bAssigned)
+      return 1;
+
+    return 0;
+  });
+
+setUsers(sortedUsers);
+
+setIsEditOpen(true);
+};
 
   // 👥 TOGGLE USER
   const toggleUserSelection =
@@ -269,28 +343,20 @@ function ManagerTasks() {
                 editedTask.description,
               project_id:
                 editedTask.project_id,
-              status:
-                editedTask.status,
+              
               priority:
                 editedTask.priority,
-              progress:
-                editedTask.progress,
+              
               due_date:
                 editedTask.due_date,
             }
           );
-
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id ===
-            updated.id
-              ? {
-                  ...task,
-                  ...updated,
-                }
-              : task
-          )
+          await assignTaskUsers(
+          editedTask.id,
+          selectedUsers
         );
+          await loadTasks();
+        
 
         setIsEditOpen(false);
 
@@ -340,12 +406,10 @@ function ManagerTasks() {
             project_id:
               newTask.project_id ||
               null,
-            status:
-              newTask.status,
+            
             priority:
               newTask.priority,
-            progress:
-              newTask.progress,
+            
             due_date:
               newTask.due_date ||
               null,
@@ -373,7 +437,7 @@ function ManagerTasks() {
           title: "",
           description: "",
           project_id: "",
-          status: "Pending",
+          
           priority: "Medium",
           progress: 0,
           due_date: "",
@@ -606,7 +670,7 @@ function ManagerTasks() {
                 </h2>
 
                 <p className="text-slate-500 mt-2">
-                  {task.project}
+                  {task.projects?.name || "No Project"}
                 </p>
               </div>
 
@@ -649,7 +713,9 @@ function ManagerTasks() {
                 </p>
 
                 <h3 className="font-semibold dark:text-white">
-                  {task.assignee}
+                  {task.task_assignees?.map(
+                  (a) => a.profiles?.full_name
+                ).join(", ") || "Unassigned"}
                 </h3>
               </div>
 
@@ -687,7 +753,7 @@ function ManagerTasks() {
             <div className="flex items-center justify-between mt-6">
 
               <p className="text-sm text-slate-500">
-                Due: {task.dueDate}
+                Due: {task.due_date}
               </p>
 
               <div className="flex items-center gap-2">
@@ -748,27 +814,36 @@ function ManagerTasks() {
       />
 
       {/* EDIT MODAL */}
-      <EditTaskModal
-        isOpen={isEditOpen}
-        onClose={() =>
-          setIsEditOpen(false)
-        }
-        selectedTask={editedTask}
-        editedTask={editedTask}
-        setEditedTask={setEditedTask}
-        handleUpdateTask={handleUpdateTask}
-      />
+     <EditTaskModal
+  isOpen={isEditOpen}
+  onClose={() =>
+    setIsEditOpen(false)
+  }
+  editedTask={editedTask}
+  setEditedTask={setEditedTask}
+  handleUpdateTask={handleUpdateTask}
+  users={users}
+  projects={projects}   // ✅ ADD THIS
+  selectedUsers={selectedUsers}
+  toggleUserSelection={toggleUserSelection}
+  role="Team Manager"
+
+/>
 
       {/* CREATE MODAL */}
-      <CreateTaskModal
-        isOpen={isCreateOpen}
-        onClose={() =>
-          setIsCreateOpen(false)
-        }
-        newTask={newTask}
-        setNewTask={setNewTask}
-        handleCreateTask={handleCreateTask}
-      />
+     <CreateTaskModal
+  isOpen={isCreateOpen}
+  onClose={() =>
+    setIsCreateOpen(false)
+  }
+  newTask={newTask}
+  setNewTask={setNewTask}
+  handleCreateTask={handleCreateTask}
+  projects={projects}
+  members={users}
+  selectedUsers={selectedUsers}
+  setSelectedUsers={setSelectedUsers}
+/>
 
     </div>
   );
