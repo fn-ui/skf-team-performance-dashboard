@@ -15,7 +15,8 @@ function AddEventModal({
   newEvent,
   setNewEvent,
   handleAddEvent,
-  mode = "add",
+  members,
+  mode,
 }) {
 
   const isEditing =
@@ -336,21 +337,32 @@ function AddEventModal({
 
             </label>
 
-            <input
-              type="text"
-              value={
-                newEvent.assignedTo
-              }
-              onChange={(e) =>
-                setNewEvent({
-                  ...newEvent,
-                  assignedTo:
-                    e.target.value,
-                })
-              }
-              placeholder="Team / Member / Department"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
-            />
+            <select
+                    value={
+                      newEvent.assigned_to
+                    }
+                  onChange={(e) =>
+                    setNewEvent({
+                      ...newEvent,
+                      assigned_to:
+                        e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                >
+                  <option value="">
+                    Select member
+                  </option>
+
+                  {members.map((member) => (
+                    <option
+                      key={member.id}
+                      value={member.id}
+                    >
+                      {member.full_name}
+                    </option>
+                  ))}
+                </select>
 
           </div>
 

@@ -14,17 +14,26 @@ import {
   Users,
 } from "lucide-react";
 
+import { useAuth } from "../../contexts/AuthContext";
+
 import { getEvents } from "../../services/calendarService";
+
+import { getUsers } from "../../services/userService";
 
 import EventDetailsModal from "./EventDetailsModal";
 
 function MemberCalendarPage() {
+
+  const { profile } = useAuth();
 
   // ========================================
   // STATES
   // ========================================
 
   const [events, setEvents] =
+    useState([]);
+
+  const [members, setMembers] =
     useState([]);
 
   const [loading, setLoading] =
@@ -60,10 +69,17 @@ function MemberCalendarPage() {
 
         setLoading(true);
 
-        const data =
-          await getEvents();
+        const [
+          eventsData,
+          usersData,
+        ] = await Promise.all([
+          getEvents(),
+          getUsers(),
+        ]);
 
-        setEvents(data || []);
+        setEvents(eventsData || []);
+
+        setMembers(usersData || []);
 
       } catch (error) {
 
@@ -79,32 +95,78 @@ function MemberCalendarPage() {
     };
 
   // ========================================
-  // FILTER EVENTS
+  // GET ASSIGNED USER
   // ========================================
 
-  const filteredEvents =
-    useMemo(() => {
+  // ========================================
+// GET ASSIGNED USER
+// ========================================
 
-      return events.filter(
-        (event) =>
-          event.title
-            ?.toLowerCase()
-            .includes(
-              search.toLowerCase()
-            )
+const getAssignedUserName = (
+  userId
+) => {
+
+  // shared event
+  if (!userId) {
+    return "Team";
+  }
+
+  // current logged in member
+  if (userId === profile?.id) {
+    return "You";
+  }
+
+  const user = members.find(
+    (member) =>
+      member.id === userId
+  );
+
+  return (
+    user?.full_name ||
+    "Team"
+  );
+};
+
+  
+
+  // ========================================
+// FILTER EVENTS
+// ========================================
+
+const filteredEvents = useMemo(() => {
+  return events
+    .filter((event) => {
+      // show shared/team events
+      if (!event.assigned_to) {
+        return true;
+      }
+
+      // show only events assigned to current member
+      return (
+        event.assigned_to ===
+        profile?.id
       );
-
-    }, [events, search]);
+    })
+    .filter((event) =>
+      event.title
+        ?.toLowerCase()
+        .includes(
+          search.toLowerCase()
+        )
+    );
+}, [events, search, profile]);
+ 
 
   // ========================================
-  // STATS
-  // ========================================
+// STATS
+// ========================================
 
-  const totalEvents =
-    events.length;
+const totalEvents =
+  filteredEvents.length;
 
-  const upcomingEvents =
-    events.filter((event) => {
+const upcomingEvents =
+  filteredEvents.filter(
+    (event) => {
 
       const today =
         new Date();
@@ -116,15 +178,15 @@ function MemberCalendarPage() {
         eventDate >= today
       );
 
-    }).length;
+    }
+  ).length;
 
-  const highPriorityEvents =
-    events.filter(
-      (event) =>
-        event.priority ===
-        "High"
-    ).length;
-
+const highPriorityEvents =
+  filteredEvents.filter(
+    (event) =>
+      event.priority ===
+      "High"
+  ).length;
   // ========================================
   // OPEN DETAILS
   // ========================================
@@ -384,9 +446,9 @@ function MemberCalendarPage() {
 
                       <Users size={15} />
 
-                      {event.assigned_to ||
-                        event.assignedTo ||
-                        "Team"}
+                      {getAssignedUserName(
+                        event.assigned_to
+                      )}
 
                     </span>
 

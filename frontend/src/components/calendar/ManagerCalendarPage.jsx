@@ -22,6 +22,8 @@ import {
   deleteEvent,
 } from "../../services/calendarService";
 
+import { getUsers } from "../../services/userService";
+
 import AddEventModal from "./AddEventModal";
 import EventDetailsModal from "./EventDetailsModal";
 
@@ -30,6 +32,10 @@ function ManagerCalendarPage() {
 
   // EVENTS
   const [events, setEvents] =
+    useState([]);
+
+  // MEMBERS
+  const [members, setMembers] =
     useState([]);
 
   // LOADING
@@ -70,11 +76,9 @@ function ManagerCalendarPage() {
       time: "",
       type: "Meeting",
       priority: "Medium",
-      assignedTo: "",
-      createdBy:
-        profile?.full_name ||
-        "Manager",
-      status: "Upcoming",
+      assigned_to: "",
+      created_by:
+        profile?.id || null,
     });
 
   // LOAD EVENTS
@@ -82,15 +86,22 @@ function ManagerCalendarPage() {
     loadEvents();
   }, []);
 
-  // FETCH EVENTS
+  // FETCH EVENTS + USERS
   const loadEvents = async () => {
     try {
       setLoading(true);
 
-      const data =
-        await getEvents();
+      const [
+        eventsData,
+        usersData,
+      ] = await Promise.all([
+        getEvents(),
+        getUsers(),
+      ]);
 
-      setEvents(data || []);
+      setEvents(eventsData || []);
+
+      setMembers(usersData || []);
     } catch (error) {
       console.error(
         "LOAD EVENTS ERROR:",
@@ -101,42 +112,83 @@ function ManagerCalendarPage() {
     }
   };
 
+  // GET USER NAME
+  const getAssignedUserName = (
+    userId
+  ) => {
+    const user = members.find(
+      (member) =>
+        member.id === userId
+    );
+
+    return (
+      user?.full_name || "Team"
+    );
+  };
+
   // FILTER EVENTS
   const filteredEvents =
-    events.filter((event) =>
+  events
+    .filter(
+      (event) =>
+        event.created_by ===
+          profile?.id ||
+        event.assigned_to ===
+          profile?.id
+    )
+    .filter((event) =>
       event.title
         ?.toLowerCase()
         .includes(
           search.toLowerCase()
         )
     );
+    // MANAGER CREATED EVENTS
+   const isManagerEvent = (event) => {
+  return event.created_by === profile?.id;
+};
+
+// ONLY EVENTS RELEVANT TO THIS MANAGER
+const managerEvents =
+  events.filter(
+    (event) =>
+      event.created_by ===
+        profile?.id ||
+      event.assigned_to ===
+        profile?.id
+  );
 
   // STATS
   const totalEvents =
-    events.length;
+  managerEvents.length;
 
-  const upcomingEvents =
-    events.filter((event) => {
+const upcomingEvents =
+  managerEvents.filter(
+    (event) => {
       const today =
         new Date();
 
       const eventDate =
         new Date(event.date);
 
-      return eventDate >= today;
-    }).length;
+      return (
+        eventDate >= today
+      );
+    }
+  ).length;
 
-  const highPriorityEvents =
-    events.filter(
-      (event) =>
-        event.priority === "High"
-    ).length;
+const highPriorityEvents =
+  managerEvents.filter(
+    (event) =>
+      event.priority === "High"
+  ).length;
 
-  const completedEvents =
-    events.filter(
-      (event) =>
-        event.status === "Completed"
-    ).length;
+const completedEvents =
+  managerEvents.filter(
+    (event) =>
+      event.status ===
+      "Completed"
+  ).length;
 
   // OPEN DETAILS
   const handleOpenDetails = (
@@ -164,17 +216,10 @@ function ManagerCalendarPage() {
       priority:
         event.priority ||
         "Medium",
-      assignedTo:
-        event.assigned_to ||
-        event.assignedTo ||
-        "",
-      createdBy:
-        event.created_by_name ||
-        profile?.full_name ||
-        "Manager",
-      status:
-        event.status ||
-        "Upcoming",
+      assigned_to:
+        event.assigned_to || "",
+      created_by:
+        profile?.id || null,
     });
 
     setIsAddOpen(true);
@@ -226,9 +271,7 @@ function ManagerCalendarPage() {
                 priority:
                   newEvent.priority,
                 assigned_to:
-                  newEvent.assignedTo,
-                status:
-                  newEvent.status,
+                  newEvent.assigned_to,
               }
             );
 
@@ -256,9 +299,7 @@ function ManagerCalendarPage() {
               priority:
                 newEvent.priority,
               assigned_to:
-                newEvent.assignedTo,
-              status:
-                newEvent.status,
+                newEvent.assigned_to,
               created_by:
                 profile?.id,
             });
@@ -277,11 +318,9 @@ function ManagerCalendarPage() {
           time: "",
           type: "Meeting",
           priority: "Medium",
-          assignedTo: "",
-          createdBy:
-            profile?.full_name ||
-            "Manager",
-          status: "Upcoming",
+          assigned_to: "",
+          created_by:
+            profile?.id || null,
         });
 
         setEditingEventId(null);
@@ -314,28 +353,12 @@ function ManagerCalendarPage() {
     }
   };
 
-  // STATUS COLORS
-  const getStatusColor = (
-    status
-  ) => {
-    switch (status) {
-      case "Completed":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
-
-      default:
-        return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400";
-    }
-  };
-
   // LOADING
   if (loading) {
     return (
       <div className="flex items-center gap-3 p-10 dark:text-white">
-
         <Loader2 className="animate-spin" />
-
         Loading calendar...
-
       </div>
     );
   }
@@ -344,179 +367,141 @@ function ManagerCalendarPage() {
     <div className="p-6 space-y-8">
 
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+      <div className="flex items-center justify-between">
 
         <div>
-
           <h1 className="text-3xl font-bold dark:text-white">
             Manager Calendar
           </h1>
 
           <p className="text-slate-500 dark:text-zinc-400 mt-2">
-            Schedule meetings,
-            deadlines, reviews,
-            and team events.
+            Manage meetings and schedules.
           </p>
-
         </div>
 
         <button
           onClick={() =>
             setIsAddOpen(true)
           }
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl transition shadow-lg shadow-emerald-500/20"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl"
         >
-
           <Plus size={18} />
-
           Add Event
-
         </button>
 
       </div>
-
       {/* STATS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+  {/* TOTAL EVENTS */}
+  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
 
-          <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between">
 
-            <div>
+      <div>
 
-              <p className="text-slate-500 dark:text-zinc-400">
-                Total Events
-              </p>
+        <p className="text-slate-500 dark:text-zinc-400">
+          Total Events
+        </p>
 
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {totalEvents}
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
-
-              <CalendarDays className="text-emerald-600 dark:text-emerald-400" />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* UPCOMING */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Upcoming
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {upcomingEvents}
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
-
-              <Clock3 className="text-blue-600 dark:text-blue-400" />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* HIGH PRIORITY */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                High Priority
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {
-                  highPriorityEvents
-                }
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950 flex items-center justify-center">
-
-              <CheckCircle2 className="text-red-600 dark:text-red-400" />
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-slate-500 dark:text-zinc-400">
-                Completed
-              </p>
-
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
-                {
-                  completedEvents
-                }
-              </h2>
-
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
-
-              <Users className="text-emerald-600 dark:text-emerald-400" />
-
-            </div>
-
-          </div>
-
-        </div>
+        <h2 className="text-3xl font-bold mt-3 dark:text-white">
+          {totalEvents}
+        </h2>
 
       </div>
 
-      {/* SEARCH */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 border border-slate-200 dark:border-zinc-800">
+      <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
 
-        <div className="relative">
-
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Search events..."
-            value={search}
-            onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
-            }
-            className="w-full rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 pl-11 pr-4 py-3 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-
-        </div>
+        <CalendarDays className="text-emerald-600 dark:text-emerald-400" />
 
       </div>
+
+    </div>
+
+  </div>
+
+  {/* UPCOMING */}
+  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+
+    <div className="flex items-center justify-between">
+
+      <div>
+
+        <p className="text-slate-500 dark:text-zinc-400">
+          Upcoming
+        </p>
+
+        <h2 className="text-3xl font-bold mt-3 dark:text-white">
+          {upcomingEvents}
+        </h2>
+
+      </div>
+
+      <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+
+        <Clock3 className="text-blue-600 dark:text-blue-400" />
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* HIGH PRIORITY */}
+  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+
+    <div className="flex items-center justify-between">
+
+      <div>
+
+        <p className="text-slate-500 dark:text-zinc-400">
+          High Priority
+        </p>
+
+        <h2 className="text-3xl font-bold mt-3 dark:text-white">
+          {highPriorityEvents}
+        </h2>
+
+      </div>
+
+      <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950 flex items-center justify-center">
+
+        <Users className="text-red-600 dark:text-red-400" />
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* COMPLETED */}
+  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+
+    <div className="flex items-center justify-between">
+
+      <div>
+
+        <p className="text-slate-500 dark:text-zinc-400">
+          Completed
+        </p>
+
+        <h2 className="text-3xl font-bold mt-3 dark:text-white">
+          {completedEvents}
+        </h2>
+
+      </div>
+
+      <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
+
+        <CheckCircle2 className="text-emerald-600 dark:text-emerald-400" />
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
       {/* EVENTS */}
       <div className="space-y-5">
@@ -525,15 +510,14 @@ function ManagerCalendarPage() {
           (event) => (
             <div
               key={event.id}
-              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800 hover:shadow-xl hover:shadow-emerald-500/5 transition"
+              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800"
             >
 
-              <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+              <div className="flex items-start justify-between gap-6">
 
-                {/* LEFT */}
                 <div className="space-y-4 flex-1">
 
-                  <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
 
                     <h2 className="text-2xl font-bold dark:text-white">
                       {
@@ -551,151 +535,116 @@ function ManagerCalendarPage() {
                       }
                     </span>
 
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        event.status
-                      )}`}
-                    >
-                      {event.status}
-                    </span>
-
                   </div>
 
-                  <p className="text-slate-500 dark:text-zinc-400 leading-relaxed">
+                  <p className="text-slate-500 dark:text-zinc-400">
                     {
                       event.description
                     }
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
 
-                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
-
-                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                    <div>
+                      <p className="text-xs text-slate-500">
                         Date
                       </p>
 
-                      <h3 className="font-semibold mt-2 dark:text-white">
+                      <h3 className="font-semibold dark:text-white">
                         {event.date}
                       </h3>
-
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
-
-                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                    <div>
+                      <p className="text-xs text-slate-500">
                         Time
                       </p>
 
-                      <h3 className="font-semibold mt-2 dark:text-white">
+                      <h3 className="font-semibold dark:text-white">
                         {event.time}
                       </h3>
-
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
-
-                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                    <div>
+                      <p className="text-xs text-slate-500">
                         Type
                       </p>
 
-                      <h3 className="font-semibold mt-2 dark:text-white">
+                      <h3 className="font-semibold dark:text-white">
                         {event.type}
                       </h3>
-
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
+                    <div>
+                <p className="text-xs text-slate-500">
+                  Assigned To
+                </p>
 
-                      <p className="text-xs text-slate-500 dark:text-zinc-400">
-                        Assigned To
-                      </p>
-
-                      <h3 className="font-semibold mt-2 dark:text-white">
-                        {event.assigned_to ||
-                          event.assignedTo ||
-                          "Team"}
-                      </h3>
-
-                    </div>
+                <h3 className="font-semibold dark:text-white">
+                  {event.assigned_to === profile?.id
+                    ? "You"
+                    : getAssignedUserName(
+                        event.assigned_to
+                      )}
+                </h3>
+              </div>
 
                   </div>
 
                 </div>
 
-                {/* ACTIONS */}
-                <div className="flex xl:flex-col items-center gap-3">
+          {/* ACTIONS */}
+<div className="flex flex-col gap-3">
 
-                  <button
-                    onClick={() =>
-                      handleOpenDetails(
-                        event
-                      )
-                    }
-                    className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:scale-105 transition"
-                  >
-                    <Eye size={18} />
-                  </button>
+  {/* VIEW */}
+  <button
+    onClick={() =>
+      handleOpenDetails(event)
+    }
+    className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:scale-105 transition"
+  >
+    <Eye size={18} />
+  </button>
 
-                  <button
-                    onClick={() =>
-                      handleEditEvent(
-                        event
-                      )
-                    }
-                    className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center hover:scale-105 transition"
-                  >
-                    <Pencil size={18} />
-                  </button>
+  {/* ONLY ALLOW EDIT/DELETE IF MANAGER CREATED EVENT */}
+  {event.created_by ===
+    profile?.id && (
+    <>
+      {/* EDIT */}
+      <button
+        onClick={() =>
+          handleEditEvent(event)
+        }
+        className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center hover:scale-105 transition"
+      >
+        <Pencil size={18} />
+      </button>
 
-                  <button
-                    onClick={() =>
-                      handleDeleteEvent(
-                        event.id
-                      )
-                    }
-                    className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center hover:scale-105 transition"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-
-                </div>
-
-              </div>
-
-            </div>
+      {/* DELETE */}
+      <button
+        onClick={() =>
+          handleDeleteEvent(
+            event.id
           )
-        )}
+        }
+        className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center hover:scale-105 transition"
+      >
+        <Trash2 size={18} />
+      </button>
+    </>
+  )}
 
-      </div>
+</div>
 
-      {/* EMPTY STATE */}
-      {filteredEvents.length ===
-        0 && (
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-16 text-center">
+</div>
 
-          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
+</div>
+)
+)}
 
-            <CalendarDays
-              size={36}
-              className="text-slate-400"
-            />
+</div>
 
-          </div>
-
-          <h2 className="text-3xl font-bold dark:text-white">
-            No Events Found
-          </h2>
-
-          <p className="text-slate-500 dark:text-zinc-400 mt-3">
-            No events match your
-            current search.
-          </p>
-
-        </div>
-      )}
-
-      {/* ADD / EDIT MODAL */}
+      {/* ADD MODAL */}
       <AddEventModal
         isOpen={isAddOpen}
         onClose={() => {
@@ -710,6 +659,7 @@ function ManagerCalendarPage() {
         handleAddEvent={
           handleAddEvent
         }
+        members={members}
         mode={
           editingEventId
             ? "edit"

@@ -250,7 +250,7 @@ function EventDetailsModal({
 
               <span className="ml-2 font-semibold dark:text-white">
 
-                {selectedEvent.createdBy || "Admin"}
+                {selectedEvent.created_by || "Admin"}
 
               </span>
 

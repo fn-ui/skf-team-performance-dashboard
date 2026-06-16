@@ -342,14 +342,16 @@ function Sidebar({
       }
     `}
   >
-    {/* AVATAR */}
+    
 
     {/* AVATAR */}
 
 <div className="flex h-12 w-12 min-w-[48px] items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-lg font-bold text-white shadow-md">
-  
-  {profile?.avatar_url ? (
+
+  {profile?.avatar_url &&
+   profile.avatar_url !== "" ? (
     <img
+      key={profile.avatar_url}
       src={profile.avatar_url}
       alt="avatar"
       className="h-full w-full object-cover"
@@ -359,6 +361,7 @@ function Sidebar({
       ?.charAt(0)
       ?.toUpperCase() || "U"
   )}
+
 </div>
 
     {!collapsed && (

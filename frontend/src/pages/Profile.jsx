@@ -11,12 +11,19 @@ import {
 import { supabase } from "../lib/supabase";
 
 import { useAuth } from "../contexts/AuthContext";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 function Profile() {
-  const {
-    user,
-    profile,
-  } = useAuth();
+ const {
+  user,
+  profile,
+  refreshProfile,
+} = useAuth();
+
+  const [
+  showPasswordModal,
+  setShowPasswordModal,
+] = useState(false);
 
   const [loading, setLoading] =
     useState(false);
@@ -154,9 +161,10 @@ function Profile() {
               filePath
             );
 
-        setAvatarUrl(
-          data.publicUrl
-        );
+        const imageUrl =
+              `${data.publicUrl}?v=${Date.now()}`;
+
+            setAvatarUrl(imageUrl);
       } catch (err) {
         console.error(err);
 
@@ -222,6 +230,11 @@ function Profile() {
             if (detailsError) {
             throw detailsError;
             }
+            await refreshProfile();
+
+            window.dispatchEvent(
+              new Event("profile-updated")
+            );
 
         alert(
           "Profile updated successfully"
@@ -439,6 +452,7 @@ function Profile() {
               className="w-full rounded-2xl border border-slate-300 bg-white p-4 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
             />
           </div>
+   
 
           {/* SAVE */}
 
@@ -456,7 +470,49 @@ function Profile() {
             </button>
           </div>
         </form>
+                 {/* SECURITY SECTION */}
+
+<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+  
+  <div className="mb-4">
+    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+      Security
+    </h3>
+
+    <p className="text-sm text-slate-500 dark:text-slate-400">
+      Manage your password and account security.
+    </p>
+  </div>
+
+  <div className="flex items-center justify-between rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+    
+    <div>
+      <h4 className="font-medium text-slate-900 dark:text-white">
+        Password
+      </h4>
+
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Change your account password.
+      </p>
+    </div>
+
+    <button
+      onClick={() =>
+        setShowPasswordModal(true)
+      }
+      className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+    >
+      Change Password
+    </button>
+  </div>
+</div>
       </div>
+           <ChangePasswordModal
+            isOpen={showPasswordModal}
+            onClose={() =>
+              setShowPasswordModal(false)
+            }
+          />
     </div>
   );
 }
