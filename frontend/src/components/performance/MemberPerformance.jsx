@@ -49,17 +49,26 @@ function MemberPerformance() {
   /* ================= MEMBER TASKS ================= */
 
   const memberTasks =
-    tasks.filter((task) => {
-      const assignees =
-        task?.task_assignees ||
-        [];
+  tasks.filter((task) => {
 
-      return assignees.some(
-        (a) =>
-          a?.user_id ===
+    // ✅ PRIMARY ASSIGNEE
+    const isPrimaryAssignee =
+      task.assignee_id ===
+      profile?.id;
+
+    // ✅ MULTIPLE ASSIGNEES
+    const isInTaskAssignees =
+      task.task_assignees?.some(
+        (assignee) =>
+          assignee.user_id ===
           profile?.id
       );
-    });
+
+    return (
+      isPrimaryAssignee ||
+      isInTaskAssignees
+    );
+  });
 
   /* ================= STATS ================= */
 
@@ -73,7 +82,8 @@ function MemberPerformance() {
   const pending =
     memberTasks.filter(
       (t) =>
-        t.status === "Pending"
+        t.status ===
+        "Pending"
     ).length;
 
   const inProgress =
@@ -99,6 +109,8 @@ function MemberPerformance() {
       ? 98
       : productivity >= 60
       ? 92
+      : total === 0
+      ? 0
       : 85;
 
   /* ================= MEMBER DATA ================= */

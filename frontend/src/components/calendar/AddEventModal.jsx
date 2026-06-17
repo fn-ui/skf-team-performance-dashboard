@@ -7,6 +7,16 @@ import {
   Flag,
   Users,
   FileText,
+  Layers3,
+  Briefcase,
+  UserRound,
+  UsersRound,
+  ShieldCheck,
+  Building2,
+  Link2,
+  AlertCircle,
+  Globe2,
+  UserCheck,
 } from "lucide-react";
 
 function AddEventModal({
@@ -15,33 +25,57 @@ function AddEventModal({
   newEvent,
   setNewEvent,
   handleAddEvent,
-  members,
+  members = [],
   mode,
+  currentUser,
 }) {
-
   const isEditing =
     mode === "edit";
 
-  // ========================================
-  // VALIDATION
-  // ========================================
+  const currentRole =
+    currentUser?.role || "";
+
+  const isManager =
+    currentRole === "Manager";
+
+  /* ========================================
+     VALIDATION
+  ======================================== */
+
+  const assignmentType =
+    newEvent.assignment_type ||
+    "individual";
 
   const isDisabled =
-    !newEvent.title ||
+    !newEvent.title?.trim() ||
     !newEvent.date ||
-    !newEvent.time;
+    !newEvent.time ||
+    !newEvent.type ||
+    (
+      assignmentType ===
+        "individual" &&
+      !newEvent.assigned_to
+    ) ||
+    (
+      assignmentType ===
+        "team" &&
+      !newEvent.team_target
+    ) ||
+    (
+      assignmentType ===
+        "role" &&
+      !newEvent.role_target
+    );
 
-  // ========================================
-  // PRIORITY COLORS
-  // ========================================
+  /* ========================================
+     PRIORITY COLORS
+  ======================================== */
 
   const priorityColor =
     useMemo(() => {
-
       switch (
         newEvent.priority
       ) {
-
         case "High":
           return "text-red-500";
 
@@ -54,49 +88,137 @@ function AddEventModal({
         default:
           return "text-slate-500";
       }
-
     }, [newEvent.priority]);
+
+  /* ========================================
+     MANAGER TEAM FILTER
+  ======================================== */
+
+  const accessibleMembers =
+    useMemo(() => {
+      if (!isManager)
+        return members;
+
+      return members.filter(
+        (member) =>
+          member.department ===
+            currentUser?.department ||
+          member.id ===
+            currentUser?.id
+      );
+    }, [
+      members,
+      isManager,
+      currentUser,
+    ]);
+
+  /* ========================================
+     ROLE / TEAM DATA
+  ======================================== */
+
+  const roles = [
+    ...new Set(
+      accessibleMembers
+        .map(
+          (member) =>
+            member.role
+        )
+        .filter(Boolean)
+    ),
+  ];
+
+  const teams = [
+    ...new Set(
+      accessibleMembers
+        .map(
+          (member) =>
+            member.department
+        )
+        .filter(Boolean)
+    ),
+  ];
+
+  /* ========================================
+     AVAILABLE ASSIGNMENTS
+  ======================================== */
+
+  const assignmentOptions =
+    isManager
+      ? [
+          "individual",
+          "team",
+        ]
+      : [
+          "individual",
+          "team",
+          "manager",
+          "role",
+          "all_members",
+          "all",
+        ];
+
+  /* ========================================
+     FILTERED MEMBERS
+  ======================================== */
+
+  const filteredMembers =
+    assignmentType ===
+    "team"
+      ? accessibleMembers.filter(
+          (member) =>
+            member.department ===
+            newEvent.team_target
+        )
+      : assignmentType ===
+        "role"
+      ? accessibleMembers.filter(
+          (member) =>
+            member.role ===
+            newEvent.role_target
+        )
+      : assignmentType ===
+        "manager"
+      ? accessibleMembers.filter(
+          (member) =>
+            member.role?.includes(
+              "Manager"
+            )
+        )
+      : accessibleMembers;
 
   if (!isOpen) return null;
 
   return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
 
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-
-      <div className="w-full max-w-2xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="w-full max-w-3xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
 
         {/* HEADER */}
         <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
 
-          <div>
+          <div className="flex items-center gap-4">
 
-            <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+              <CalendarDays size={22} />
 
-                <CalendarDays size={22} />
+            </div>
 
-              </div>
+            <div>
 
-              <div>
+              <h2 className="text-2xl font-bold dark:text-white">
 
-                <h2 className="text-2xl font-bold dark:text-white">
+                {isEditing
+                  ? "Edit Event"
+                  : "Create Event"}
 
-                  {isEditing
-                    ? "Edit Event"
-                    : "Create Event"}
+              </h2>
 
-                </h2>
+              <p className="mt-1 text-slate-500 dark:text-zinc-400">
 
-                <p className="mt-1 text-slate-500 dark:text-zinc-400">
+                Production-ready scheduling and delivery system.
 
-                  {isEditing
-                    ? "Update event details and schedule."
-                    : "Schedule a new meeting, review or deadline."}
-
-                </p>
-
-              </div>
+              </p>
 
             </div>
 
@@ -132,7 +254,7 @@ function AddEventModal({
 
             <input
               type="text"
-              value={newEvent.title}
+              value={newEvent.title || ""}
               onChange={(e) =>
                 setNewEvent({
                   ...newEvent,
@@ -141,7 +263,7 @@ function AddEventModal({
                 })
               }
               placeholder="Enter event title"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
             />
 
           </div>
@@ -160,7 +282,8 @@ function AddEventModal({
             <textarea
               rows={4}
               value={
-                newEvent.description
+                newEvent.description ||
+                ""
               }
               onChange={(e) =>
                 setNewEvent({
@@ -170,7 +293,7 @@ function AddEventModal({
                 })
               }
               placeholder="Describe the event..."
-              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
             />
 
           </div>
@@ -178,7 +301,6 @@ function AddEventModal({
           {/* DATE + TIME */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
-            {/* DATE */}
             <div>
 
               <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
@@ -191,7 +313,12 @@ function AddEventModal({
 
               <input
                 type="date"
-                value={newEvent.date}
+                value={newEvent.date || ""}
+                min={
+                  new Date()
+                    .toISOString()
+                    .split("T")[0]
+                }
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
@@ -199,12 +326,11 @@ function AddEventModal({
                       e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               />
 
             </div>
 
-            {/* TIME */}
             <div>
 
               <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
@@ -217,7 +343,7 @@ function AddEventModal({
 
               <input
                 type="time"
-                value={newEvent.time}
+                value={newEvent.time || ""}
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
@@ -225,7 +351,7 @@ function AddEventModal({
                       e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               />
 
             </div>
@@ -235,15 +361,19 @@ function AddEventModal({
           {/* TYPE + PRIORITY */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
-            {/* TYPE */}
             <div>
 
-              <label className="mb-2 block text-sm font-semibold dark:text-white">
+              <label className="mb-2 text-sm font-semibold dark:text-white block">
+
                 Event Type
+
               </label>
 
               <select
-                value={newEvent.type}
+                value={
+                  newEvent.type ||
+                  "Meeting"
+                }
                 onChange={(e) =>
                   setNewEvent({
                     ...newEvent,
@@ -251,15 +381,15 @@ function AddEventModal({
                       e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               >
 
                 <option value="Meeting">
                   Meeting
                 </option>
 
-                <option value="Deadline">
-                  Deadline
+                <option value="Workshop">
+                  Workshop
                 </option>
 
                 <option value="Sprint">
@@ -270,15 +400,14 @@ function AddEventModal({
                   Review
                 </option>
 
-                <option value="Workshop">
-                  Workshop
+                <option value="Deadline">
+                  Deadline
                 </option>
 
               </select>
 
             </div>
 
-            {/* PRIORITY */}
             <div>
 
               <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
@@ -296,7 +425,8 @@ function AddEventModal({
 
               <select
                 value={
-                  newEvent.priority
+                  newEvent.priority ||
+                  "Medium"
                 }
                 onChange={(e) =>
                   setNewEvent({
@@ -305,7 +435,7 @@ function AddEventModal({
                       e.target.value,
                   })
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
               >
 
                 <option value="High">
@@ -326,21 +456,308 @@ function AddEventModal({
 
           </div>
 
-          {/* ASSIGNED TO */}
+          {/* VISIBILITY */}
           <div>
 
             <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
 
-              <Users size={16} />
+              <Layers3 size={16} />
 
-              Assigned To
+              Event Visibility
 
             </label>
 
             <select
-                    value={
-                      newEvent.assigned_to
+              value={
+                newEvent.visibility ||
+                "individual"
+              }
+              onChange={(e) =>
+                setNewEvent({
+                  ...newEvent,
+                  visibility:
+                    e.target.value,
+                })
+              }
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            >
+
+              <option value="individual">
+                Individual
+              </option>
+
+              <option value="team">
+                Team
+              </option>
+
+              {!isManager && (
+                <option value="organization">
+                  Organization Wide
+                </option>
+              )}
+
+            </select>
+
+          </div>
+
+          {/* ASSIGNMENT SECTION */}
+          <div className="rounded-3xl border border-slate-200 p-5 dark:border-zinc-800">
+
+            <div className="mb-5 flex items-start justify-between gap-4">
+
+              <div>
+
+                <label className="flex items-center gap-2 text-sm font-semibold dark:text-white">
+
+                  <UsersRound size={18} />
+
+                  Assign Event To
+
+                </label>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">
+
+                  Configure delivery targets for this meeting or event.
+
+                </p>
+
+              </div>
+
+              {isManager && (
+                <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+
+                  <ShieldCheck size={14} />
+
+                  Managers can only assign to their own team.
+
+                </div>
+              )}
+
+            </div>
+
+            {/* BUTTONS */}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+
+              {/* INDIVIDUAL */}
+              {assignmentOptions.includes(
+                "individual"
+              ) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNewEvent({
+                      ...newEvent,
+                      assignment_type:
+                        "individual",
+                    })
+                  }
+                  className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                    assignmentType ===
+                    "individual"
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200"
+                  }`}
+                >
+
+                  <div className="flex items-center justify-center gap-2">
+
+                    <UserRound size={16} />
+
+                    Individual
+
+                  </div>
+
+                </button>
+              )}
+
+              {/* TEAM */}
+              {assignmentOptions.includes(
+                "team"
+              ) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNewEvent({
+                      ...newEvent,
+                      assignment_type:
+                        "team",
+                    })
+                  }
+                  className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                    assignmentType ===
+                    "team"
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200"
+                  }`}
+                >
+
+                  <div className="flex items-center justify-center gap-2">
+
+                    <Building2 size={16} />
+
+                    Team
+
+                  </div>
+
+                </button>
+              )}
+
+              {/* MANAGERS */}
+              {!isManager &&
+                assignmentOptions.includes(
+                  "manager"
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewEvent({
+                        ...newEvent,
+                        assignment_type:
+                          "manager",
+                      })
                     }
+                    className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                      assignmentType ===
+                      "manager"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200"
+                    }`}
+                  >
+
+                    <div className="flex items-center justify-center gap-2">
+
+                      <ShieldCheck size={16} />
+
+                      Managers
+
+                    </div>
+
+                  </button>
+                )}
+
+              {/* ROLE */}
+              {!isManager &&
+                assignmentOptions.includes(
+                  "role"
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewEvent({
+                        ...newEvent,
+                        assignment_type:
+                          "role",
+                      })
+                    }
+                    className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                      assignmentType ===
+                      "role"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200"
+                    }`}
+                  >
+
+                    <div className="flex items-center justify-center gap-2">
+
+                      <Users size={16} />
+
+                      Role
+
+                    </div>
+
+                  </button>
+                )}
+
+              {/* ALL MEMBERS */}
+              {!isManager &&
+                assignmentOptions.includes(
+                  "all_members"
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewEvent({
+                        ...newEvent,
+                        assignment_type:
+                          "all_members",
+                        assigned_to:
+                          null,
+                        team_target:
+                          null,
+                        role_target:
+                          null,
+                      })
+                    }
+                    className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                      assignmentType ===
+                      "all_members"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200"
+                    }`}
+                  >
+
+                    <div className="flex items-center justify-center gap-2">
+
+                      <UserCheck size={16} />
+
+                      All Members
+
+                    </div>
+
+                  </button>
+                )}
+
+              {/* EVERYONE */}
+              {!isManager &&
+                assignmentOptions.includes(
+                  "all"
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewEvent({
+                        ...newEvent,
+                        assignment_type:
+                          "all",
+                        assigned_to:
+                          null,
+                        team_target:
+                          null,
+                        role_target:
+                          null,
+                      })
+                    }
+                    className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                      assignmentType ===
+                      "all"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200"
+                    }`}
+                  >
+
+                    <div className="flex items-center justify-center gap-2">
+
+                      <Globe2 size={16} />
+
+                      Everyone
+
+                    </div>
+
+                  </button>
+                )}
+
+            </div>
+
+            {/* INDIVIDUAL */}
+            {assignmentType ===
+              "individual" && (
+              <div className="mt-5">
+
+                <select
+                  value={
+                    newEvent.assigned_to ||
+                    ""
+                  }
                   onChange={(e) =>
                     setNewEvent({
                       ...newEvent,
@@ -348,21 +765,268 @@ function AddEventModal({
                         e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                 >
+
                   <option value="">
                     Select member
                   </option>
 
-                  {members.map((member) => (
-                    <option
-                      key={member.id}
-                      value={member.id}
-                    >
-                      {member.full_name}
-                    </option>
-                  ))}
+                  {filteredMembers.map(
+                    (member) => (
+                      <option
+                        key={
+                          member.id
+                        }
+                        value={
+                          member.id
+                        }
+                      >
+                        {
+                          member.full_name
+                        }{" "}
+                        (
+                        {
+                          member.role
+                        }
+                        )
+                      </option>
+                    )
+                  )}
+
                 </select>
+
+              </div>
+            )}
+
+            {/* TEAM */}
+            {assignmentType ===
+              "team" && (
+              <div className="mt-5">
+
+                <select
+                  value={
+                    newEvent.team_target ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    setNewEvent({
+                      ...newEvent,
+                      team_target:
+                        e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                >
+
+                  <option value="">
+                    Select team
+                  </option>
+
+                  {teams.map(
+                    (team) => (
+                      <option
+                        key={team}
+                        value={team}
+                      >
+                        {team}
+                      </option>
+                    )
+                  )}
+
+                </select>
+
+              </div>
+            )}
+
+            {/* ROLE */}
+            {assignmentType ===
+              "role" && (
+              <div className="mt-5">
+
+                <select
+                  value={
+                    newEvent.role_target ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    setNewEvent({
+                      ...newEvent,
+                      role_target:
+                        e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                >
+
+                  <option value="">
+                    Select role
+                  </option>
+
+                  {roles.map(
+                    (role) => (
+                      <option
+                        key={role}
+                        value={role}
+                      >
+                        {role}
+                      </option>
+                    )
+                  )}
+
+                </select>
+
+              </div>
+            )}
+
+            {/* INFO MESSAGE */}
+            {(assignmentType ===
+              "all_members" ||
+              assignmentType ===
+                "all") && (
+              <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+
+                <div className="flex items-start gap-3">
+
+                  <Globe2
+                    size={18}
+                    className="mt-0.5 text-blue-600"
+                  />
+
+                  <div>
+
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-300">
+
+                      Global Event Distribution
+
+                    </h4>
+
+                    <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
+
+                      This event will automatically be visible to{" "}
+                      {assignmentType ===
+                      "all_members"
+                        ? "all members"
+                        : "everyone in the organization"}.
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
+            {/* DELIVERY INFO */}
+            <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+
+              <div className="flex items-start gap-3">
+
+                <AlertCircle
+                  size={18}
+                  className="mt-0.5 text-emerald-600"
+                />
+
+                <div>
+
+                  <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">
+
+                    Production Delivery System
+
+                  </h4>
+
+                  <ul className="mt-2 space-y-1 text-sm text-emerald-700 dark:text-emerald-400">
+
+                    <li>
+                      • Real-time event assignment
+                    </li>
+
+                    <li>
+                      • Team-based access control
+                    </li>
+
+                    <li>
+                      • Role-aware permissions
+                    </li>
+
+                    <li>
+                      • Manager team restrictions
+                    </li>
+
+                    <li>
+                      • Organization-wide support
+                    </li>
+
+                  </ul>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* MEETING LINK */}
+          <div>
+
+            <label className="mb-2 flex items-center gap-2 font-semibold dark:text-white">
+
+              <Link2 size={16} />
+
+              Meeting Link
+
+            </label>
+
+            <input
+              type="url"
+              value={
+                newEvent.meeting_link ||
+                ""
+              }
+              onChange={(e) =>
+                setNewEvent({
+                  ...newEvent,
+                  meeting_link:
+                    e.target.value,
+                })
+              }
+              placeholder="https://meet.google.com/..."
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            />
+
+          </div>
+
+          {/* INFO */}
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+
+            <div className="flex items-start gap-3">
+
+              <Briefcase
+                className="mt-0.5 text-emerald-600"
+                size={18}
+              />
+
+              <div>
+
+                <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">
+
+                  Smart Assignment Engine
+
+                </h4>
+
+                <p className="mt-1 text-sm leading-relaxed text-emerald-700 dark:text-emerald-400">
+
+                  Events are automatically scoped based on user role,
+                  visibility level, and assignment type to support
+                  secure production workflows.
+
+                </p>
+
+              </div>
+
+            </div>
 
           </div>
 
@@ -373,7 +1037,7 @@ function AddEventModal({
 
           <button
             onClick={onClose}
-            className="rounded-2xl border border-slate-200 px-5 py-3 font-medium transition hover:bg-slate-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+            className="rounded-2xl border border-slate-200 px-5 py-3 font-medium transition hover:bg-slate-100 dark:border-zinc-700 dark:text-white"
           >
 
             Cancel

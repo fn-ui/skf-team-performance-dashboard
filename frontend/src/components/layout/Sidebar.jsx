@@ -26,9 +26,11 @@ import {
   Sun,
   ChevronUp,
   User,
+  HelpCircle,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
+import HelpModal from "../help/HelpModal";
 
 function Sidebar({
   darkMode,
@@ -46,6 +48,8 @@ function Sidebar({
   const location = useLocation();
 
   const navigate = useNavigate();
+  const [isHelpOpen, setIsHelpOpen] =
+  useState(false);
 
   const {
     user,
@@ -441,11 +445,16 @@ function Sidebar({
 
             {/* HELP */}
 
-            <button className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 text-white/80 transition hover:bg-white/10 hover:text-white">
-              <CircleHelp
-                size={20}
-              />
-            </button>
+            <button
+                onClick={() =>
+                  setIsHelpOpen(true)
+                }
+                className="w-11 h-11 rounded-2xl bg-emerald-800/40 hover:bg-emerald-700 text-white flex items-center justify-center transition"
+              >
+
+                <HelpCircle size={20} />
+
+              </button>
 
             {/* LOGOUT */}
 
@@ -460,6 +469,12 @@ function Sidebar({
           </div>
         </div>
       </aside>
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() =>
+          setIsHelpOpen(false)
+        }
+      />
     </>
   );
 }

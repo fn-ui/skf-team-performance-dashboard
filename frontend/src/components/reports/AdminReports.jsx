@@ -5,6 +5,9 @@ import { getAdminReportStats } from "../../services/reportsService";
 import GenerateReportModal from "./GenerateReportModal";
 import ExportReportModal from "./ExportReportModal";
 
+
+import { supabase } from "../../lib/supabase";
+
 import {
   FileText,
   Download,
@@ -21,145 +24,227 @@ import {
 
 function AdminReports() {
   const [loading, setLoading] =
-    useState(true);
+  useState(true);
 
-  // 🔥 REAL DATA
-  const [tasks, setTasks] =
-    useState([]);
+/* ================= REAL DATA ================= */
 
-  const [projects, setProjects] =
-    useState([]);
+const [tasks, setTasks] =
+  useState([]);
 
-  const [users, setUsers] =
-    useState([]);
+const [projects, setProjects] =
+  useState([]);
 
-  // 🔥 REPORTS
-  const [reportList, setReportList] =
-    useState([]);
+const [users, setUsers] =
+  useState([]);
 
-  // 🔥 MODALS
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+/* ================= REPORTS ================= */
 
-  const [
-    isExportModalOpen,
-    setIsExportModalOpen,
-  ] = useState(false);
+const [reportList, setReportList] =
+  useState([]);
 
-  // 🔥 EXPORT
-  const [
-    selectedFormat,
-    setSelectedFormat,
-  ] = useState("PDF");
+/* ================= MODALS ================= */
 
-  // 🔥 FILTERS
-  const [search, setSearch] =
-    useState("");
+const [isModalOpen, setIsModalOpen] =
+  useState(false);
 
-  const [statusFilter, setStatusFilter] =
-    useState("All");
+const [
+  isExportModalOpen,
+  setIsExportModalOpen,
+] = useState(false);
 
-  // 🔥 NEW REPORT
-  const [newReport, setNewReport] =
-    useState({
-      title: "",
-      category: "Performance",
-      project: "",
-      generatedBy: "Admin",
-      date: new Date()
-        .toISOString()
-        .split("T")[0],
-      status: "Completed",
-      type: "PDF",
-    });
+/* ================= EXPORT ================= */
 
-  /* ================= LOAD DATA ================= */
+const [
+  selectedFormat,
+  setSelectedFormat,
+] = useState("PDF");
 
-  useEffect(() => {
-    loadReportsData();
-  }, []);
+/* ================= FILTERS ================= */
 
-  const loadReportsData = async () => {
+const [search, setSearch] =
+  useState("");
+
+const [statusFilter, setStatusFilter] =
+  useState("All");
+
+/* ================= NEW REPORT ================= */
+
+const [newReport, setNewReport] =
+  useState({
+    title: "",
+    category: "Performance",
+    project: "",
+    generatedBy: "Admin",
+    date: new Date()
+      .toISOString()
+      .split("T")[0],
+    status: "Completed",
+    type: "PDF",
+  });
+
+/* ================= LOAD DATA ================= */
+
+useEffect(() => {
+  loadReportsData();
+}, []);
+
+const loadReportsData =
+  async () => {
     try {
       setLoading(true);
 
-      const data =
-        await getAdminReportStats();
+      const [
+        { data: tasksData },
+        { data: projectsData },
+        { data: usersData },
+      ] = await Promise.all([
+        supabase
+          .from("tasks")
+          .select("*"),
 
-      const tasksData =
-        data?.tasks || [];
+        supabase
+          .from("projects")
+          .select("*"),
 
-      const projectsData =
-        data?.projects || [];
+        supabase
+          .from("profiles")
+          .select("*"),
+      ]);
 
-      const usersData =
-        data?.users || [];
+      const allTasks =
+        tasksData || [];
 
-      setTasks(tasksData);
+      const allProjects =
+        projectsData || [];
 
-      setProjects(projectsData);
+      const allUsers =
+        usersData || [];
 
-      setUsers(usersData);
+      setTasks(allTasks);
 
-      /* ================= AUTO GENERATED REPORTS ================= */
+      setProjects(allProjects);
+
+      setUsers(allUsers);
+
+      /* ================= TASK METRICS ================= */
 
       const completedTasks =
-        tasksData.filter(
+        allTasks.filter(
           (task) =>
-            task.status === "Completed"
+            task.status ===
+            "Completed"
         ).length;
 
       const pendingTasks =
-        tasksData.filter(
+        allTasks.filter(
           (task) =>
-            task.status !== "Completed"
+            task.status ===
+            "Pending"
         ).length;
 
+      const inProgressTasks =
+        allTasks.filter(
+          (task) =>
+            task.status ===
+            "In Progress"
+        ).length;
+
+      const overdueTasks =
+        allTasks.filter(
+          (task) =>
+            task.due_date &&
+            new Date(
+              task.due_date
+            ) < new Date() &&
+            task.status !==
+              "Completed"
+        ).length;
+
+      /* ================= PROJECT METRICS ================= */
+
       const activeProjects =
-        projectsData.filter(
+        allProjects.filter(
           (project) =>
             project.status !==
             "Completed"
         ).length;
 
+      const completedProjects =
+        allProjects.filter(
+          (project) =>
+            project.status ===
+            "Completed"
+        ).length;
+
+      /* ================= PRODUCTIVITY ================= */
+
       const productivity =
-        tasksData.length === 0
+        allTasks.length === 0
           ? 0
           : Math.round(
               (completedTasks /
-                tasksData.length) *
+                allTasks.length) *
                 100
             );
+
+      /* ================= GENERATED REPORTS ================= */
 
       const generatedReports = [
         {
           id: 1,
+
           title:
             "Company Performance Report",
-          category: "Performance",
-          project: "All Projects",
-          generatedBy: "System",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status: "Completed",
+
+          category:
+            "Performance",
+
+          project:
+            "Company Wide",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            "Completed",
+
           type: "PDF",
+
           metric:
-            productivity + "% Productivity",
+            productivity +
+            "% Productivity",
         },
 
         {
           id: 2,
+
           title:
             "Projects Overview Report",
-          category: "Projects",
-          project: "All Projects",
-          generatedBy: "System",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status: "Completed",
+
+          category:
+            "Projects",
+
+          project:
+            "All Projects",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            "Completed",
+
           type: "Excel",
+
           metric:
             activeProjects +
             " Active Projects",
@@ -167,60 +252,192 @@ function AdminReports() {
 
         {
           id: 3,
+
+          title:
+            "Completed Projects Report",
+
+          category:
+            "Projects",
+
+          project:
+            "All Projects",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            "Completed",
+
+          type: "PDF",
+
+          metric:
+            completedProjects +
+            " Completed Projects",
+        },
+
+        {
+          id: 4,
+
           title:
             "Task Analytics Report",
-          category: "Tasks",
-          project: "All Projects",
-          generatedBy: "System",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status: "Completed",
+
+          category:
+            "Tasks",
+
+          project:
+            "All Projects",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            "Completed",
+
           type: "PDF",
+
           metric:
             completedTasks +
             " Completed Tasks",
         },
 
         {
-          id: 4,
-          title:
-            "Team Activity Report",
-          category: "Employees",
-          project: "Company Wide",
-          generatedBy: "System",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status: "Completed",
-          type: "PDF",
-          metric:
-            usersData.length +
-            " Employees",
-        },
-
-        {
           id: 5,
+
           title:
             "Pending Tasks Summary",
-          category: "Tasks",
-          project: "All Projects",
-          generatedBy: "System",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
+
+          category:
+            "Tasks",
+
+          project:
+            "All Projects",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
           status:
             pendingTasks > 0
               ? "Pending"
               : "Completed",
+
           type: "Excel",
+
           metric:
             pendingTasks +
             " Pending Tasks",
         },
+
+        {
+          id: 6,
+
+          title:
+            "In Progress Tasks Report",
+
+          category:
+            "Tasks",
+
+          project:
+            "All Projects",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            "Completed",
+
+          type: "PDF",
+
+          metric:
+            inProgressTasks +
+            " Active Tasks",
+        },
+
+        {
+          id: 7,
+
+          title:
+            "Overdue Tasks Report",
+
+          category:
+            "Tasks",
+
+          project:
+            "All Projects",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            overdueTasks > 0
+              ? "Pending"
+              : "Completed",
+
+          type: "PDF",
+
+          metric:
+            overdueTasks +
+            " Overdue Tasks",
+        },
+
+        {
+          id: 8,
+
+          title:
+            "Employee Activity Report",
+
+          category:
+            "Employees",
+
+          project:
+            "Company Wide",
+
+          generatedBy:
+            "System",
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          status:
+            "Completed",
+
+          type: "Excel",
+
+          metric:
+            allUsers.length +
+            " Employees",
+        },
       ];
 
-      setReportList(generatedReports);
+      setReportList(
+        generatedReports
+      );
     } catch (error) {
       console.error(
         "REPORT FETCH ERROR:",
@@ -231,172 +448,195 @@ function AdminReports() {
     }
   };
 
-  /* ================= FILTER REPORTS ================= */
+/* ================= FILTER REPORTS ================= */
 
-  const filteredReports =
-    reportList
-      .filter((report) =>
-        report.title
-          ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          )
-      )
-      .filter((report) =>
-        statusFilter === "All"
-          ? true
-          : report.status ===
-            statusFilter
+const filteredReports =
+  reportList
+    .filter((report) =>
+      report.title
+        ?.toLowerCase()
+        .includes(
+          search.toLowerCase()
+        )
+    )
+    .filter((report) =>
+      statusFilter === "All"
+        ? true
+        : report.status ===
+          statusFilter
+    );
+
+/* ================= REAL STATS ================= */
+
+const totalReports =
+  reportList.length;
+
+const completedReports =
+  reportList.filter(
+    (report) =>
+      report.status ===
+      "Completed"
+  ).length;
+
+const pendingReports =
+  reportList.filter(
+    (report) =>
+      report.status ===
+      "Pending"
+  ).length;
+
+const totalProjects =
+  projects.length;
+
+const totalUsers =
+  users.length;
+
+const totalTasks =
+  tasks.length;
+
+const completedTasks =
+  tasks.filter(
+    (task) =>
+      task.status ===
+      "Completed"
+  ).length;
+
+const productivity =
+  totalTasks === 0
+    ? 0
+    : Math.round(
+        (completedTasks /
+          totalTasks) *
+          100
       );
 
-  /* ================= REAL STATS ================= */
+/* ================= GENERATE REPORT ================= */
 
-  const totalReports =
-    reportList.length;
+const handleGenerateReport =
+  () => {
 
-  const completedReports =
-    reportList.filter(
-      (report) =>
-        report.status === "Completed"
-    ).length;
+    if (
+      !newReport.title ||
+      !newReport.project
+    )
+      return;
 
-  const pendingReports =
-    reportList.filter(
-      (report) =>
-        report.status === "Pending"
-    ).length;
+    const report = {
+      id: Date.now(),
 
-  const totalProjects =
-    projects.length;
+      ...newReport,
 
-  const totalUsers = users.length;
-
-  const totalTasks = tasks.length;
-
-  const completedTasks =
-    tasks.filter(
-      (task) =>
-        task.status === "Completed"
-    ).length;
-
-  const productivity =
-    totalTasks === 0
-      ? 0
-      : Math.round(
-          (completedTasks /
-            totalTasks) *
-            100
-        );
-
-  /* ================= TOP PERFORMER ================= */
-
-  const topPerformer = useMemo(() => {
-    const memberStats = users.map(
-      (user) => {
-        const userTasks =
-          tasks.filter(
-            (task) =>
-              task.assignee ===
-                user.full_name ||
-              task.assigned_to_email ===
-                user.email
-          );
-
-        const completed =
-          userTasks.filter(
-            (task) =>
-              task.status ===
-              "Completed"
-          ).length;
-
-        const score =
-          userTasks.length === 0
-            ? 0
-            : Math.round(
-                (completed /
-                  userTasks.length) *
-                  100
-              );
-
-        return {
-          name:
-            user.full_name,
-          role: user.role,
-          score,
-        };
-      }
-    );
-
-    return memberStats.reduce(
-      (prev, current) =>
-        prev.score > current.score
-          ? prev
-          : current,
-      {
-        name: "No Data",
-        role: "-",
-        score: 0,
-      }
-    );
-  }, [tasks, users]);
-
-  /* ================= GENERATE REPORT ================= */
-
-  const handleGenerateReport =
-    () => {
-      if (
-        !newReport.title ||
-        !newReport.project
-      )
-        return;
-
-      const report = {
-        id: Date.now(),
-        ...newReport,
-        metric:
-          productivity +
-          "% Productivity",
-      };
-
-      setReportList((prev) => [
-        report,
-        ...prev,
-      ]);
-
-      setNewReport({
-        title: "",
-        category: "Performance",
-        project: "",
-        generatedBy: "Admin",
-        date: new Date()
-          .toISOString()
-          .split("T")[0],
-        status: "Completed",
-        type: "PDF",
-      });
-
-      setIsModalOpen(false);
+      metric:
+        productivity +
+        "% Productivity",
     };
 
-  /* ================= EXPORT ================= */
+    setReportList((prev) => [
+      report,
+      ...prev,
+    ]);
 
-  const handleExport = () => {
-    console.log(
-      `Exporting reports as ${selectedFormat}`
-    );
+    setNewReport({
+      title: "",
 
-    setIsExportModalOpen(false);
+      category:
+        "Performance",
+
+      project: "",
+
+      generatedBy:
+        "Admin",
+
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
+
+      status:
+        "Completed",
+
+      type: "PDF",
+    });
+
+    setIsModalOpen(false);
   };
 
-  /* ================= DOWNLOAD ================= */
+/* ================= DOWNLOAD ================= */
 
-  const handleDownload = (
-    report
-  ) => {
-    console.log(
-      `Downloading ${report.title}`
+const handleDownload =
+  (report) => {
+
+    const content = `
+======================================
+${report.title}
+======================================
+
+Category:
+${report.category}
+
+Project:
+${report.project}
+
+Metric:
+${report.metric}
+
+Generated By:
+${report.generatedBy}
+
+Date:
+${report.date}
+
+Status:
+${report.status}
+
+Type:
+${report.type}
+
+======================================
+Generated from WorkPulse
+======================================
+`;
+
+    const blob = new Blob(
+      [content],
+      {
+        type: "text/plain",
+      }
+    );
+
+    const url =
+      window.URL.createObjectURL(
+        blob
+      );
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+
+    link.download = `${report.title}.txt`;
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+
+    document.body.removeChild(
+      link
     );
   };
+
+/* ================= EXPORT ================= */
+
+const handleExport = () => {
+
+  filteredReports.forEach(
+    (report) =>
+      handleDownload(report)
+  );
+
+  setIsExportModalOpen(false);
+};
 
   /* ================= LOADING ================= */
 
@@ -587,48 +827,6 @@ function AdminReports() {
 
       </div>
 
-      {/* TOP PERFORMER */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
-
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-
-          <div>
-
-            <div className="flex items-center gap-3">
-
-              <BarChart3 size={28} />
-
-              <h2 className="text-2xl font-bold">
-                Top Performer
-              </h2>
-
-            </div>
-
-            <p className="mt-4 text-lg">
-              {topPerformer.name}
-            </p>
-
-            <p className="text-emerald-100 mt-2">
-              {topPerformer.role}
-            </p>
-
-          </div>
-
-          <div className="text-center lg:text-right">
-
-            <h1 className="text-6xl font-bold">
-              {topPerformer.score}%
-            </h1>
-
-            <p className="mt-2 text-emerald-100">
-              Performance Score
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
 
       {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">

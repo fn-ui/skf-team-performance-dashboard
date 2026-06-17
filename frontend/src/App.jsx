@@ -19,6 +19,7 @@ import Login from "./pages/Auth/Login";
 import AuthCallback from "./pages/AuthCallback";
 import UpdatePassword from "./pages/UpdatePassword";
 import Profile from "./pages/Profile";
+import ResetPassword from "./pages/Auth/ResetPassword";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -61,32 +62,38 @@ function App() {
           path="/update-password"
           element={<UpdatePassword />}
         />
-        <Route
-  path="/profile"
-  element={
-    <RequireAuth>
-      <Layout
-        darkMode={darkMode}
-        toggleDarkMode={
-          toggleDarkMode
-        }
-      >
-        <Profile />
-      </Layout>
-    </RequireAuth>
-  }
-/>
 
         <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-                <DashboardRouter />
-              </Layout>
-            </RequireAuth>
-          }
-        />
+              path="/reset-password"
+              element={<ResetPassword />}
+            />
+
+        <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Layout
+                  darkMode={darkMode}
+                  toggleDarkMode={
+                    toggleDarkMode
+                  }
+                >
+                  <Profile />
+                </Layout>
+              </RequireAuth>
+            }
+          />
+
+              <Route
+                path="/"
+                element={
+                  <RequireAuth>
+                    <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                      <DashboardRouter />
+                    </Layout>
+                  </RequireAuth>
+                }
+              />
 
          <Route
             path="/members"
@@ -167,18 +174,18 @@ function App() {
       />
 
              <Route
-  path="/calendar"
-  element={
-    <RequireAuth>
-      <Layout
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
-      >
-        <CalendarRouter />
-      </Layout>
-    </RequireAuth>
-  }
-/>
+            path="/calendar"
+            element={
+              <RequireAuth>
+                <Layout
+                  darkMode={darkMode}
+                  toggleDarkMode={toggleDarkMode}
+                >
+                  <CalendarRouter />
+                </Layout>
+              </RequireAuth>
+            }
+          />
 
         <Route
           path="/settings"

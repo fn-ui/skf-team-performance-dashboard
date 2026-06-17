@@ -2,21 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-import { getAdminReportStats } from "../../services/reportsService";
-
 import GenerateReportModal from "./GenerateReportModal";
+import ExportReportModal from "./ExportReportModal";
+
+import { supabase } from "../../lib/supabase";
 
 import {
   FileText,
   Download,
   Search,
   Plus,
-  BarChart3,
-  CheckCircle,
-  Clock,
   FolderKanban,
   TrendingUp,
   Users,
+  FolderOpen,
+  BarChart3,
 } from "lucide-react";
 
 function ManagerReports() {
@@ -25,7 +25,8 @@ function ManagerReports() {
   const [loading, setLoading] =
     useState(true);
 
-  // 🔥 REAL DATA
+  /* ================= REAL DATA ================= */
+
   const [tasks, setTasks] =
     useState([]);
 
@@ -35,7 +36,30 @@ function ManagerReports() {
   const [users, setUsers] =
     useState([]);
 
-  // 🔍 FILTERS
+  /* ================= REPORTS ================= */
+
+  const [reportList, setReportList] =
+    useState([]);
+
+  /* ================= MODALS ================= */
+
+  const [isModalOpen, setIsModalOpen] =
+    useState(false);
+
+  const [
+    isExportModalOpen,
+    setIsExportModalOpen,
+  ] = useState(false);
+
+  /* ================= EXPORT ================= */
+
+  const [
+    selectedFormat,
+    setSelectedFormat,
+  ] = useState("PDF");
+
+  /* ================= FILTERS ================= */
+
   const [search, setSearch] =
     useState("");
 
@@ -44,15 +68,8 @@ function ManagerReports() {
     setCategoryFilter,
   ] = useState("All");
 
-  // 🔥 MODAL
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  /* ================= NEW REPORT ================= */
 
-  // 🔥 REPORTS
-  const [reportList, setReportList] =
-    useState([]);
-
-  // 🔥 NEW REPORT
   const [newReport, setNewReport] =
     useState({
       title: "",
@@ -68,203 +85,368 @@ function ManagerReports() {
       type: "PDF",
     });
 
-  /* ================= LOAD REPORTS ================= */
+  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
-    loadReports();
-  }, []);
-
-  const loadReports = async () => {
-    try {
-      setLoading(true);
-
-      const data =
-        await getAdminReportStats();
-
-      const allTasks =
-        data?.tasks || [];
-
-      const allProjects =
-        data?.projects || [];
-
-      const allUsers =
-        data?.users || [];
-
-      // 🔥 FILTER TEAM MEMBERS
-      const teamUsers =
-        allUsers.filter(
-          (user) =>
-            user.manager_id ===
-              profile?.id ||
-            user.role === "member"
-        );
-
-      const teamEmails =
-        teamUsers.map(
-          (user) => user.email
-        );
-
-      const teamNames =
-        teamUsers.map(
-          (user) =>
-            user.full_name
-        );
-
-      // 🔥 FILTER TEAM TASKS
-      const teamTasks =
-        allTasks.filter(
-          (task) =>
-            teamEmails.includes(
-              task.assigned_to_email
-            ) ||
-            teamNames.includes(
-              task.assignee
-            )
-        );
-
-      // 🔥 FILTER PROJECTS
-      const teamProjects =
-        allProjects.filter(
-          (project) =>
-            project.manager_id ===
-              profile?.id ||
-            project.manager ===
-              profile?.full_name
-        );
-
-      setTasks(teamTasks);
-
-      setProjects(teamProjects);
-
-      setUsers(teamUsers);
-
-      // 📊 STATS
-      const completedTasks =
-        teamTasks.filter(
-          (task) =>
-            task.status ===
-            "Completed"
-        ).length;
-
-      const pendingTasks =
-        teamTasks.filter(
-          (task) =>
-            task.status !==
-            "Completed"
-        ).length;
-
-      const productivity =
-        teamTasks.length === 0
-          ? 0
-          : Math.round(
-              (completedTasks /
-                teamTasks.length) *
-                100
-            );
-
-      // 🔥 AUTO GENERATED REPORTS
-      const generatedReports = [
-        {
-          id: 1,
-          title:
-            "Team Productivity Report",
-          category:
-            "Performance",
-          project:
-            "All Team Projects",
-          generatedBy:
-            profile?.full_name ||
-            "Team Manager",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status:
-            productivity >= 70
-              ? "Completed"
-              : "Pending",
-          type: "PDF",
-          metric:
-            productivity +
-            "% Productivity",
-        },
-
-        {
-          id: 2,
-          title:
-            "Tasks Progress Report",
-          category: "Tasks",
-          project:
-            "Team Tasks",
-          generatedBy:
-            profile?.full_name ||
-            "Team Manager",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status: "Completed",
-          type: "Excel",
-          metric:
-            completedTasks +
-            " Completed Tasks",
-        },
-
-        {
-          id: 3,
-          title:
-            "Pending Tasks Analysis",
-          category: "Tasks",
-          project:
-            "Team Tasks",
-          generatedBy:
-            profile?.full_name ||
-            "Team Manager",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status:
-            pendingTasks > 0
-              ? "Pending"
-              : "Completed",
-          type: "PDF",
-          metric:
-            pendingTasks +
-            " Pending Tasks",
-        },
-
-        {
-          id: 4,
-          title:
-            "Projects Overview",
-          category:
-            "Projects",
-          project:
-            "Assigned Projects",
-          generatedBy:
-            profile?.full_name ||
-            "Team Manager",
-          date: new Date()
-            .toISOString()
-            .split("T")[0],
-          status: "Completed",
-          type: "PDF",
-          metric:
-            teamProjects.length +
-            " Projects",
-        },
-      ];
-
-      setReportList(
-        generatedReports
-      );
-    } catch (error) {
-      console.error(
-        "REPORT ERROR:",
-        error.message
-      );
-    } finally {
-      setLoading(false);
+    if (profile?.id) {
+      loadReports();
     }
-  };
+  }, [profile]);
+
+  const loadReports =
+    async () => {
+      try {
+        setLoading(true);
+
+        const [
+          { data: tasksData },
+          { data: projectsData },
+          { data: usersData },
+        ] = await Promise.all([
+          supabase
+            .from("tasks")
+            .select("*"),
+
+          supabase
+            .from("projects")
+            .select("*"),
+
+          supabase
+            .from("profiles")
+            .select("*"),
+        ]);
+
+        const allTasks =
+          tasksData || [];
+
+        const allProjects =
+          projectsData || [];
+
+        const allUsers =
+          usersData || [];
+
+        /* ================= TEAM MEMBERS ================= */
+
+        const teamUsers =
+          allUsers.filter(
+            (user) =>
+              user.manager_id ===
+                profile?.id ||
+              user.id ===
+                profile?.id
+          );
+
+        /* ================= TEAM TASKS ================= */
+
+        const teamTasks =
+          allTasks.filter(
+            (task) =>
+              teamUsers.some(
+                (member) =>
+                  member.id ===
+                  task.assignee_id
+              )
+          );
+
+        /* ================= TEAM PROJECTS ================= */
+
+        const teamProjects =
+          allProjects.filter(
+            (project) =>
+              project.manager_id ===
+              profile?.id
+          );
+
+        setTasks(teamTasks);
+
+        setProjects(teamProjects);
+
+        setUsers(teamUsers);
+
+        /* ================= TASK METRICS ================= */
+
+        const completedTasks =
+          teamTasks.filter(
+            (task) =>
+              task.status ===
+              "Completed"
+          ).length;
+
+        const pendingTasks =
+          teamTasks.filter(
+            (task) =>
+              task.status ===
+              "Pending"
+          ).length;
+
+        const inProgressTasks =
+          teamTasks.filter(
+            (task) =>
+              task.status ===
+              "In Progress"
+          ).length;
+
+        const overdueTasks =
+          teamTasks.filter(
+            (task) =>
+              task.due_date &&
+              new Date(
+                task.due_date
+              ) < new Date() &&
+              task.status !==
+                "Completed"
+          ).length;
+
+        /* ================= PRODUCTIVITY ================= */
+
+        const productivity =
+          teamTasks.length === 0
+            ? 0
+            : Math.round(
+                (completedTasks /
+                  teamTasks.length) *
+                  100
+              );
+
+        /* ================= GENERATED REPORTS ================= */
+
+        const generatedReports = [
+          {
+            id: 1,
+
+            title:
+              "Team Productivity Report",
+
+            category:
+              "Performance",
+
+            project:
+              "All Team Projects",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              productivity >= 70
+                ? "Completed"
+                : "Pending",
+
+            type: "PDF",
+
+            metric:
+              productivity +
+              "% Productivity",
+          },
+
+          {
+            id: 2,
+
+            title:
+              "Completed Tasks Report",
+
+            category:
+              "Tasks",
+
+            project:
+              "Team Tasks",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              "Completed",
+
+            type: "Excel",
+
+            metric:
+              completedTasks +
+              " Completed Tasks",
+          },
+
+          {
+            id: 3,
+
+            title:
+              "Pending Tasks Analysis",
+
+            category:
+              "Tasks",
+
+            project:
+              "Team Tasks",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              pendingTasks > 0
+                ? "Pending"
+                : "Completed",
+
+            type: "PDF",
+
+            metric:
+              pendingTasks +
+              " Pending Tasks",
+          },
+
+          {
+            id: 4,
+
+            title:
+              "In Progress Tasks Report",
+
+            category:
+              "Tasks",
+
+            project:
+              "Team Tasks",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              "Completed",
+
+            type: "PDF",
+
+            metric:
+              inProgressTasks +
+              " Active Tasks",
+          },
+
+          {
+            id: 5,
+
+            title:
+              "Overdue Tasks Report",
+
+            category:
+              "Tasks",
+
+            project:
+              "Team Tasks",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              overdueTasks > 0
+                ? "Pending"
+                : "Completed",
+
+            type: "PDF",
+
+            metric:
+              overdueTasks +
+              " Overdue Tasks",
+          },
+
+          {
+            id: 6,
+
+            title:
+              "Projects Overview Report",
+
+            category:
+              "Projects",
+
+            project:
+              "Assigned Projects",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              "Completed",
+
+            type: "PDF",
+
+            metric:
+              teamProjects.length +
+              " Projects",
+          },
+
+          {
+            id: 7,
+
+            title:
+              "Team Activity Report",
+
+            category:
+              "Employees",
+
+            project:
+              "Team Members",
+
+            generatedBy:
+              profile?.full_name ||
+              "Team Manager",
+
+            date:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+
+            status:
+              "Completed",
+
+            type: "Excel",
+
+            metric:
+              teamUsers.length +
+              " Team Members",
+          },
+        ];
+
+        setReportList(
+          generatedReports
+        );
+      } catch (error) {
+        console.error(
+          "REPORT ERROR:",
+          error.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
   /* ================= FILTER REPORTS ================= */
 
@@ -283,6 +465,11 @@ function ManagerReports() {
           ? true
           : report.category ===
             categoryFilter
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.date) -
+          new Date(a.date)
       );
 
   /* ================= STATS ================= */
@@ -290,22 +477,11 @@ function ManagerReports() {
   const totalReports =
     filteredReports.length;
 
-  const completedReports =
-    filteredReports.filter(
-      (report) =>
-        report.status ===
-        "Completed"
-    ).length;
-
-  const pendingReports =
-    filteredReports.filter(
-      (report) =>
-        report.status ===
-        "Pending"
-    ).length;
-
   const totalProjects =
     projects.length;
+
+  const totalUsers =
+    users.length;
 
   const totalTasks =
     tasks.length;
@@ -334,10 +510,8 @@ function ManagerReports() {
         const userTasks =
           tasks.filter(
             (task) =>
-              task.assignee ===
-                user.full_name ||
-              task.assigned_to_email ===
-                user.email
+              task.assignee_id ===
+              user.id
           );
 
         const completed =
@@ -359,6 +533,7 @@ function ManagerReports() {
         return {
           name:
             user.full_name,
+
           score,
         };
       }
@@ -381,6 +556,7 @@ function ManagerReports() {
 
   const handleGenerateReport =
     () => {
+
       if (
         !newReport.title ||
         !newReport.project
@@ -389,7 +565,9 @@ function ManagerReports() {
 
       const report = {
         id: Date.now(),
+
         ...newReport,
+
         metric:
           productivity +
           "% Productivity",
@@ -402,16 +580,23 @@ function ManagerReports() {
 
       setNewReport({
         title: "",
+
         category:
           "Performance",
+
         project: "",
+
         generatedBy:
           profile?.full_name ||
           "Team Manager",
+
         date: new Date()
           .toISOString()
           .split("T")[0],
-        status: "Completed",
+
+        status:
+          "Completed",
+
         type: "PDF",
       });
 
@@ -420,23 +605,173 @@ function ManagerReports() {
 
   /* ================= DOWNLOAD ================= */
 
-  const handleDownload = (
-    report
-  ) => {
-    console.log(
-      `Downloading ${report.title}`
-    );
-  };
+  const handleDownload =
+    (report) => {
+
+      const content = `
+======================================
+${report.title}
+======================================
+
+Category:
+${report.category}
+
+Project:
+${report.project}
+
+Metric:
+${report.metric}
+
+Generated By:
+${report.generatedBy}
+
+Date:
+${report.date}
+
+Status:
+${report.status}
+
+Type:
+${report.type}
+
+======================================
+Generated from WorkPulse
+======================================
+`;
+
+      const blob = new Blob(
+        [content],
+        {
+          type:
+            "text/plain",
+        }
+      );
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.href = url;
+
+      link.download =
+        report.title
+          .toLowerCase()
+          .replace(/\s+/g, "-") +
+        ".txt";
+
+      document.body.appendChild(
+        link
+      );
+
+      link.click();
+
+      document.body.removeChild(
+        link
+      );
+    };
+
+  /* ================= EXPORT ================= */
+
+  const handleExport =
+    () => {
+
+      const exportData =
+        filteredReports.map(
+          (report) => ({
+            Title:
+              report.title,
+
+            Category:
+              report.category,
+
+            Metric:
+              report.metric,
+
+            GeneratedBy:
+              report.generatedBy,
+
+            Date:
+              report.date,
+
+            Status:
+              report.status,
+
+            Type:
+              report.type,
+          })
+        );
+
+      const blob = new Blob(
+        [
+          JSON.stringify(
+            exportData,
+            null,
+            2
+          ),
+        ],
+        {
+          type:
+            "application/json",
+        }
+      );
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.href = url;
+
+      link.download =
+        "manager-reports.json";
+
+      document.body.appendChild(
+        link
+      );
+
+      link.click();
+
+      document.body.removeChild(
+        link
+      );
+
+      setIsExportModalOpen(
+        false
+      );
+    };
 
   /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
-        Loading reports...
+      <div className="flex items-center justify-center min-h-[60vh]">
+
+        <div className="flex flex-col items-center gap-4">
+
+          <div className="w-14 h-14 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+
+          <p className="text-slate-500 dark:text-zinc-400">
+            Loading reports...
+          </p>
+
+        </div>
+
       </div>
     );
   }
+
+  
 
   return (
     <div className="space-y-8">
@@ -587,44 +922,7 @@ function ManagerReports() {
 
       </div>
 
-      {/* TOP MEMBER */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
-
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-
-          <div>
-
-            <div className="flex items-center gap-3">
-
-              <BarChart3 size={28} />
-
-              <h2 className="text-2xl font-bold">
-                Best Team Member
-              </h2>
-
-            </div>
-
-            <p className="mt-4 text-lg">
-              {topMember.name}
-            </p>
-
-          </div>
-
-          <div className="text-center lg:text-right">
-
-            <h1 className="text-6xl font-bold">
-              {topMember.score}%
-            </h1>
-
-            <p className="mt-2 text-emerald-100">
-              Productivity Score
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
+    
 
       {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">

@@ -20,6 +20,9 @@ function ManagerPerformance() {
   const [tasks, setTasks] =
     useState([]);
 
+  const [projects, setProjects] =
+    useState([]);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -34,8 +37,14 @@ function ManagerPerformance() {
       setLoading(true);
 
       const [
-        { data: users },
-        { data: taskData },
+        { data: users, error: usersError },
+
+        { data: taskData, error: tasksError },
+
+        {
+          data: projectData,
+          error: projectsError,
+        },
       ] = await Promise.all([
         supabase
           .from("profiles")
@@ -43,11 +52,32 @@ function ManagerPerformance() {
 
         supabase
           .from("tasks")
+          .select(`
+            *,
+            task_assignees (
+              user_id
+            )
+          `),
+
+        supabase
+          .from("projects")
           .select("*"),
       ]);
 
+      if (usersError)
+        throw usersError;
+
+      if (tasksError)
+        throw tasksError;
+
+      if (projectsError)
+        throw projectsError;
+
       setProfiles(users || []);
+
       setTasks(taskData || []);
+
+      setProjects(projectData || []);
     } catch (error) {
       console.error(
         "MANAGER PERFORMANCE ERROR:",
@@ -58,9 +88,22 @@ function ManagerPerformance() {
     }
   };
 
+  /* ================= MANAGER PROJECTS ================= */
+
+  const managerProjects =
+    projects.filter(
+      (project) =>
+        project.manager_id ===
+        profile?.id
+    );
+
+  const managerProjectIds =
+    managerProjects.map(
+      (project) => project.id
+    );
+
   /* ================= TEAM MEMBERS ================= */
 
-  // ONLY MEMBERS UNDER THIS MANAGER
   const teamMembers =
     profiles.filter(
       (member) =>
@@ -72,16 +115,22 @@ function ManagerPerformance() {
 
   const teamPerformance =
     teamMembers.map((member) => {
+
       const memberTasks =
-        tasks.filter(
-          (task) =>
-            task.assignee ===
-              member.full_name ||
-            task.assigned_to_email ===
-              member.email ||
-            task.assigned_to ===
-              member.id
-        );
+  tasks.filter((task) => {
+    const assignees =
+      task.task_assignees || [];
+
+    return (
+      managerProjectIds.includes(
+        task.project_id
+      ) &&
+      assignees.some(
+        (a) =>
+          a.user_id === member.id
+      )
+    );
+  });
 
       const completedTasks =
         memberTasks.filter(
@@ -97,12 +146,15 @@ function ManagerPerformance() {
             "Completed"
         ).length;
 
+      const totalTasks =
+        memberTasks.length;
+
       const productivity =
-        memberTasks.length === 0
+        totalTasks === 0
           ? 0
           : Math.round(
               (completedTasks /
-                memberTasks.length) *
+                totalTasks) *
                 100
             );
 
@@ -110,9 +162,12 @@ function ManagerPerformance() {
         id: member.id,
 
         member:
-          member.full_name,
+          member.full_name ||
+          "Unknown Member",
 
-        role: member.role,
+        role:
+          member.role ||
+          "member",
 
         completedTasks,
 
@@ -121,7 +176,9 @@ function ManagerPerformance() {
         productivity,
 
         attendance:
-          productivity >= 80
+          totalTasks === 0
+            ? 0
+            : productivity >= 80
             ? 98
             : productivity >= 50
             ? 92

@@ -389,72 +389,109 @@ setIsEditOpen(true);
       }
     };
 
-  // ➕ CREATE TASK
-  const handleCreateTask =
-    async () => {
-      if (!newTask.title)
-        return;
+  
+// ➕ CREATE TASK
+const handleCreateTask =
+  async () => {
+    if (!newTask.title)
+      return;
 
-      try {
-        // 🔥 CREATE TASK
-        const createdTask =
-          await createTask({
-            title:
-              newTask.title,
-            description:
-              newTask.description,
-            project_id:
-              newTask.project_id ||
-              null,
-            
-            priority:
-              newTask.priority,
-            
-            due_date:
-              newTask.due_date ||
-              null,
-            created_by:
-              profile?.id ||
-              user?.id ||
-              null,
-          });
+    try {
 
-        // 👥 ASSIGN USERS
-        if (
-          selectedUsers.length > 0
-        ) {
-          await assignTaskUsers(
-            createdTask.id,
-            selectedUsers
-          );
-        }
+      /* ================= PRIMARY ASSIGNEE ================= */
 
-        // 🔄 RELOAD TASKS
-        await loadTasks();
+      const primaryAssignee =
+        selectedUsers[0];
 
-        // 🔥 RESET FORM
-        setNewTask({
-          title: "",
-          description: "",
-          project_id: "",
-          
-          priority: "Medium",
-          progress: 0,
-          due_date: "",
+      // 🔥 CREATE TASK
+      const createdTask =
+        await createTask({
+          title:
+            newTask.title,
+
+          description:
+            newTask.description,
+
+          project_id:
+            newTask.project_id ||
+            null,
+
+          // ✅ SAVE PRIMARY ASSIGNEE ID
+          assignee_id:
+            primaryAssignee ||
+            null,
+
+          priority:
+            newTask.priority,
+
+          due_date:
+            newTask.due_date ||
+            null,
+
+          created_by:
+            profile?.id ||
+            user?.id ||
+            null,
         });
 
-        setSelectedUsers([]);
+      /* ================= MULTIPLE ASSIGNEES ================= */
 
-        setUserSearch("");
+      if (
+        selectedUsers.length > 0
+      ) {
 
-        setIsCreateOpen(false);
-      } catch (error) {
-        console.error(
-          "CREATE ERROR:",
-          error.message
-        );
+        const assigneesPayload =
+          selectedUsers.map(
+            (userId) => ({
+              task_id:
+                createdTask.id,
+
+              user_id:
+                userId,
+            })
+          );
+
+        const { error } =
+          await supabase
+            .from(
+              "task_assignees"
+            )
+            .insert(
+              assigneesPayload
+            );
+
+        if (error)
+          throw error;
       }
-    };
+
+      // 🔄 RELOAD TASKS
+      await loadTasks();
+
+      // 🔥 RESET FORM
+      setNewTask({
+        title: "",
+        description: "",
+        project_id: "",
+        priority: "Medium",
+        progress: 0,
+        due_date: "",
+      });
+
+      setSelectedUsers([]);
+
+      setUserSearch("");
+
+      setIsCreateOpen(false);
+
+    } catch (error) {
+
+      console.error(
+        "CREATE ERROR:",
+        error.message
+      );
+
+    }
+  };
 
   // 🎨 PRIORITY COLORS
   const getPriorityColor = (

@@ -247,7 +247,7 @@ function MembersPage({ mode }) {
 
   console.log("Manager profile found:", managerProfile);
 
-  // STEP 2: use profile.id for filtering
+  //  use profile.id for filtering
   query = query.eq("manager_id", managerProfile.id);
 }
 
@@ -347,32 +347,53 @@ function MembersPage({ mode }) {
         )
       );
   }, [members, search, department, status]);
+  const managersList =
+  visibleMembers.filter(
+    (member) =>
+      member.role?.includes(
+        "Manager"
+      )
+  );
+
+const membersList =
+  visibleMembers.filter(
+    (member) =>
+      !member.role?.includes(
+        "Manager"
+      ) &&
+      member.role !== "admin"
+  );
 
   /* ================= STATS ================= */
 
   const stats = {
-    total: members.length,
+    total: visibleMembers.length,
 
-    active: members.filter(
+    active: visibleMembers.filter(
       (m) => m.status === "Active"
     ).length,
 
-    managers: members.filter((m) =>
-      m.role?.includes("Manager")
+    managers: visibleMembers.filter(
+      (m) =>
+        m.role?.includes(
+          "Manager"
+        )
     ).length,
 
-    average: members.length
-      ? Math.round(
-          members.reduce(
-            (sum, m) =>
-              sum +
-              productivityValue(
-                m.productivity
-              ),
-            0
-          ) / members.length
-        )
-      : 0,
+    average:
+      visibleMembers.length
+        ? Math.round(
+            visibleMembers.reduce(
+              (sum, m) =>
+                sum +
+                productivityValue(
+                  m.productivity
+                ),
+              0
+            ) /
+              visibleMembers.length
+          )
+        : 0,
   };
 
   /* ================= ADD / EDIT ================= */
@@ -703,6 +724,7 @@ const handleInviteMember =
       }))
     );
   };
+  
 
   return (
     <div className="space-y-6">
@@ -802,14 +824,67 @@ const handleInviteMember =
         </select>
       </div>
 
-      <MembersTable
-        members={visibleMembers}
-        isAdmin={isAdmin}
-        onView={setSelectedMember}
-        onEdit={openEdit}
-        onDelete={deleteMember}
-      />
+      {/* ================= MANAGERS ================= */}
 
+<div className="space-y-4">
+
+  <div className="flex items-center gap-3">
+
+    <ShieldCheck
+      className="text-emerald-600"
+      size={22}
+    />
+
+    <h2 className="text-2xl font-bold dark:text-white">
+      Managers
+    </h2>
+
+    <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+      {managersList.length}
+    </span>
+
+  </div>
+
+  <MembersTable
+    members={managersList}
+    isAdmin={isAdmin}
+    onView={setSelectedMember}
+    onEdit={openEdit}
+    onDelete={deleteMember}
+  />
+
+</div>
+
+{/* ================= MEMBERS ================= */}
+
+<div className="space-y-4 pt-4">
+
+  <div className="flex items-center gap-3">
+
+    <Users
+      className="text-blue-600"
+      size={22}
+    />
+
+    <h2 className="text-2xl font-bold dark:text-white">
+      Members
+    </h2>
+
+    <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+      {membersList.length}
+    </span>
+
+  </div>
+
+  <MembersTable
+    members={membersList}
+    isAdmin={isAdmin}
+    onView={setSelectedMember}
+    onEdit={openEdit}
+    onDelete={deleteMember}
+  />
+
+</div>
       {visibleMembers.length === 0 && (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-zinc-700 dark:bg-zinc-900">
           <Users className="mx-auto text-slate-400" size={38} />

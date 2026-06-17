@@ -5,7 +5,7 @@ export async function getTasks() {
   const { data, error } =
     await supabase
       .from("tasks")
-   .select(`
+  .select(`
   id,
   title,
   description,
@@ -16,6 +16,7 @@ export async function getTasks() {
   created_at,
   project_id,
   created_by,
+  assignee_id,
 
   projects (
     id,

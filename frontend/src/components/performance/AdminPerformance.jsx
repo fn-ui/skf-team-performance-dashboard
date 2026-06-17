@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 import {
@@ -8,6 +8,8 @@ import {
   Users,
   Award,
   Loader2,
+  Briefcase,
+  Target,
 } from "lucide-react";
 
 function AdminPerformance() {
@@ -17,10 +19,13 @@ function AdminPerformance() {
   const [tasks, setTasks] =
     useState([]);
 
+  const [projects, setProjects] =
+    useState([]);
+
   const [loading, setLoading] =
     useState(true);
 
-  /* ================= LOAD REAL DATA ================= */
+  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
     loadData();
@@ -34,19 +39,27 @@ function AdminPerformance() {
         { data: users, error: usersError },
 
         { data: taskData, error: tasksError },
+
+        {
+          data: projectData,
+          error: projectsError,
+        },
       ] = await Promise.all([
         supabase
           .from("profiles")
-          .select(`
-            id,
-            full_name,
-            email,
-            role
-          `)
-          .neq("role", "admin"),
+          .select("*")
+          .not(
+            "role",
+            "ilike",
+            "%admin%"
+          ),
 
         supabase
           .from("tasks")
+          .select("*"),
+
+        supabase
+          .from("projects")
           .select("*"),
       ]);
 
@@ -56,9 +69,14 @@ function AdminPerformance() {
       if (tasksError)
         throw tasksError;
 
+      if (projectsError)
+        throw projectsError;
+
       setProfiles(users || []);
 
       setTasks(taskData || []);
+
+      setProjects(projectData || []);
     } catch (error) {
       console.error(
         "PERFORMANCE ERROR:",
@@ -69,39 +87,142 @@ function AdminPerformance() {
     }
   };
 
-  /* ================= BUILD PERFORMANCE ================= */
+  
+    /* ================= SPLIT USERS ================= */
 
-  const performanceData =
-    profiles.map((user) => {
-      const userTasks =
-        tasks.filter((task) => {
-          return (
-            task.assignee ===
-              user.full_name ||
-            task.assigned_to_email ===
-              user.email ||
-            task.assigned_to ===
-              user.id ||
-            task.owner_id === user.id
-          );
-        });
+  const managers =
+    profiles.filter((user) => {
+
+      const role =
+        user.role
+          ?.toLowerCase()
+          .trim();
+
+      return (
+        role?.includes(
+          "manager"
+        )
+      );
+    });
+
+  const members =
+    profiles.filter((user) => {
+
+      const role =
+        user.role
+          ?.toLowerCase()
+          .trim();
+
+      return (
+        role &&
+        !role.includes(
+          "manager"
+        ) &&
+        role !== "admin"
+      );
+    });
+  /* ================= MANAGER PERFORMANCE ================= */
+
+  const managerPerformance =
+    managers.map((manager) => {
+      const managerProjects =
+        projects.filter(
+          (project) =>
+            project.manager_id ===
+            manager.id
+        );
+
+      const completedProjects =
+        managerProjects.filter(
+          (project) =>
+            project.status ===
+            "Completed"
+        ).length;
+
+      const activeProjects =
+        managerProjects.filter(
+          (project) =>
+            project.status ===
+            "Active"
+        ).length;
+
+      const totalProjects =
+        managerProjects.length;
+
+      const avgProgress =
+        totalProjects === 0
+          ? 0
+          : Math.round(
+              managerProjects.reduce(
+                (acc, project) =>
+                  acc +
+                  (project.progress ||
+                    0),
+                0
+              ) / totalProjects
+            );
+
+      const managedMembers =
+        members.filter(
+          (member) =>
+            member.manager_id ===
+            manager.id
+        ).length;
+
+      return {
+        id: manager.id,
+
+        manager:
+          manager.full_name ||
+          "Unknown Manager",
+
+        totalProjects,
+
+        completedProjects,
+
+        activeProjects,
+
+        managedMembers,
+
+        productivity:
+          avgProgress,
+      };
+    });
+
+  /* ================= MEMBER PERFORMANCE ================= */
+
+  const memberPerformance =
+    members.map((member) => {
+      const memberTasks =
+        tasks.filter(
+          (task) =>
+            task.assignee_id ===
+            member.id
+        );
 
       const completedTasks =
-        userTasks.filter(
+        memberTasks.filter(
           (task) =>
             task.status ===
             "Completed"
         ).length;
 
       const pendingTasks =
-        userTasks.filter(
+        memberTasks.filter(
           (task) =>
-            task.status !==
-            "Completed"
+            task.status ===
+            "Pending"
+        ).length;
+
+      const inProgressTasks =
+        memberTasks.filter(
+          (task) =>
+            task.status ===
+            "In Progress"
         ).length;
 
       const totalTasks =
-        userTasks.length;
+        memberTasks.length;
 
       const productivity =
         totalTasks === 0
@@ -112,45 +233,82 @@ function AdminPerformance() {
                 100
             );
 
+      const manager =
+        profiles.find(
+          (profile) =>
+            profile.id ===
+            member.manager_id
+        );
+
       return {
-        id: user.id,
+        id: member.id,
 
         member:
-          user.full_name ||
-          "Unknown User",
+          member.full_name ||
+          "Unknown Member",
 
-        role:
-          user.role || "member",
+        manager:
+          manager?.full_name ||
+          "Not Assigned",
 
         completedTasks,
 
         pendingTasks,
+
+        inProgressTasks,
+
+        totalTasks,
 
         productivity,
 
         attendance:
           totalTasks === 0
             ? 0
-            : 100,
+            : productivity >= 80
+            ? 98
+            : productivity >= 60
+            ? 92
+            : 85,
       };
     });
 
   /* ================= SORT ================= */
 
-  const sortedPerformance =
-    [...performanceData].sort(
+  const sortedManagers =
+    [...managerPerformance].sort(
       (a, b) =>
         b.productivity -
         a.productivity
     );
 
-  /* ================= STATS ================= */
+  const sortedMembers =
+    [...memberPerformance].sort(
+      (a, b) =>
+        b.productivity -
+        a.productivity
+    );
+
+  /* ================= TOP PERFORMERS ================= */
+
+  const topManager =
+    sortedManagers[0] || {
+      manager: "No Manager",
+      productivity: 0,
+    };
+
+  const topMember =
+    sortedMembers[0] || {
+      member: "No Member",
+      productivity: 0,
+    };
+
+  /* ================= KPI ================= */
 
   const totalEmployees =
-    performanceData.length;
+    profiles.length;
 
   const totalCompleted =
-    performanceData.reduce(
+    memberPerformance.reduce(
       (acc, member) =>
         acc +
         member.completedTasks,
@@ -158,7 +316,7 @@ function AdminPerformance() {
     );
 
   const totalPending =
-    performanceData.reduce(
+    memberPerformance.reduce(
       (acc, member) =>
         acc +
         member.pendingTasks,
@@ -166,35 +324,37 @@ function AdminPerformance() {
     );
 
   const averageProductivity =
-    performanceData.length === 0
+    memberPerformance.length === 0
       ? 0
       : Math.round(
-          performanceData.reduce(
+          memberPerformance.reduce(
             (acc, member) =>
               acc +
               member.productivity,
             0
           ) /
-            performanceData.length
+            memberPerformance.length
         );
 
-  /* ================= TOP PERFORMER ================= */
+  const productivityColor =
+    (value) => {
+      if (value >= 80)
+        return "bg-emerald-500";
 
-  const topPerformer =
-    sortedPerformance[0] || {
-      member: "No Data",
-      role: "-",
-      productivity: 0,
+      if (value >= 60)
+        return "bg-emerald-400";
+
+      return "bg-amber-500";
     };
 
   /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-10 dark:text-white">
+      <div className="flex items-center gap-3 p-10 text-emerald-600">
         <Loader2 className="animate-spin" />
 
-        Loading performance data...
+        Loading performance...
       </div>
     );
   }
@@ -203,25 +363,24 @@ function AdminPerformance() {
     <div className="space-y-8">
 
       {/* HEADER */}
-      <div>
 
+      <div>
         <h1 className="text-3xl font-bold dark:text-white">
           Performance Overview
         </h1>
 
-        <p className="text-slate-500 dark:text-zinc-400 mt-2">
-          Monitor employee productivity
-          and task completion in real
-          time.
+        <p className="mt-2 text-slate-500 dark:text-zinc-400">
+          Monitor manager leadership,
+          project execution, and
+          employee productivity.
         </p>
-
       </div>
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* EMPLOYEES */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+
+        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -231,27 +390,21 @@ function AdminPerformance() {
                 Employees
               </p>
 
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
+              <h2 className="mt-3 text-3xl font-bold dark:text-white">
                 {totalEmployees}
               </h2>
 
             </div>
 
-            <div className="bg-blue-100 p-3 rounded-xl">
-
-              <Users
-                size={24}
-                className="text-blue-600"
-              />
-
+            <div className="rounded-2xl bg-emerald-100 p-4">
+              <Users className="text-emerald-600" />
             </div>
 
           </div>
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -261,27 +414,21 @@ function AdminPerformance() {
                 Completed Tasks
               </p>
 
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
+              <h2 className="mt-3 text-3xl font-bold dark:text-white">
                 {totalCompleted}
               </h2>
 
             </div>
 
-            <div className="bg-emerald-100 p-3 rounded-xl">
-
-              <CheckCircle
-                size={24}
-                className="text-emerald-600"
-              />
-
+            <div className="rounded-2xl bg-emerald-100 p-4">
+              <CheckCircle className="text-emerald-600" />
             </div>
 
           </div>
 
         </div>
 
-        {/* PENDING */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -291,27 +438,21 @@ function AdminPerformance() {
                 Pending Tasks
               </p>
 
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
+              <h2 className="mt-3 text-3xl font-bold dark:text-white">
                 {totalPending}
               </h2>
 
             </div>
 
-            <div className="bg-amber-100 p-3 rounded-xl">
-
-              <Clock
-                size={24}
-                className="text-amber-600"
-              />
-
+            <div className="rounded-2xl bg-amber-100 p-4">
+              <Clock className="text-amber-600" />
             </div>
 
           </div>
 
         </div>
 
-        {/* PRODUCTIVITY */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -321,19 +462,14 @@ function AdminPerformance() {
                 Avg Productivity
               </p>
 
-              <h2 className="text-3xl font-bold mt-3 dark:text-white">
+              <h2 className="mt-3 text-3xl font-bold dark:text-white">
                 {averageProductivity}%
               </h2>
 
             </div>
 
-            <div className="bg-purple-100 p-3 rounded-xl">
-
-              <TrendingUp
-                size={24}
-                className="text-purple-600"
-              />
-
+            <div className="rounded-2xl bg-emerald-100 p-4">
+              <TrendingUp className="text-emerald-600" />
             </div>
 
           </div>
@@ -342,59 +478,66 @@ function AdminPerformance() {
 
       </div>
 
-      {/* TOP PERFORMER */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
+      {/* TOP CARDS */}
 
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-          <div>
+        {/* TOP MANAGER */}
 
-            <div className="flex items-center gap-3">
+        <div className="rounded-3xl bg-gradient-to-r from-emerald-700 to-emerald-500 p-8 text-white shadow-xl">
 
-              <Award size={28} />
+          <div className="flex items-center gap-3">
+            <Briefcase size={28} />
 
-              <h2 className="text-2xl font-bold">
-                Top Performer
-              </h2>
-
-            </div>
-
-            <p className="mt-4 text-emerald-50 text-lg font-semibold">
-              {topPerformer.member}
-            </p>
-
-            <p className="mt-2 text-emerald-100 capitalize">
-              {topPerformer.role}
-            </p>
-
+            <h2 className="text-2xl font-bold">
+              Best Team Manager
+            </h2>
           </div>
 
-          <div className="text-center lg:text-right">
+          <p className="mt-6 text-3xl font-bold">
+            {topManager.manager}
+          </p>
 
-            <h1 className="text-6xl font-bold">
-              {
-                topPerformer.productivity
-              }
-              %
-            </h1>
+          <p className="mt-3 text-emerald-100">
+            {topManager.productivity}%
+            leadership score
+          </p>
 
-            <p className="mt-2 text-emerald-100">
-              Productivity Score
-            </p>
+        </div>
 
+        {/* TOP MEMBER */}
+
+        <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-400 p-8 text-white shadow-xl">
+
+          <div className="flex items-center gap-3">
+            <Target size={28} />
+
+            <h2 className="text-2xl font-bold">
+              Best Performing Member
+            </h2>
           </div>
+
+          <p className="mt-6 text-3xl font-bold">
+            {topMember.member}
+          </p>
+
+          <p className="mt-3 text-emerald-100">
+            {topMember.productivity}%
+            productivity score
+          </p>
 
         </div>
 
       </div>
 
-      {/* TABLE */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl overflow-hidden">
+      {/* MANAGER TABLE */}
 
-        <div className="p-6 border-b border-slate-200 dark:border-zinc-800">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+
+        <div className="border-b border-slate-200 p-6 dark:border-zinc-800">
 
           <h2 className="text-2xl font-bold dark:text-white">
-            Team Rankings
+            Team Manager Rankings
           </h2>
 
         </div>
@@ -403,32 +546,28 @@ function AdminPerformance() {
 
           <table className="w-full">
 
-            <thead className="bg-slate-50 dark:bg-zinc-800">
+            <thead className="bg-emerald-50 dark:bg-zinc-800">
 
               <tr>
 
-                <th className="text-left p-5 dark:text-white">
-                  Employee
+                <th className="p-5 text-left dark:text-white">
+                  Manager
                 </th>
 
-                <th className="text-left p-5 dark:text-white">
-                  Role
+                <th className="p-5 text-left dark:text-white">
+                  Team Size
                 </th>
 
-                <th className="text-left p-5 dark:text-white">
+                <th className="p-5 text-left dark:text-white">
+                  Projects
+                </th>
+
+                <th className="p-5 text-left dark:text-white">
                   Completed
                 </th>
 
-                <th className="text-left p-5 dark:text-white">
-                  Pending
-                </th>
-
-                <th className="text-left p-5 dark:text-white">
+                <th className="p-5 text-left dark:text-white">
                   Productivity
-                </th>
-
-                <th className="text-left p-5 dark:text-white">
-                  Attendance
                 </th>
 
               </tr>
@@ -437,7 +576,128 @@ function AdminPerformance() {
 
             <tbody>
 
-              {sortedPerformance.map(
+              {sortedManagers.map(
+                (manager) => (
+
+                  <tr
+                    key={manager.id}
+                    className="border-t border-slate-200 dark:border-zinc-800"
+                  >
+
+                    <td className="p-5 font-semibold dark:text-white">
+                      {manager.manager}
+                    </td>
+
+                    <td className="p-5 dark:text-white">
+                      {
+                        manager.managedMembers
+                      }
+                    </td>
+
+                    <td className="p-5 dark:text-white">
+                      {
+                        manager.totalProjects
+                      }
+                    </td>
+
+                    <td className="p-5 dark:text-white">
+                      {
+                        manager.completedProjects
+                      }
+                    </td>
+
+                    <td className="p-5">
+
+                      <div className="flex items-center gap-3">
+
+                        <div className="h-3 w-32 rounded-full bg-slate-200 dark:bg-zinc-700">
+
+                          <div
+                            className={`h-3 rounded-full ${productivityColor(
+                              manager.productivity
+                            )}`}
+                            style={{
+                              width: `${manager.productivity}%`,
+                            }}
+                          />
+
+                        </div>
+
+                        <span className="font-semibold dark:text-white">
+                          {
+                            manager.productivity
+                          }
+                          %
+                        </span>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                )
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+      {/* MEMBER TABLE */}
+
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+
+        <div className="border-b border-slate-200 p-6 dark:border-zinc-800">
+
+          <h2 className="text-2xl font-bold dark:text-white">
+            Member Rankings
+          </h2>
+
+        </div>
+
+        <div className="overflow-x-auto">
+
+          <table className="w-full">
+
+            <thead className="bg-emerald-50 dark:bg-zinc-800">
+
+              <tr>
+
+                <th className="p-5 text-left dark:text-white">
+                  Member
+                </th>
+
+                <th className="p-5 text-left dark:text-white">
+                  Under Manager
+                </th>
+
+                <th className="p-5 text-left dark:text-white">
+                  Completed
+                </th>
+
+                <th className="p-5 text-left dark:text-white">
+                  Pending
+                </th>
+
+                <th className="p-5 text-left dark:text-white">
+                  In Progress
+                </th>
+
+                <th className="p-5 text-left dark:text-white">
+                  Productivity
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {sortedMembers.map(
                 (member) => (
 
                   <tr
@@ -449,8 +709,8 @@ function AdminPerformance() {
                       {member.member}
                     </td>
 
-                    <td className="p-5 text-slate-500 dark:text-zinc-400 capitalize">
-                      {member.role}
+                    <td className="p-5 text-slate-500 dark:text-zinc-400">
+                      {member.manager}
                     </td>
 
                     <td className="p-5 dark:text-white">
@@ -465,14 +725,22 @@ function AdminPerformance() {
                       }
                     </td>
 
+                    <td className="p-5 dark:text-white">
+                      {
+                        member.inProgressTasks
+                      }
+                    </td>
+
                     <td className="p-5">
 
                       <div className="flex items-center gap-3">
 
-                        <div className="w-32 bg-slate-200 dark:bg-zinc-700 rounded-full h-3">
+                        <div className="h-3 w-32 rounded-full bg-slate-200 dark:bg-zinc-700">
 
                           <div
-                            className="bg-emerald-500 h-3 rounded-full transition-all"
+                            className={`h-3 rounded-full ${productivityColor(
+                              member.productivity
+                            )}`}
                             style={{
                               width: `${member.productivity}%`,
                             }}
@@ -491,29 +759,9 @@ function AdminPerformance() {
 
                     </td>
 
-                    <td className="p-5 dark:text-white">
-                      {member.attendance}
-                      %
-                    </td>
-
                   </tr>
 
                 )
-              )}
-
-              {sortedPerformance.length ===
-                0 && (
-                <tr>
-
-                  <td
-                    colSpan="6"
-                    className="p-10 text-center text-slate-500 dark:text-zinc-400"
-                  >
-                    No performance data
-                    available.
-                  </td>
-
-                </tr>
               )}
 
             </tbody>

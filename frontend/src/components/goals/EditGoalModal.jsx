@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, Target, Flag, CalendarDays, Users, FolderKanban } from "lucide-react";
 
 function EditGoalModal({
   isOpen,
@@ -8,64 +8,151 @@ function EditGoalModal({
   handleUpdateGoal,
   users,
   projects,
+  profile,
 }) {
   if (!isOpen || !selectedGoal)
     return null;
 
+  /* ========================================
+     ROLE BASED USERS
+  ======================================== */
+
+  const role =
+    profile?.role
+      ?.toLowerCase()
+      ?.trim();
+
+  let filteredUsers = [];
+
+  // ADMIN
+  if (role === "admin") {
+    filteredUsers =
+      users?.filter(
+        (user) =>
+          user.role !== "admin"
+      ) || [];
+  }
+
+  // MANAGER
+  else if (
+    role === "manager"
+  ) {
+    filteredUsers =
+      users?.filter(
+        (user) =>
+          user.manager_id ===
+            profile?.id &&
+          user.role !== "admin"
+      ) || [];
+  }
+
+  // MEMBER
+  else {
+    filteredUsers =
+      users?.filter(
+        (user) =>
+          user.id ===
+          profile?.id
+      ) || [];
+  }
+
+  /* ========================================
+     PRIORITY COLORS
+  ======================================== */
+
+  const priorityStyles = {
+    High: "text-red-600",
+    Medium:
+      "text-amber-600",
+    Low: "text-emerald-600",
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-2xl border border-slate-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-3xl bg-white dark:bg-zinc-900 rounded-[32px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto">
 
-        {/* HEADER */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-zinc-800">
+        {/* ========================================
+            TOP HEADER
+        ======================================== */}
 
-          <div>
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 px-8 py-8">
 
-            <h2 className="text-2xl font-bold dark:text-white">
-              Edit Goal
-            </h2>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
 
-            <p className="text-slate-500 dark:text-zinc-400 mt-1">
-              Update goal information.
-            </p>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-2xl" />
+
+          <div className="relative flex items-start justify-between">
+
+            <div className="flex items-start gap-4">
+
+              <div className="w-16 h-16 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+
+                <Target size={30} />
+
+              </div>
+
+              <div>
+
+                <h2 className="text-3xl font-bold text-white">
+                  Edit Goal
+                </h2>
+
+                <p className="text-emerald-50 mt-2 max-w-lg">
+                  Update goal details,
+                  assignments, progress
+                  and targets.
+                </p>
+
+              </div>
+
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-11 h-11 rounded-2xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition"
+            >
+
+              <X size={20} />
+
+            </button>
 
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
-          >
-
-            <X
-              size={20}
-              className="dark:text-white"
-            />
-
-          </button>
-
         </div>
 
-        {/* BODY */}
-        <div className="p-6 space-y-6">
+        {/* ========================================
+            BODY
+        ======================================== */}
+
+        <div className="p-8 space-y-7">
 
           {/* TITLE */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
+
+              <Target size={16} />
+
               Goal Title
+
             </label>
 
             <input
               type="text"
-              value={selectedGoal.title || ""}
+              value={
+                selectedGoal.title ||
+                ""
+              }
               onChange={(e) =>
                 setSelectedGoal({
                   ...selectedGoal,
-                  title: e.target.value,
+                  title:
+                    e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+              placeholder="Increase team productivity..."
+              className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-950 transition"
             />
 
           </div>
@@ -73,14 +160,19 @@ function EditGoalModal({
           {/* DESCRIPTION */}
           <div>
 
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
+
+              <Flag size={16} />
+
               Description
+
             </label>
 
             <textarea
-              rows={4}
+              rows={5}
               value={
-                selectedGoal.description || ""
+                selectedGoal.description ||
+                ""
               }
               onChange={(e) =>
                 setSelectedGoal({
@@ -89,24 +181,30 @@ function EditGoalModal({
                     e.target.value,
                 })
               }
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none resize-none"
+              placeholder="Describe the objective, targets and expected outcome..."
+              className="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none resize-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-950 transition"
             />
 
           </div>
 
-          {/* PROJECT + ASSIGNED */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* PROJECT + USER */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* PROJECT */}
             <div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
+
+                <FolderKanban size={16} />
+
                 Project
+
               </label>
 
               <select
                 value={
-                  selectedGoal.project_id || ""
+                  selectedGoal.project_id ||
+                  ""
                 }
                 onChange={(e) =>
                   setSelectedGoal({
@@ -115,7 +213,7 @@ function EditGoalModal({
                       e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-950 transition"
               >
 
                 <option value="">
@@ -125,8 +223,12 @@ function EditGoalModal({
                 {projects?.map(
                   (project) => (
                     <option
-                      key={project.id}
-                      value={project.id}
+                      key={
+                        project.id
+                      }
+                      value={
+                        project.id
+                      }
                     >
                       {project.name}
                     </option>
@@ -137,56 +239,72 @@ function EditGoalModal({
 
             </div>
 
-           {/* ASSIGNED TO */}
-                  <div>
+            {/* ASSIGNED USER */}
+            <div>
 
-                    <label className="block text-sm font-medium dark:text-white mb-2">
-                      Assigned To
-                    </label>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
 
-                    <select
-                      value={
-                        selectedGoal.owner_id || ""
-                      }
-                      onChange={(e) =>
-                        setSelectedGoal({
-                          ...selectedGoal,
-                          owner_id:
-                            e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                <Users size={16} />
+
+                Assigned To
+
+              </label>
+
+              <select
+                value={
+                  selectedGoal.owner_id ||
+                  ""
+                }
+                onChange={(e) =>
+                  setSelectedGoal({
+                    ...selectedGoal,
+                    owner_id:
+                      e.target.value,
+                  })
+                }
+                className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-950 transition"
+              >
+
+                <option value="">
+                  Select User
+                </option>
+
+                {filteredUsers.map(
+                  (user) => (
+                    <option
+                      key={user.id}
+                      value={user.id}
                     >
+                      {
+                        user.full_name
+                      }
+                      {" • "}
+                      {user.role}
+                      {user.department
+                        ? ` • ${user.department}`
+                        : ""}
+                    </option>
+                  )
+                )}
 
-                      <option value="">
-                        Select User
-                      </option>
+              </select>
 
-                      {users?.map((user) => (
-
-                        <option
-                          key={user.id}
-                          value={user.id}
-                        >
-                          {user.full_name}
-                        </option>
-
-                      ))}
-
-                    </select>
-
-                  </div>
+            </div>
 
           </div>
 
-          {/* PRIORITY + PROGRESS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* PRIORITY + DATE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* PRIORITY */}
             <div>
 
-              <label className="block text-sm font-medium dark:text-white mb-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
+
+                <Flag size={16} />
+
                 Priority
+
               </label>
 
               <select
@@ -201,7 +319,13 @@ function EditGoalModal({
                       e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
+                className={`w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-950 transition font-semibold ${
+                  priorityStyles[
+                    selectedGoal
+                      .priority
+                  ] ||
+                  "text-slate-700 dark:text-white"
+                }`}
               >
 
                 <option value="High">
@@ -220,49 +344,57 @@ function EditGoalModal({
 
             </div>
 
-            
+            {/* TARGET DATE */}
+            <div>
+
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
+
+                <CalendarDays size={16} />
+
+                Target Date
+
+              </label>
+
+              <input
+                type="date"
+                value={
+                  selectedGoal.target_date ||
+                  ""
+                }
+                onChange={(e) =>
+                  setSelectedGoal({
+                    ...selectedGoal,
+                    target_date:
+                      e.target.value,
+                  })
+                }
+                className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-950 transition"
+              />
+
+            </div>
 
           </div>
 
-          {/* TARGET DATE */}
-              <div>
-
-                <label className="block text-sm font-medium dark:text-white mb-2">
-                  Target Date
-                </label>
-
-                <input
-                  type="date"
-                  value={
-                    selectedGoal.target_date || ""
-                  }
-                  onChange={(e) =>
-                    setSelectedGoal({
-                      ...selectedGoal,
-                      target_date:
-                        e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white outline-none"
-                />
-
-              </div>
-
         </div>
 
-        {/* FOOTER */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-zinc-800">
+        {/* ========================================
+            FOOTER
+        ======================================== */}
+
+        <div className="sticky bottom-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-zinc-800 px-8 py-5 flex items-center justify-end gap-4">
 
           <button
             onClick={onClose}
-            className="px-5 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:text-white"
+            className="px-6 py-3 rounded-2xl border border-slate-200 dark:border-zinc-700 dark:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition font-medium"
           >
             Cancel
           </button>
 
           <button
-            onClick={handleUpdateGoal}
-            className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition"
+            onClick={
+              handleUpdateGoal
+            }
+            className="px-7 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-lg shadow-emerald-500/20 transition"
           >
             Save Changes
           </button>

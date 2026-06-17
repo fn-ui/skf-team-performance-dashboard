@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   CalendarDays,
@@ -11,6 +15,12 @@ import {
   Users,
   CheckCircle2,
   Loader2,
+  CalendarClock,
+  AlertTriangle,
+  Filter,
+  Briefcase,
+  Link2,
+  UserRound,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -30,23 +40,34 @@ import EventDetailsModal from "./EventDetailsModal";
 function ManagerCalendarPage() {
   const { profile } = useAuth();
 
-  // EVENTS
+  /* =====================================================
+     STATES
+  ===================================================== */
+
   const [events, setEvents] =
     useState([]);
 
-  // MEMBERS
   const [members, setMembers] =
     useState([]);
 
-  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // SEARCH
+  const [saving, setSaving] =
+    useState(false);
+
   const [search, setSearch] =
     useState("");
 
-  // MODALS
+  const [priorityFilter, setPriorityFilter] =
+    useState("All");
+
+  const [statusFilter, setStatusFilter] =
+    useState("All");
+
+  const [typeFilter, setTypeFilter] =
+    useState("All");
+
   const [isAddOpen, setIsAddOpen] =
     useState(false);
 
@@ -55,179 +76,556 @@ function ManagerCalendarPage() {
     setIsDetailsOpen,
   ] = useState(false);
 
-  // SELECTED EVENT
   const [
     selectedEvent,
     setSelectedEvent,
   ] = useState(null);
 
-  // EDIT MODE
   const [
     editingEventId,
     setEditingEventId,
   ] = useState(null);
 
-  // NEW EVENT
+  /* =====================================================
+     NEW EVENT
+  ===================================================== */
+
+  const initialEventState = {
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    type: "Meeting",
+    priority: "Medium",
+    status: "Upcoming",
+
+    visibility: "team",
+
+    assignment_type:
+      "individual",
+
+    assigned_to: "",
+
+    team_target:
+      profile?.department ||
+      "",
+
+    role_target: "",
+
+    meeting_link: "",
+
+    created_by:
+      profile?.id || null,
+  };
+
   const [newEvent, setNewEvent] =
-    useState({
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      type: "Meeting",
-      priority: "Medium",
-      assigned_to: "",
-      created_by:
-        profile?.id || null,
-    });
+    useState(initialEventState);
 
-  // LOAD EVENTS
+  /* =====================================================
+     LOAD DATA
+  ===================================================== */
+
   useEffect(() => {
-    loadEvents();
-  }, []);
-
-  // FETCH EVENTS + USERS
-  const loadEvents = async () => {
-    try {
-      setLoading(true);
-
-      const [
-        eventsData,
-        usersData,
-      ] = await Promise.all([
-        getEvents(),
-        getUsers(),
-      ]);
-
-      setEvents(eventsData || []);
-
-      setMembers(usersData || []);
-    } catch (error) {
-      console.error(
-        "LOAD EVENTS ERROR:",
-        error.message
-      );
-    } finally {
-      setLoading(false);
+    if (profile?.id) {
+      loadCalendarData();
     }
-  };
+  }, [profile?.id]);
 
-  // GET USER NAME
-  const getAssignedUserName = (
-    userId
+  const loadCalendarData =
+    async () => {
+      try {
+        setLoading(true);
+
+        const [
+          eventsData,
+          usersData,
+        ] = await Promise.all([
+          getEvents(),
+          getUsers(),
+        ]);
+
+        const allEvents =
+          eventsData || [];
+
+        const allUsers =
+          usersData || [];
+
+        /* =========================================
+           TEAM MEMBERS
+        ========================================= */
+
+        const availableMembers =
+          allUsers.filter(
+            (user) => {
+              const isCurrentUser =
+                String(
+                  user.id
+                ) ===
+                String(
+                  profile?.id
+                );
+
+              const isAdmin =
+                String(
+                  user.role || ""
+                )
+                  .toLowerCase()
+                  .trim() ===
+                "admin";
+
+              const belongsToManager =
+                String(
+                  user.manager_id
+                ) ===
+                String(
+                  profile?.id
+                );
+
+              return (
+                !isCurrentUser &&
+                !isAdmin &&
+                belongsToManager
+              );
+            }
+          );
+
+        setMembers(
+          availableMembers
+        );
+
+        const memberIds =
+          new Set(
+            availableMembers.map(
+              (member) =>
+                String(
+                  member.id
+                )
+            )
+          );
+
+        /* =========================================
+           VISIBLE EVENTS
+        ========================================= */
+
+        const visibleEvents =
+          allEvents.filter(
+            (event) => {
+              const createdByManager =
+                String(
+                  event.created_by
+                ) ===
+                String(
+                  profile?.id
+                );
+
+              const assignedToManager =
+                String(
+                  event.assigned_to
+                ) ===
+                String(
+                  profile?.id
+                );
+
+              const assignedToMember =
+                memberIds.has(
+                  String(
+                    event.assigned_to
+                  )
+                );
+
+              const sameDepartment =
+                event.team_target ===
+                profile?.department;
+
+              const isTeamEvent =
+                event.visibility ===
+                  "team" &&
+                sameDepartment;
+
+              return (
+                createdByManager ||
+                assignedToManager ||
+                assignedToMember ||
+                isTeamEvent
+              );
+            }
+          );
+
+        const sortedEvents =
+          visibleEvents.sort(
+            (a, b) => {
+              const first =
+                new Date(
+                  `${a.date} ${
+                    a.time ||
+                    "00:00"
+                  }`
+                );
+
+              const second =
+                new Date(
+                  `${b.date} ${
+                    b.time ||
+                    "00:00"
+                  }`
+                );
+
+              return (
+                first - second
+              );
+            }
+          );
+
+        setEvents(
+          sortedEvents
+        );
+      } catch (error) {
+        console.error(
+          "CALENDAR LOAD ERROR:",
+          error
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  /* =====================================================
+     HELPERS
+  ===================================================== */
+
+  const formatDate = (
+    dateValue
   ) => {
-    const user = members.find(
-      (member) =>
-        member.id === userId
-    );
+    if (!dateValue)
+      return "-";
 
-    return (
-      user?.full_name || "Team"
+    return new Date(
+      dateValue
+    ).toLocaleDateString(
+      "en-KE",
+      {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
     );
   };
 
-  // FILTER EVENTS
-  const filteredEvents =
-  events
-    .filter(
-      (event) =>
-        event.created_by ===
-          profile?.id ||
-        event.assigned_to ===
-          profile?.id
-    )
-    .filter((event) =>
-      event.title
-        ?.toLowerCase()
-        .includes(
-          search.toLowerCase()
-        )
-    );
-    // MANAGER CREATED EVENTS
-   const isManagerEvent = (event) => {
-  return event.created_by === profile?.id;
-};
+  const getAssignedUserName =
+    (userId) => {
+      if (!userId) {
+        return "Entire Team";
+      }
 
-// ONLY EVENTS RELEVANT TO THIS MANAGER
-const managerEvents =
-  events.filter(
-    (event) =>
-      event.created_by ===
-        profile?.id ||
-      event.assigned_to ===
-        profile?.id
-  );
+      if (
+        String(userId) ===
+        String(profile?.id)
+      ) {
+        return "You";
+      }
 
-  // STATS
-  const totalEvents =
-  managerEvents.length;
-
-const upcomingEvents =
-  managerEvents.filter(
-    (event) => {
-      const today =
-        new Date();
-
-      const eventDate =
-        new Date(event.date);
+      const user =
+        members.find(
+          (member) =>
+            String(member.id) ===
+            String(userId)
+        );
 
       return (
-        eventDate >= today
+        user?.full_name ||
+        "Unknown Member"
       );
-    }
-  ).length;
+    };
 
-const highPriorityEvents =
-  managerEvents.filter(
-    (event) =>
-      event.priority === "High"
-  ).length;
-
-const completedEvents =
-  managerEvents.filter(
-    (event) =>
+  const isOverdue = (
+    event
+  ) => {
+    if (
+      !event.date ||
       event.status ===
-      "Completed"
-  ).length;
+        "Completed"
+    ) {
+      return false;
+    }
 
-  // OPEN DETAILS
-  const handleOpenDetails = (
-    event
-  ) => {
-    setSelectedEvent(event);
+    const today =
+      new Date();
 
-    setIsDetailsOpen(true);
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    const eventDate =
+      new Date(event.date);
+
+    return (
+      eventDate < today
+    );
   };
 
-  // OPEN EDIT
-  const handleEditEvent = (
-    event
-  ) => {
-    setEditingEventId(event.id);
+  const getPriorityColor =
+    (priority) => {
+      switch (priority) {
+        case "High":
+          return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
 
-    setNewEvent({
-      title: event.title || "",
-      description:
-        event.description || "",
-      date: event.date || "",
-      time: event.time || "",
-      type:
-        event.type || "Meeting",
-      priority:
-        event.priority ||
-        "Medium",
-      assigned_to:
-        event.assigned_to || "",
-      created_by:
-        profile?.id || null,
-    });
+        case "Medium":
+          return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
 
-    setIsAddOpen(true);
-  };
+        case "Low":
+          return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
 
-  // DELETE EVENT
+        default:
+          return "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
+      }
+    };
+
+  const getStatusColor =
+    (status) => {
+      switch (status) {
+        case "Completed":
+          return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
+
+        case "Ongoing":
+          return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400";
+
+        case "Cancelled":
+          return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
+
+        default:
+          return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
+      }
+    };
+
+  /* =====================================================
+     FILTER EVENTS
+  ===================================================== */
+
+  const filteredEvents =
+    events
+      .filter((event) => {
+        const term =
+          search.toLowerCase();
+
+        return (
+          event.title
+            ?.toLowerCase()
+            .includes(term) ||
+          event.description
+            ?.toLowerCase()
+            .includes(term) ||
+          event.type
+            ?.toLowerCase()
+            .includes(term)
+        );
+      })
+      .filter((event) =>
+        priorityFilter ===
+        "All"
+          ? true
+          : event.priority ===
+            priorityFilter
+      )
+      .filter((event) =>
+        statusFilter ===
+        "All"
+          ? true
+          : event.status ===
+            statusFilter
+      )
+      .filter((event) =>
+        typeFilter === "All"
+          ? true
+          : event.type ===
+            typeFilter
+      );
+
+  /* =====================================================
+     STATS
+  ===================================================== */
+
+  const totalEvents =
+    events.length;
+
+  const completedEvents =
+    events.filter(
+      (event) =>
+        event.status ===
+        "Completed"
+    ).length;
+
+  const upcomingEvents =
+    events.filter(
+      (event) =>
+        event.status ===
+          "Upcoming" ||
+        event.status ===
+          "Ongoing"
+    ).length;
+
+  const highPriorityEvents =
+    events.filter(
+      (event) =>
+        event.priority ===
+        "High"
+    ).length;
+
+  const overdueEvents =
+    events.filter((event) =>
+      isOverdue(event)
+    ).length;
+
+  /* =====================================================
+     NEXT EVENT
+  ===================================================== */
+
+  const nextEvent =
+    useMemo(() => {
+      const now =
+        new Date();
+
+      return events
+        .filter((event) => {
+          const eventDate =
+            new Date(
+              `${event.date} ${
+                event.time ||
+                "00:00"
+              }`
+            );
+
+          return (
+            eventDate >= now
+          );
+        })
+        .sort((a, b) => {
+          const first =
+            new Date(
+              `${a.date} ${
+                a.time ||
+                "00:00"
+              }`
+            );
+
+          const second =
+            new Date(
+              `${b.date} ${
+                b.time ||
+                "00:00"
+              }`
+            );
+
+          return (
+            first - second
+          );
+        })[0];
+    }, [events]);
+
+  /* =====================================================
+     DETAILS
+  ===================================================== */
+
+  const handleOpenDetails =
+    (event) => {
+      setSelectedEvent(event);
+
+      setIsDetailsOpen(true);
+    };
+
+  /* =====================================================
+     EDIT EVENT
+  ===================================================== */
+
+  const handleEditEvent =
+    (event) => {
+      if (
+        String(
+          event.created_by
+        ) !==
+        String(profile?.id)
+      ) {
+        return;
+      }
+
+      setEditingEventId(
+        event.id
+      );
+
+      setNewEvent({
+        title:
+          event.title || "",
+
+        description:
+          event.description ||
+          "",
+
+        date:
+          event.date || "",
+
+        time:
+          event.time || "",
+
+        type:
+          event.type ||
+          "Meeting",
+
+        priority:
+          event.priority ||
+          "Medium",
+
+        status:
+          event.status ||
+          "Upcoming",
+
+        visibility:
+          event.visibility ||
+          "team",
+
+        assignment_type:
+          event.assignment_type ||
+          "individual",
+
+        assigned_to:
+          event.assigned_to ||
+          "",
+
+        team_target:
+          event.team_target ||
+          "",
+
+        role_target:
+          event.role_target ||
+          "",
+
+        meeting_link:
+          event.meeting_link ||
+          "",
+
+        created_by:
+          profile?.id || null,
+      });
+
+      setIsAddOpen(true);
+    };
+
+  /* =====================================================
+     DELETE EVENT
+  ===================================================== */
+
   const handleDeleteEvent =
     async (id) => {
+      const confirmed =
+        window.confirm(
+          "Delete this event permanently?"
+        );
+
+      if (!confirmed)
+        return;
+
       try {
         await deleteEvent(id);
 
@@ -245,85 +643,99 @@ const completedEvents =
       }
     };
 
-  // CREATE / UPDATE EVENT
+  /* =====================================================
+     CREATE / UPDATE EVENT
+  ===================================================== */
+
   const handleAddEvent =
     async () => {
-      if (
-        !newEvent.title ||
-        !newEvent.date
-      )
-        return;
-
       try {
-        // UPDATE
-        if (editingEventId) {
-          const updated =
+        if (
+          !newEvent.title ||
+          !newEvent.date ||
+          !newEvent.time
+        ) {
+          alert(
+            "Please complete all required fields."
+          );
+
+          return;
+        }
+
+        setSaving(true);
+
+        const payload = {
+          ...newEvent,
+
+          assigned_to:
+            newEvent.assigned_to ||
+            null,
+
+          team_target:
+            newEvent.team_target ||
+            null,
+
+          role_target:
+            newEvent.role_target ||
+            null,
+
+          meeting_link:
+            newEvent.meeting_link ||
+            null,
+
+          created_by:
+            profile?.id ||
+            null,
+        };
+
+        /* ================= UPDATE ================= */
+
+        if (
+          editingEventId
+        ) {
+          const updatedEvent =
             await updateEvent(
               editingEventId,
-              {
-                title:
-                  newEvent.title,
-                description:
-                  newEvent.description,
-                date: newEvent.date,
-                time: newEvent.time,
-                type: newEvent.type,
-                priority:
-                  newEvent.priority,
-                assigned_to:
-                  newEvent.assigned_to,
-              }
+              payload
             );
 
           setEvents((prev) =>
             prev.map((event) =>
               event.id ===
               editingEventId
-                ? updated
+                ? updatedEvent
                 : event
             )
           );
         }
 
-        // CREATE
+        /* ================= CREATE ================= */
+
         else {
-          const created =
-            await createEvent({
-              title:
-                newEvent.title,
-              description:
-                newEvent.description,
-              date: newEvent.date,
-              time: newEvent.time,
-              type: newEvent.type,
-              priority:
-                newEvent.priority,
-              assigned_to:
-                newEvent.assigned_to,
-              created_by:
-                profile?.id,
-            });
+          const createdEvent =
+            await createEvent(
+              payload
+            );
 
           setEvents((prev) => [
-            created,
+            createdEvent,
             ...prev,
           ]);
         }
 
-        // RESET
+        /* ================= RESET ================= */
+
         setNewEvent({
-          title: "",
-          description: "",
-          date: "",
-          time: "",
-          type: "Meeting",
-          priority: "Medium",
-          assigned_to: "",
+          ...initialEventState,
+
           created_by:
-            profile?.id || null,
+            profile?.id ||
+            null,
         });
 
-        setEditingEventId(null);
+        setEditingEventId(
+          null
+        );
 
         setIsAddOpen(false);
       } catch (error) {
@@ -331,193 +743,356 @@ const completedEvents =
           "SAVE EVENT ERROR:",
           error.message
         );
+      } finally {
+        setSaving(false);
       }
     };
 
-  // PRIORITY COLORS
-  const getPriorityColor = (
-    priority
-  ) => {
-    switch (priority) {
-      case "High":
-        return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
+  /* =====================================================
+     LOADING
+  ===================================================== */
 
-      case "Medium":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
-
-      case "Low":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
-
-      default:
-        return "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
-    }
-  };
-
-  // LOADING
   if (loading) {
     return (
       <div className="flex items-center gap-3 p-10 dark:text-white">
         <Loader2 className="animate-spin" />
+
         Loading calendar...
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-8 p-6">
 
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
         <div>
+
           <h1 className="text-3xl font-bold dark:text-white">
-            Manager Calendar
+            Team Calendar
           </h1>
 
-          <p className="text-slate-500 dark:text-zinc-400 mt-2">
-            Manage meetings and schedules.
+          <p className="mt-2 text-slate-500 dark:text-zinc-400">
+            Manage meetings,
+            deadlines, workshops
+            and team schedules.
           </p>
+
         </div>
 
         <button
-          onClick={() =>
-            setIsAddOpen(true)
-          }
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl"
+          onClick={() => {
+            setEditingEventId(
+              null
+            );
+
+            setNewEvent({
+              ...initialEventState,
+
+              created_by:
+                profile?.id ||
+                null,
+            });
+
+            setIsAddOpen(
+              true
+            );
+          }}
+          className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-white transition hover:bg-emerald-700"
         >
+
           <Plus size={18} />
+
           Add Event
+
         </button>
 
       </div>
-      {/* STATS */}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-  {/* TOTAL EVENTS */}
-  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+      {/* =====================================================
+          UPCOMING EVENT
+      ===================================================== */}
 
-    <div className="flex items-center justify-between">
+      {nextEvent && (
+        <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-700 p-8 text-white shadow-xl">
 
-      <div>
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
 
-        <p className="text-slate-500 dark:text-zinc-400">
-          Total Events
-        </p>
+            <div>
 
-        <h2 className="text-3xl font-bold mt-3 dark:text-white">
-          {totalEvents}
-        </h2>
+              <div className="mb-4 flex items-center gap-3">
+
+                <CalendarClock />
+
+                <h2 className="text-xl font-semibold">
+                  Upcoming Event
+                </h2>
+
+              </div>
+
+              <h1 className="text-4xl font-bold">
+                {
+                  nextEvent.title
+                }
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-emerald-50">
+                {
+                  nextEvent.description
+                }
+              </p>
+
+            </div>
+
+            <div className="grid min-w-[280px] grid-cols-2 gap-4">
+
+              <MiniStat
+                label="Date"
+                value={formatDate(
+                  nextEvent.date
+                )}
+              />
+
+              <MiniStat
+                label="Time"
+                value={
+                  nextEvent.time ||
+                  "-"
+                }
+              />
+
+              <MiniStat
+                label="Type"
+                value={
+                  nextEvent.type
+                }
+              />
+
+              <MiniStat
+                label="Assigned"
+                value={getAssignedUserName(
+                  nextEvent.assigned_to
+                )}
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* =====================================================
+          STATS
+      ===================================================== */}
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
+
+        <StatCard
+          title="Total Events"
+          value={totalEvents}
+          icon={
+            <CalendarDays />
+          }
+        />
+
+        <StatCard
+          title="Upcoming"
+          value={upcomingEvents}
+          icon={
+            <Clock3 />
+          }
+        />
+
+        <StatCard
+          title="Completed"
+          value={completedEvents}
+          icon={
+            <CheckCircle2 />
+          }
+        />
+
+        <StatCard
+          title="High Priority"
+          value={
+            highPriorityEvents
+          }
+          icon={<Users />}
+        />
+
+        <StatCard
+          title="Overdue"
+          value={overdueEvents}
+          icon={
+            <AlertTriangle />
+          }
+        />
 
       </div>
 
-      <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
+      {/* =====================================================
+          FILTERS
+      ===================================================== */}
 
-        <CalendarDays className="text-emerald-600 dark:text-emerald-400" />
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+
+          {/* SEARCH */}
+
+          <div className="relative xl:col-span-2">
+
+            <Search
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+
+            <input
+              type="text"
+              placeholder="Search events..."
+              value={search}
+              onChange={(e) =>
+                setSearch(
+                  e.target.value
+                )
+              }
+              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            />
+
+          </div>
+
+          {/* PRIORITY */}
+
+          <select
+            value={priorityFilter}
+            onChange={(e) =>
+              setPriorityFilter(
+                e.target.value
+              )
+            }
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+          >
+
+            <option value="All">
+              All Priorities
+            </option>
+
+            <option value="High">
+              High
+            </option>
+
+            <option value="Medium">
+              Medium
+            </option>
+
+            <option value="Low">
+              Low
+            </option>
+
+          </select>
+
+          {/* STATUS */}
+
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(
+                e.target.value
+              )
+            }
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+          >
+
+            <option value="All">
+              All Status
+            </option>
+
+            <option value="Upcoming">
+              Upcoming
+            </option>
+
+            <option value="Ongoing">
+              Ongoing
+            </option>
+
+            <option value="Completed">
+              Completed
+            </option>
+
+            <option value="Cancelled">
+              Cancelled
+            </option>
+
+          </select>
+
+          {/* TYPE */}
+
+          <select
+            value={typeFilter}
+            onChange={(e) =>
+              setTypeFilter(
+                e.target.value
+              )
+            }
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+          >
+
+            <option value="All">
+              All Types
+            </option>
+
+            <option value="Meeting">
+              Meeting
+            </option>
+
+            <option value="Workshop">
+              Workshop
+            </option>
+
+            <option value="Sprint">
+              Sprint
+            </option>
+
+            <option value="Review">
+              Review
+            </option>
+
+            <option value="Deadline">
+              Deadline
+            </option>
+
+          </select>
+
+        </div>
 
       </div>
 
-    </div>
+      {/* =====================================================
+          EVENTS
+      ===================================================== */}
 
-  </div>
-
-  {/* UPCOMING */}
-  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
-
-    <div className="flex items-center justify-between">
-
-      <div>
-
-        <p className="text-slate-500 dark:text-zinc-400">
-          Upcoming
-        </p>
-
-        <h2 className="text-3xl font-bold mt-3 dark:text-white">
-          {upcomingEvents}
-        </h2>
-
-      </div>
-
-      <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
-
-        <Clock3 className="text-blue-600 dark:text-blue-400" />
-
-      </div>
-
-    </div>
-
-  </div>
-
-  {/* HIGH PRIORITY */}
-  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
-
-    <div className="flex items-center justify-between">
-
-      <div>
-
-        <p className="text-slate-500 dark:text-zinc-400">
-          High Priority
-        </p>
-
-        <h2 className="text-3xl font-bold mt-3 dark:text-white">
-          {highPriorityEvents}
-        </h2>
-
-      </div>
-
-      <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950 flex items-center justify-center">
-
-        <Users className="text-red-600 dark:text-red-400" />
-
-      </div>
-
-    </div>
-
-  </div>
-
-  {/* COMPLETED */}
-  <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
-
-    <div className="flex items-center justify-between">
-
-      <div>
-
-        <p className="text-slate-500 dark:text-zinc-400">
-          Completed
-        </p>
-
-        <h2 className="text-3xl font-bold mt-3 dark:text-white">
-          {completedEvents}
-        </h2>
-
-      </div>
-
-      <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
-
-        <CheckCircle2 className="text-emerald-600 dark:text-emerald-400" />
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-      {/* EVENTS */}
       <div className="space-y-5">
 
         {filteredEvents.map(
           (event) => (
+
             <div
               key={event.id}
-              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800"
+              className="rounded-3xl border border-slate-200 bg-white p-6 transition hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700"
             >
 
-              <div className="flex items-start justify-between gap-6">
+              <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
 
-                <div className="space-y-4 flex-1">
+                <div className="flex-1">
 
-                  <div className="flex items-center gap-3">
+                  {/* TITLE */}
+
+                  <div className="flex flex-wrap items-center gap-3">
 
                     <h2 className="text-2xl font-bold dark:text-white">
                       {
@@ -526,7 +1101,7 @@ const completedEvents =
                     </h2>
 
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${getPriorityColor(
                         event.priority
                       )}`}
                     >
@@ -535,116 +1110,186 @@ const completedEvents =
                       }
                     </span>
 
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(
+                        event.status
+                      )}`}
+                    >
+                      {
+                        event.status
+                      }
+                    </span>
+
+                    {isOverdue(
+                      event
+                    ) && (
+                      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-400">
+
+                        Overdue
+
+                      </span>
+                    )}
+
                   </div>
 
-                  <p className="text-slate-500 dark:text-zinc-400">
+                  {/* DESCRIPTION */}
+
+                  <p className="mt-4 leading-relaxed text-slate-500 dark:text-zinc-400">
                     {
                       event.description
                     }
                   </p>
 
-                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                  {/* INFO */}
 
-                    <div>
-                      <p className="text-xs text-slate-500">
-                        Date
-                      </p>
+                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
-                      <h3 className="font-semibold dark:text-white">
-                        {event.date}
-                      </h3>
-                    </div>
+                    <InfoCard
+                      icon={
+                        <CalendarDays size={16} />
+                      }
+                      label="Date"
+                      value={formatDate(
+                        event.date
+                      )}
+                    />
 
-                    <div>
-                      <p className="text-xs text-slate-500">
-                        Time
-                      </p>
+                    <InfoCard
+                      icon={
+                        <Clock3 size={16} />
+                      }
+                      label="Time"
+                      value={
+                        event.time ||
+                        "-"
+                      }
+                    />
 
-                      <h3 className="font-semibold dark:text-white">
-                        {event.time}
-                      </h3>
-                    </div>
+                    <InfoCard
+                      icon={
+                        <Briefcase size={16} />
+                      }
+                      label="Type"
+                      value={
+                        event.type
+                      }
+                    />
 
-                    <div>
-                      <p className="text-xs text-slate-500">
-                        Type
-                      </p>
-
-                      <h3 className="font-semibold dark:text-white">
-                        {event.type}
-                      </h3>
-                    </div>
-
-                    <div>
-                <p className="text-xs text-slate-500">
-                  Assigned To
-                </p>
-
-                <h3 className="font-semibold dark:text-white">
-                  {event.assigned_to === profile?.id
-                    ? "You"
-                    : getAssignedUserName(
+                    <InfoCard
+                      icon={
+                        <UserRound size={16} />
+                      }
+                      label="Assigned To"
+                      value={getAssignedUserName(
                         event.assigned_to
                       )}
-                </h3>
-              </div>
+                    />
+
+                    <InfoCard
+                      icon={
+                        <Link2 size={16} />
+                      }
+                      label="Meeting Link"
+                      value={
+                        event.meeting_link
+                          ? "Available"
+                          : "-"
+                      }
+                    />
 
                   </div>
 
                 </div>
 
-          {/* ACTIONS */}
-<div className="flex flex-col gap-3">
+                {/* ACTIONS */}
 
-  {/* VIEW */}
-  <button
-    onClick={() =>
-      handleOpenDetails(event)
-    }
-    className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:scale-105 transition"
-  >
-    <Eye size={18} />
-  </button>
+                <div className="flex gap-3 xl:flex-col">
 
-  {/* ONLY ALLOW EDIT/DELETE IF MANAGER CREATED EVENT */}
-  {event.created_by ===
-    profile?.id && (
-    <>
-      {/* EDIT */}
-      <button
-        onClick={() =>
-          handleEditEvent(event)
-        }
-        className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center hover:scale-105 transition"
-      >
-        <Pencil size={18} />
-      </button>
+                  <ActionButton
+                    onClick={() =>
+                      handleOpenDetails(
+                        event
+                      )
+                    }
+                    icon={
+                      <Eye size={18} />
+                    }
+                    color="blue"
+                  />
 
-      {/* DELETE */}
-      <button
-        onClick={() =>
-          handleDeleteEvent(
-            event.id
+                  {String(
+                    event.created_by
+                  ) ===
+                    String(
+                      profile?.id
+                    ) && (
+                    <>
+                      <ActionButton
+                        onClick={() =>
+                          handleEditEvent(
+                            event
+                          )
+                        }
+                        icon={
+                          <Pencil size={18} />
+                        }
+                        color="amber"
+                      />
+
+                      <ActionButton
+                        onClick={() =>
+                          handleDeleteEvent(
+                            event.id
+                          )
+                        }
+                        icon={
+                          <Trash2 size={18} />
+                        }
+                        color="red"
+                      />
+                    </>
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
           )
-        }
-        className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center hover:scale-105 transition"
-      >
-        <Trash2 size={18} />
-      </button>
-    </>
-  )}
+        )}
 
-</div>
+      </div>
 
-</div>
+      {/* =====================================================
+          EMPTY STATE
+      ===================================================== */}
 
-</div>
-)
-)}
+      {filteredEvents.length ===
+        0 && (
+        <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center dark:border-zinc-800 dark:bg-zinc-900">
 
-</div>
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
 
-      {/* ADD MODAL */}
+            <CalendarDays className="text-emerald-600 dark:text-emerald-400" />
+
+          </div>
+
+          <h2 className="text-3xl font-bold dark:text-white">
+            No Events Found
+          </h2>
+
+          <p className="mt-3 text-slate-500 dark:text-zinc-400">
+            No events match your
+            current filters.
+          </p>
+
+        </div>
+      )}
+
+      {/* =====================================================
+          ADD EVENT MODAL
+      ===================================================== */}
+
       <AddEventModal
         isOpen={isAddOpen}
         onClose={() => {
@@ -665,9 +1310,16 @@ const completedEvents =
             ? "edit"
             : "add"
         }
+        currentUser={
+          profile
+        }
+        saving={saving}
       />
 
-      {/* DETAILS MODAL */}
+      {/* =====================================================
+          DETAILS MODAL
+      ===================================================== */}
+
       <EventDetailsModal
         isOpen={
           isDetailsOpen
@@ -683,6 +1335,130 @@ const completedEvents =
       />
 
     </div>
+  );
+}
+
+/* =====================================================
+   MINI STAT
+===================================================== */
+
+function MiniStat({
+  label,
+  value,
+}) {
+  return (
+    <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-md">
+
+      <p className="text-sm text-emerald-50">
+        {label}
+      </p>
+
+      <h3 className="mt-2 text-lg font-bold">
+        {value}
+      </h3>
+
+    </div>
+  );
+}
+
+/* =====================================================
+   STAT CARD
+===================================================== */
+
+function StatCard({
+  title,
+  value,
+  icon,
+}) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+
+      <div className="flex items-center justify-between">
+
+        <div>
+
+          <p className="text-slate-500 dark:text-zinc-400">
+            {title}
+          </p>
+
+          <h2 className="mt-3 text-3xl font-bold dark:text-white">
+            {value}
+          </h2>
+
+        </div>
+
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+
+          {icon}
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =====================================================
+   INFO CARD
+===================================================== */
+
+function InfoCard({
+  icon,
+  label,
+  value,
+}) {
+  return (
+    <div className="rounded-2xl bg-slate-50 p-4 dark:bg-zinc-800">
+
+      <div className="flex items-center gap-2 text-slate-500 dark:text-zinc-400">
+
+        {icon}
+
+        <p className="text-xs">
+          {label}
+        </p>
+
+      </div>
+
+      <h3 className="mt-3 font-semibold dark:text-white break-words">
+        {value || "-"}
+      </h3>
+
+    </div>
+  );
+}
+
+/* =====================================================
+   ACTION BUTTON
+===================================================== */
+
+function ActionButton({
+  icon,
+  onClick,
+  color = "emerald",
+}) {
+  const styles = {
+    blue: "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400",
+
+    amber:
+      "bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400",
+
+    red: "bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400",
+
+    emerald:
+      "bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`flex h-12 w-12 items-center justify-center rounded-2xl transition hover:scale-105 ${styles[color]}`}
+    >
+
+      {icon}
+
+    </button>
   );
 }
 
