@@ -9,6 +9,8 @@ import {
 } from "../../services/goalsService";
 
 import { getProjects } from "../../services/projectsService";
+import { getUsers }
+  from "../../services/userService";
 
 import CreateGoalModal from "./CreateGoalModal";
 
@@ -20,6 +22,7 @@ import {
   CheckCircle2,
   Users,
   Clock3,
+  
 } from "lucide-react";
 
 function ManagerGoals() {
@@ -32,6 +35,9 @@ function ManagerGoals() {
   // PROJECTS
   const [projects, setProjects] =
     useState([]);
+    //users
+    const [users, setUsers] =
+  useState([]);
 
   // LOADING
   const [loading, setLoading] =
@@ -60,6 +66,8 @@ function ManagerGoals() {
       progress: 0,
       priority: "Medium",
       target_date: "",
+      assignment_type:
+      "individual",
     });
 
   // FETCH GOALS
@@ -75,6 +83,9 @@ function ManagerGoals() {
       const projectsData =
         await getProjects();
 
+        const usersData =
+         await getUsers();
+
       // 🔥 MANAGER GOALS ONLY
       const managerGoals =
         goalsData.filter(
@@ -86,6 +97,7 @@ function ManagerGoals() {
       setGoalList(managerGoals);
 
       setProjects(projectsData);
+      setUsers(usersData || []);
     } catch (error) {
       console.error(
         "MANAGER GOALS ERROR:",
@@ -109,41 +121,201 @@ function ManagerGoals() {
         : goal.status === statusFilter
     );
 
-  // CREATE GOAL
-  const handleCreateGoal =
-    async () => {
-      if (!newGoal.title) return;
+ const handleCreateGoal =
+  async () => {
 
-      try {
-        const createdGoal =
-          await createGoal(newGoal);
+    if (!newGoal.title)
+      return;
 
-        setGoalList([
-          createdGoal,
-          ...goalList,
-        ]);
+    try {
 
-        setNewGoal({
-          title: "",
-          description: "",
-          project_id: "",
+      let goalsToCreate = [];
+
+      /*
+      =====================================
+      BASE PAYLOAD
+      =====================================
+      */
+
+      const basePayload = {
+        title: newGoal.title,
+
+        description:
+          newGoal.description,
+
+        project_id:
+          newGoal.project_id ||
+          null,
+
+        progress: 0,
+
+        priority:
+          newGoal.priority,
+
+        target_date:
+          newGoal.target_date ||
+          null,
+
+        status: "Active",
+      };
+
+      /*
+      =====================================
+      INDIVIDUAL MEMBER
+      =====================================
+      */
+
+      if (
+        newGoal.assignment_type ===
+        "individual"
+      ) {
+
+        goalsToCreate.push({
+          ...basePayload,
+
           owner_id:
-            profile?.id || "",
-          goal_type: "Team",
-          status: "Active",
-          progress: 0,
-          priority: "Medium",
-          target_date: "",
+            newGoal.owner_id,
+        });
+      }
+
+      /*
+      =====================================
+      ENTIRE TEAM
+      =====================================
+      */
+
+      else if (
+        newGoal.assignment_type ===
+        "team"
+      ) {
+
+        /*
+        TEAM MEMBERS
+        */
+
+        const teamMembers =
+          users.filter(
+            (user) =>
+              String(
+                user.manager_id
+              ) ===
+                String(
+                  profile?.id
+                ) &&
+
+              user.role
+                ?.toLowerCase()
+                ?.trim() !==
+                "team manager" &&
+
+              user.role
+                ?.toLowerCase()
+                ?.trim() !==
+                "admin"
+          );
+
+        /*
+        INCLUDE MANAGER
+        */
+
+        goalsToCreate.push({
+          ...basePayload,
+
+          owner_id:
+            profile?.id,
+
+          assignment_type:
+            "team",
+
+          manager_id:
+            profile?.id,
         });
 
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error(
-          "CREATE GOAL ERROR:",
-          error.message
+        /*
+        INCLUDE MEMBERS
+        */
+
+        teamMembers.forEach(
+          (member) => {
+
+            goalsToCreate.push({
+              ...basePayload,
+
+              owner_id:
+                member.id,
+
+              assignment_type:
+                "team",
+
+              manager_id:
+                profile?.id,
+            });
+          }
         );
       }
-    };
+
+      /*
+      =====================================
+      CREATE GOALS
+      =====================================
+      */
+
+      const createdGoals =
+        await Promise.all(
+          goalsToCreate.map(
+            (goal) =>
+              createGoal(goal)
+          )
+        );
+
+      /*
+      =====================================
+      UPDATE UI
+      =====================================
+      */
+
+      setGoalList((prev) => [
+        ...createdGoals,
+        ...prev,
+      ]);
+
+      /*
+      =====================================
+      RESET
+      =====================================
+      */
+
+      setNewGoal({
+        title: "",
+        description: "",
+        project_id: "",
+        owner_id:
+          profile?.id || "",
+
+        goal_type: "Team",
+
+        status: "Active",
+
+        progress: 0,
+
+        priority: "Medium",
+
+        target_date: "",
+
+        assignment_type:
+          "individual",
+      });
+
+      setIsModalOpen(false);
+
+    } catch (error) {
+
+      console.error(
+        "CREATE GOAL ERROR:",
+        error.message
+      );
+    }
+  };
 
   // UPDATE GOAL PROGRESS
   const handleUpdateProgress =
@@ -590,6 +762,7 @@ function ManagerGoals() {
         handleCreateGoal={
           handleCreateGoal
         }
+         users={users}
       />
 
     </div>

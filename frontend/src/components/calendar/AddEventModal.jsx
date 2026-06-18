@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo ,useEffect,} from "react";
 
 import {
   X,
@@ -32,19 +32,115 @@ function AddEventModal({
   const isEditing =
     mode === "edit";
 
-  const currentRole =
-    currentUser?.role || "";
+  /* ========================================
+     ROLE
+  ======================================== */
 
-  const isManager =
-    currentRole === "Manager";
+  const currentRole =
+    currentUser?.role
+      ?.toLowerCase()
+      ?.trim() || "";
 
   /* ========================================
-     VALIDATION
+     ROLE FLAGS
+  ======================================== */
+
+  const isAdmin =
+    currentRole === "admin";
+
+  const isManager =
+    currentRole ===
+      "manager" ||
+    currentRole ===
+      "team manager";
+
+  /* ========================================
+     ASSIGNMENT TYPE
   ======================================== */
 
   const assignmentType =
     newEvent.assignment_type ||
     "individual";
+
+  /* ========================================
+     ACCESSIBLE MEMBERS
+  ======================================== */
+
+  const accessibleMembers =
+    useMemo(() => {
+
+      /* ========= ADMIN ========= */
+      if (isAdmin) {
+
+        return members.filter(
+          (member) => {
+
+            const role =
+              member.role
+                ?.toLowerCase()
+                ?.trim();
+
+            // exclude admins only
+            return (
+              role !== "admin"
+            );
+          }
+        );
+      }
+
+      /* ========= MANAGER ========= */
+      if (isManager) {
+
+        return members.filter(
+          (member) => {
+
+            const role =
+              member.role
+                ?.toLowerCase()
+                ?.trim();
+
+            /* EXCLUDE ADMINS */
+            if (
+              role === "admin"
+            ) {
+              return false;
+            }
+
+            /* INCLUDE MANAGERS */
+            if (
+              role ===
+                "manager" ||
+              role ===
+                "team manager"
+            ) {
+              return true;
+            }
+
+            /* INCLUDE OWN TEAM MEMBERS */
+            return (
+              String(
+                member.manager_id
+              ) ===
+              String(
+                currentUser?.id
+              )
+            );
+          }
+        );
+      }
+
+      return [];
+
+    }, [
+      members,
+      isAdmin,
+      isManager,
+      currentUser,
+    ]);
+
+  /* ========================================
+     VALIDATION
+  ======================================== */
 
   const isDisabled =
     !newEvent.title?.trim() ||
@@ -68,52 +164,7 @@ function AddEventModal({
     );
 
   /* ========================================
-     PRIORITY COLORS
-  ======================================== */
-
-  const priorityColor =
-    useMemo(() => {
-      switch (
-        newEvent.priority
-      ) {
-        case "High":
-          return "text-red-500";
-
-        case "Medium":
-          return "text-amber-500";
-
-        case "Low":
-          return "text-emerald-500";
-
-        default:
-          return "text-slate-500";
-      }
-    }, [newEvent.priority]);
-
-  /* ========================================
-     MANAGER TEAM FILTER
-  ======================================== */
-
-  const accessibleMembers =
-    useMemo(() => {
-      if (!isManager)
-        return members;
-
-      return members.filter(
-        (member) =>
-          member.department ===
-            currentUser?.department ||
-          member.id ===
-            currentUser?.id
-      );
-    }, [
-      members,
-      isManager,
-      currentUser,
-    ]);
-
-  /* ========================================
-     ROLE / TEAM DATA
+     ROLE DATA
   ======================================== */
 
   const roles = [
@@ -127,63 +178,316 @@ function AddEventModal({
     ),
   ];
 
-  const teams = [
-    ...new Set(
-      accessibleMembers
-        .map(
-          (member) =>
-            member.department
+  /* ========================================
+     TEAM DATA
+  ======================================== */
+
+  const teams =
+    useMemo(() => {
+
+      /* ========= ADMIN ========= */
+      if (isAdmin) {
+
+        return (
+          members || []
         )
-        .filter(Boolean)
-    ),
-  ];
+
+          .filter((member) => {
+
+            const role =
+              member.role
+                ?.toLowerCase()
+                ?.trim();
+
+            return (
+              role !== "admin"
+            );
+          })
+
+          .reduce(
+            (acc, member) => {
+
+              const department =
+                member.department;
+
+              if (
+                department &&
+                !acc.includes(
+                  department
+                )
+              ) {
+                acc.push(
+                  department
+                );
+              }
+
+              return acc;
+
+            },
+            []
+          );
+      }
+
+      /* ========= MANAGER ========= */
+      if (isManager) {
+
+        return (
+          members || []
+        )
+
+          .filter(
+            (member) =>
+
+              String(
+                member.manager_id
+              ) ===
+              String(
+                currentUser?.id
+              )
+          )
+
+          .reduce(
+            (acc, member) => {
+
+              const department =
+                member.department;
+
+              if (
+                department &&
+                !acc.includes(
+                  department
+                )
+              ) {
+                acc.push(
+                  department
+                );
+              }
+
+              return acc;
+
+            },
+            []
+          );
+      }
+
+      return [];
+
+    }, [
+      members,
+      currentUser,
+      isAdmin,
+      isManager,
+    ]);
 
   /* ========================================
-     AVAILABLE ASSIGNMENTS
+     ASSIGNMENT OPTIONS
   ======================================== */
 
   const assignmentOptions =
-    isManager
+    isAdmin
       ? [
-          "individual",
-          "team",
-        ]
-      : [
           "individual",
           "team",
           "manager",
           "role",
           "all_members",
           "all",
+        ]
+      : [
+          "individual",
+          "team",
+          "manager",
+          "role",
         ];
+
+ /* ========================================
+   TEAM OPTIONS
+======================================== */
+
+const teamOptions =
+  useMemo(() => {
+
+    /* GET MANAGERS */
+    const managers =
+      (members || []).filter(
+        (member) => {
+
+          const role =
+            member.role
+              ?.toLowerCase()
+              ?.trim();
+
+          return (
+            role ===
+              "manager" ||
+
+            role ===
+              "team manager"
+          );
+        }
+      );
+
+    return managers.map(
+      (manager) => {
+
+        /* TEAM MEMBERS */
+        const teamMembers =
+          (members || []).filter(
+            (member) =>
+              String(
+                member.manager_id
+              ) ===
+              String(
+                manager.id
+              )
+          );
+
+        return {
+
+          managerId:
+            manager.id,
+
+          managerName:
+            manager.full_name,
+
+          teamName:
+            `${manager.full_name}'s Team`,
+
+          department:
+            manager.department,
+
+          totalMembers:
+            teamMembers.length,
+        };
+      }
+    );
+
+  }, [members]);
+
+  /* ========================================
+   AUTO TEAM TARGET FOR MANAGER
+======================================== */
+
+useEffect(() => {
+
+  if (
+    isManager &&
+    assignmentType === "team"
+  ) {
+
+    const managerTeam =
+      members.find(
+        (member) =>
+          String(member.id) ===
+          String(currentUser?.id)
+      )?.department;
+
+    setNewEvent((prev) => ({
+      ...prev,
+      team_target:
+        managerTeam || "",
+    }));
+  }
+
+}, [
+  isManager,
+  assignmentType,
+  members,
+  currentUser,
+  setNewEvent,
+]);
+/* ========================================
+
+   PRIORITY COLORS
+
+======================================== */
+
+
+
+const priorityColor =
+
+  useMemo(() => {
+
+
+
+    switch (
+
+      newEvent.priority
+
+    ) {
+
+
+
+      case "High":
+
+        return "text-red-500";
+
+
+
+      case "Medium":
+
+        return "text-amber-500";
+
+
+
+      case "Low":
+
+        return "text-emerald-500";
+
+
+
+      default:
+
+        return "text-slate-500";
+
+    }
+
+
+
+  }, [newEvent.priority]);
 
   /* ========================================
      FILTERED MEMBERS
   ======================================== */
 
   const filteredMembers =
+
     assignmentType ===
     "team"
+
       ? accessibleMembers.filter(
           (member) =>
             member.department ===
             newEvent.team_target
         )
+
       : assignmentType ===
         "role"
+
       ? accessibleMembers.filter(
           (member) =>
             member.role ===
             newEvent.role_target
         )
+
       : assignmentType ===
         "manager"
+
       ? accessibleMembers.filter(
-          (member) =>
-            member.role?.includes(
-              "Manager"
-            )
+          (member) => {
+
+            const role =
+              member.role
+                ?.toLowerCase();
+
+            return (
+              role?.includes(
+                "manager"
+              )
+            );
+          }
         )
+
       : accessibleMembers;
 
   if (!isOpen) return null;
@@ -456,50 +760,6 @@ function AddEventModal({
 
           </div>
 
-          {/* VISIBILITY */}
-          <div>
-
-            <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
-
-              <Layers3 size={16} />
-
-              Event Visibility
-
-            </label>
-
-            <select
-              value={
-                newEvent.visibility ||
-                "individual"
-              }
-              onChange={(e) =>
-                setNewEvent({
-                  ...newEvent,
-                  visibility:
-                    e.target.value,
-                })
-              }
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-            >
-
-              <option value="individual">
-                Individual
-              </option>
-
-              <option value="team">
-                Team
-              </option>
-
-              {!isManager && (
-                <option value="organization">
-                  Organization Wide
-                </option>
-              )}
-
-            </select>
-
-          </div>
-
           {/* ASSIGNMENT SECTION */}
           <div className="rounded-3xl border border-slate-200 p-5 dark:border-zinc-800">
 
@@ -523,12 +783,12 @@ function AddEventModal({
 
               </div>
 
-              {isManager && (
+              {isManager && !isAdmin && (
                 <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
 
                   <ShieldCheck size={14} />
 
-                  Managers can only assign to their own team.
+                  Managers can assign only within their team scope.
 
                 </div>
               )}
@@ -603,73 +863,71 @@ function AddEventModal({
               )}
 
               {/* MANAGERS */}
-              {!isManager &&
-                assignmentOptions.includes(
-                  "manager"
-                ) && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setNewEvent({
-                        ...newEvent,
-                        assignment_type:
-                          "manager",
-                      })
-                    }
-                    className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
-                      assignmentType ===
-                      "manager"
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                        : "border-slate-200"
-                    }`}
-                  >
+              {assignmentOptions.includes(
+                "manager"
+              ) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNewEvent({
+                      ...newEvent,
+                      assignment_type:
+                        "manager",
+                    })
+                  }
+                  className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                    assignmentType ===
+                    "manager"
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200"
+                  }`}
+                >
 
-                    <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
 
-                      <ShieldCheck size={16} />
+                    <ShieldCheck size={16} />
 
-                      Managers
+                    Managers
 
-                    </div>
+                  </div>
 
-                  </button>
-                )}
+                </button>
+              )}
 
               {/* ROLE */}
-              {!isManager &&
-                assignmentOptions.includes(
-                  "role"
-                ) && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setNewEvent({
-                        ...newEvent,
-                        assignment_type:
-                          "role",
-                      })
-                    }
-                    className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
-                      assignmentType ===
-                      "role"
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                        : "border-slate-200"
-                    }`}
-                  >
+              {assignmentOptions.includes(
+                "role"
+              ) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNewEvent({
+                      ...newEvent,
+                      assignment_type:
+                        "role",
+                    })
+                  }
+                  className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                    assignmentType ===
+                    "role"
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200"
+                  }`}
+                >
 
-                    <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
 
-                      <Users size={16} />
+                    <Users size={16} />
 
-                      Role
+                    Role
 
-                    </div>
+                  </div>
 
-                  </button>
-                )}
+                </button>
+              )}
 
               {/* ALL MEMBERS */}
-              {!isManager &&
+              {isAdmin &&
                 assignmentOptions.includes(
                   "all_members"
                 ) && (
@@ -708,7 +966,7 @@ function AddEventModal({
                 )}
 
               {/* EVERYONE */}
-              {!isManager &&
+              {isAdmin &&
                 assignmentOptions.includes(
                   "all"
                 ) && (
@@ -799,45 +1057,97 @@ function AddEventModal({
               </div>
             )}
 
-            {/* TEAM */}
+          
             {assignmentType ===
               "team" && (
+
               <div className="mt-5">
 
-                <select
-                  value={
-                    newEvent.team_target ||
-                    ""
-                  }
-                  onChange={(e) =>
-                    setNewEvent({
-                      ...newEvent,
-                      team_target:
-                        e.target.value,
-                    })
-                  }
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                >
+                {/* ========= ADMIN ========= */}
+                {isAdmin && (
 
-                  <option value="">
-                    Select team
-                  </option>
+                  <select
+                    value={
+                      newEvent.team_target ||
+                      ""
+                    }
+                    onChange={(e) =>
+                      setNewEvent({
+                        ...newEvent,
+                        team_target:
+                          e.target.value,
+                      })
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                  >
 
-                  {teams.map(
-                    (team) => (
-                      <option
-                        key={team}
-                        value={team}
-                      >
-                        {team}
-                      </option>
-                    )
-                  )}
+                    <option value="">
+                      Select Manager Team
+                    </option>
 
-                </select>
+                    {teamOptions.map(
+                      (team) => (
 
-              </div>
-            )}
+                        <option
+                          key={
+                            team.managerId
+                          }
+                          value={
+                            team.department
+                          }
+                        >
+
+                          {team.teamName}
+                          {" • "}
+                          {
+                            team.totalMembers
+                          }
+                          {" members"}
+
+                        </option>
+                      )
+                    )}
+
+                  </select>
+                )}
+
+    {/* ========= MANAGER ========= */}
+    {isManager &&
+      !isAdmin && (
+
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+
+        <div className="flex items-center gap-3">
+
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400">
+
+            <Users size={18} />
+
+          </div>
+
+          <div>
+
+            <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">
+
+              Your Team
+
+            </h4>
+
+            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+
+              This event will automatically be assigned to your team members.
+
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+    )}
+
+  </div>
+)}
 
             {/* ROLE */}
             {assignmentType ===
@@ -918,54 +1228,6 @@ function AddEventModal({
               </div>
             )}
 
-            {/* DELIVERY INFO */}
-            <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
-
-              <div className="flex items-start gap-3">
-
-                <AlertCircle
-                  size={18}
-                  className="mt-0.5 text-emerald-600"
-                />
-
-                <div>
-
-                  <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">
-
-                    Production Delivery System
-
-                  </h4>
-
-                  <ul className="mt-2 space-y-1 text-sm text-emerald-700 dark:text-emerald-400">
-
-                    <li>
-                      • Real-time event assignment
-                    </li>
-
-                    <li>
-                      • Team-based access control
-                    </li>
-
-                    <li>
-                      • Role-aware permissions
-                    </li>
-
-                    <li>
-                      • Manager team restrictions
-                    </li>
-
-                    <li>
-                      • Organization-wide support
-                    </li>
-
-                  </ul>
-
-                </div>
-
-              </div>
-
-            </div>
-
           </div>
 
           {/* MEETING LINK */}
@@ -995,38 +1257,6 @@ function AddEventModal({
               placeholder="https://meet.google.com/..."
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
             />
-
-          </div>
-
-          {/* INFO */}
-          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
-
-            <div className="flex items-start gap-3">
-
-              <Briefcase
-                className="mt-0.5 text-emerald-600"
-                size={18}
-              />
-
-              <div>
-
-                <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">
-
-                  Smart Assignment Engine
-
-                </h4>
-
-                <p className="mt-1 text-sm leading-relaxed text-emerald-700 dark:text-emerald-400">
-
-                  Events are automatically scoped based on user role,
-                  visibility level, and assignment type to support
-                  secure production workflows.
-
-                </p>
-
-              </div>
-
-            </div>
 
           </div>
 

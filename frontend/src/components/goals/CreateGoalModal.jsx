@@ -27,66 +27,71 @@ function CreateGoalModal({
   if (!isOpen) return null;
 
   /* ========================================
-     ROLE
-  ======================================== */
+   ROLE
+======================================== */
 
-  const currentRole =
-    profile?.role
-      ?.toLowerCase()
-      ?.trim();
+const currentRole =
+  profile?.role
+    ?.toLowerCase()
+    ?.trim() || "member";
 
-  /* ========================================
-     AVAILABLE USERS
-  ======================================== */
+/* ========================================
+   AVAILABLE USERS
+======================================== */
 
-  const availableUsers =
-    users?.filter((user) => {
+const availableUsers =
+  (users || []).filter(
+    (user) => {
+
       const role =
         user.role
           ?.toLowerCase()
           ?.trim();
 
-      /*
-        ADMIN
-      */
+          
+
+      /* ========= ADMIN ========= */
 
       if (
         currentRole ===
         "admin"
       ) {
+
         return (
           role !== "admin"
         );
       }
 
-      /*
-        MANAGER
-      */
+      /* ========= MANAGER ========= */
 
       if (
         currentRole ===
-        "manager"
+        "team manager"
       ) {
+
         return (
-          role ===
-            "member" &&
-          String(
-            user.manager_id
-          ) ===
+
+            /* EXCLUDE ADMINS + MANAGERS */
+            role !== "admin" &&
+            role !== "team manager" &&
+
+            /* ONLY USERS UNDER THIS MANAGER */
             String(
-              profile?.id
-            )
-        );
+              user.manager_id
+            ) ===
+              String(
+                profile?.id
+              )
+          );
       }
 
-      /*
-        MEMBER
-      */
+      /* ========= MEMBER ========= */
 
       if (
         currentRole ===
         "member"
       ) {
+
         return (
           String(user.id) ===
           String(profile?.id)
@@ -94,44 +99,59 @@ function CreateGoalModal({
       }
 
       return false;
-    });
+    }
+  );
 
-  /* ========================================
-     MANAGERS
-  ======================================== */
+/* ========================================
+   MANAGERS
+======================================== */
+const managers =
+  users?.filter(
+    (user) =>
+      user.role
+        ?.toLowerCase()
+        ?.trim() ===
+      "team manager"
+  ) || [];
 
-  const managers =
-    availableUsers?.filter(
-      (user) =>
+/* ========================================
+   MEMBERS
+======================================== */
+
+const members =
+  availableUsers.filter(
+    (user) =>
+      user.role
+        ?.toLowerCase()
+        ?.trim() ===
+      "member"
+  );
+
+/* ========================================
+   SPECIFIC TEAMS
+======================================== */
+
+const managerTeams =
+  (users || [])
+
+    /* ONLY TEAM MANAGERS */
+    .filter((user) => {
+
+      const role =
         user.role
           ?.toLowerCase()
-          ?.trim() ===
-        "manager"
-    );
+          ?.trim();
 
-  /* ========================================
-     MEMBERS
-  ======================================== */
+      return (
+        role === "team manager"
+      );
+    })
 
-  const members =
-    availableUsers?.filter(
-      (user) =>
-        user.role
-          ?.toLowerCase()
-          ?.trim() ===
-        "member"
-    );
+    .map((manager) => {
 
-  /* ========================================
-     SPECIFIC TEAMS
-  ======================================== */
-
-  const managerTeams =
-  (managers || []).map(
-    (manager) => {
-
+      /* MEMBERS UNDER THIS MANAGER */
       const teamMembers =
-        users.filter(
+        (users || []).filter(
           (user) =>
             String(
               user.manager_id
@@ -139,17 +159,78 @@ function CreateGoalModal({
               String(
                 manager.id
               ) &&
+
+            /* EXCLUDE ADMINS + MANAGERS */
             user.role
               ?.toLowerCase()
-              ?.trim() ===
-              "member"
+              ?.trim() !==
+              "team manager" &&
+
+            user.role
+              ?.toLowerCase()
+              ?.trim() !==
+              "admin"
         );
 
       return {
+
         manager,
+
         teamMembers,
+
+        totalMembers:
+          teamMembers.length,
+
+        memberIds:
+          teamMembers.map(
+            (member) =>
+              member.id
+          ),
+
+        allTeamIds: [
+          manager.id,
+
+          ...teamMembers.map(
+            (member) =>
+              member.id
+          ),
+        ],
+
+        teamName:
+          `${manager.full_name}'s Team`,
       };
-    }
+    })
+
+    .filter(
+      (team) =>
+        team.totalMembers > 0
+    );
+
+/* ========================================
+   SELECTED TEAM
+======================================== */
+
+const selectedTeam =
+  managerTeams.find(
+    (team) =>
+      String(
+        team.manager.id
+      ) ===
+      String(
+        newGoal.manager_id
+      )
+  );
+
+/* ========================================
+   TEAM PREVIEW USERS
+======================================== */
+
+const selectedTeamUsers =
+  (users || []).filter(
+    (user) =>
+      selectedTeam?.allTeamIds?.includes(
+        user.id
+      )
   );
   /* ========================================
      PRIORITY COLORS
@@ -162,6 +243,66 @@ function CreateGoalModal({
     Low: "text-emerald-600",
   };
 
+  /* ========================================
+   TEAM STRUCTURE
+======================================== */
+
+const teamOptions =
+  useMemo(() => {
+
+    /* ONLY MANAGERS */
+    const managers =
+      (members || []).filter(
+        (member) => {
+
+          const role =
+            member.role
+              ?.toLowerCase()
+              ?.trim();
+
+          return (
+            role ===
+              "manager" ||
+            role ===
+              "team manager"
+          );
+        }
+      );
+
+    return managers.map(
+      (manager) => {
+
+        const teamMembers =
+          (members || []).filter(
+            (member) =>
+              String(
+                member.manager_id
+              ) ===
+                String(
+                  manager.id
+                )
+          );
+
+        return {
+          managerName:
+            manager.full_name,
+
+          teamName:
+            `${manager.full_name}'s Team`,
+
+          department:
+            manager.department,
+
+          totalMembers:
+            teamMembers.length,
+
+          managerId:
+            manager.id,
+        };
+      }
+    );
+
+  }, [members]);
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
 
@@ -315,11 +456,11 @@ function CreateGoalModal({
                     Individual User
                   </option>
 
-                  <option value="managers">
+                  <option value="all_managers">
                     All Managers
                   </option>
 
-                  <option value="members">
+                  <option value="all_members">
                     All Members
                   </option>
 
@@ -335,7 +476,7 @@ function CreateGoalModal({
 
               {/* MANAGER OPTIONS */}
               {currentRole ===
-                "manager" && (
+                "team manager" && (
                 <>
                   <option value="individual">
                     Individual Member
@@ -354,6 +495,8 @@ function CreateGoalModal({
                   Personal Goal
                 </option>
               )}
+
+             
 
             </select>
 
@@ -415,73 +558,246 @@ function CreateGoalModal({
 
             </div>
           )}
+{/* SPECIFIC TEAM */}
+{currentRole ===
+  "admin" &&
+  newGoal.assignment_type ===
+    "specific_team" && (
 
-          {/* SPECIFIC TEAM */}
-          {currentRole ===
-          "admin" &&
-          newGoal.assignment_type ===
-            "specific_team" && (
-            <div>
+  <div className="space-y-5">
 
-              <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
+    {/* LABEL */}
+    <div>
 
-                <Users
-                  size={16}
-                  className="text-emerald-600"
-                />
+      <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
 
-                Select Team
+        <Users
+          size={16}
+          className="text-emerald-600"
+        />
 
-              </label>
+        Select Team
 
-              <select
-                value={
-                  newGoal.manager_id ||
-                  ""
-                }
-                onChange={(e) =>
-                  setNewGoal({
-                    ...newGoal,
-                    manager_id:
-                      e.target.value,
-                  })
-                }
-                className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900 transition"
-              >
+      </label>
 
-                <option value="">
-                  Select Manager Team
-                </option>
+      <p className="text-sm text-slate-500 dark:text-zinc-400 mb-4">
+        Choose a manager and automatically assign
+        this goal to the manager together with
+        their entire team.
+      </p>
 
-                {(managerTeams || []).map(
-                  (team) => (
-                    <option
-                      key={
-                        team.manager.id
-                      }
-                      value={
-                        team.manager.id
-                      }
-                    >
-                      {
-                        team.manager
-                          .full_name
-                      }
-                      's Team (
-                      {
-                        team
-                          .teamMembers
-                          .length
-                      }{" "}
-                      members)
-                    </option>
-                  )
-                )}
+    </div>
 
-              </select>
+    {/* SELECT */}
+    <div className="relative">
+
+      <select
+        value={
+          newGoal.manager_id ||
+          ""
+        }
+        onChange={(e) => {
+
+          const selectedManagerId =
+            e.target.value;
+
+          const selectedTeam =
+            managerTeams.find(
+              (team) =>
+                String(
+                  team.manager.id
+                ) ===
+                String(
+                  selectedManagerId
+                )
+            );
+
+          setNewGoal({
+            ...newGoal,
+
+            manager_id:
+              selectedManagerId,
+
+            /* TEAM IDS */
+            team_member_ids:
+              selectedTeam
+                ?.allTeamIds || [],
+          });
+        }}
+        className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-950 dark:text-white outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900 transition"
+      >
+
+        <option value="">
+          Select Manager Team
+        </option>
+
+        {(managerTeams || []).map(
+          (team) => (
+
+            <option
+              key={
+                team.manager.id
+              }
+              value={
+                team.manager.id
+              }
+            >
+
+              {team.teamName}
+              {" • "}
+              {
+                team.totalMembers
+              }{" "}
+              members
+
+            </option>
+          )
+        )}
+
+      </select>
+
+    </div>
+
+    {/* TEAM PREVIEW */}
+    {selectedTeam && (
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-[28px] p-6">
+
+        {/* HEADER */}
+        <div className="flex items-center justify-between gap-4 mb-5">
+
+          <div className="flex items-center gap-4">
+
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+
+              <Users size={24} />
 
             </div>
-          )}
+
+            <div>
+
+              <h4 className="text-xl font-bold dark:text-white">
+
+                {
+                  selectedTeam.teamName
+                }
+
+              </h4>
+
+              <p className="text-slate-500 dark:text-zinc-400 text-sm mt-1">
+
+                Goal will be assigned to the manager
+                and all team members.
+
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* TOTAL */}
+          <div className="px-4 py-2 rounded-2xl bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-semibold text-sm">
+
+            {
+              selectedTeam
+                .allTeamIds
+                .length
+            }{" "}
+            users included
+
+          </div>
+
+        </div>
+
+        {/* MANAGER */}
+        <div className="mb-6">
+
+          <div className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-3">
+            Team Manager
+          </div>
+
+          <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-2xl px-4 py-3">
+
+            <div className="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+
+              <Briefcase size={18} />
+
+            </div>
+
+            <div>
+
+              <p className="font-semibold dark:text-white">
+
+                {
+                  selectedTeam
+                    .manager
+                    .full_name
+                }
+
+              </p>
+
+              <p className="text-sm text-slate-500 dark:text-zinc-400">
+                Manager
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* TEAM MEMBERS */}
+        <div>
+
+          <div className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-3">
+            Team Members
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+
+            {selectedTeam.teamMembers.map(
+              (member) => (
+
+                <div
+                  key={member.id}
+                  className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700"
+                >
+
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+
+                    <User2 size={16} />
+
+                  </div>
+
+                  <div>
+
+                    <p className="font-medium text-sm dark:text-white">
+
+                      {
+                        member.full_name
+                      }
+
+                    </p>
+
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                      Team Member
+                    </p>
+
+                  </div>
+
+                </div>
+              )
+            )}
+
+          </div>
+
+        </div>
+
+      </div>
+    )}
+
+  </div>
+)}
 
           {/* GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

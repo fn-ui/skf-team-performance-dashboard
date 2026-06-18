@@ -78,7 +78,9 @@ function AdminGoals() {
        assignment_type:
         "individual",
 
-      team_manager_id: "",
+       manager_id: "",
+
+    team_member_ids: [],
     });
 
   // FETCH GOALS + PROJECTS + USERS
@@ -214,7 +216,7 @@ const handleCreateGoal =
               user.role
                 ?.toLowerCase()
                 ?.trim() ===
-              "manager"
+              "team manager"
           );
 
         managers.forEach(
@@ -296,84 +298,153 @@ const handleCreateGoal =
         );
       }
 
-      /*
-        =====================================
-        SPECIFIC TEAM
-        =====================================
-      */
+    
+ /*
+=====================================
+SPECIFIC TEAM
+=====================================
+*/
 
-      else if (
-        newGoal.assignment_type ===
-        "specific_team"
-      ) {
+else if (
+  newGoal.assignment_type ===
+  "specific_team"
+) {
 
-        const teamMembers =
-          users.filter(
-            (user) =>
-              String(
-                user.manager_id
-              ) ===
-              String(
-                newGoal.team_manager_id
-              ) &&
-              user.role
-                ?.toLowerCase()
-                ?.trim() ===
-              "member"
-          );
+  /* SELECTED MANAGER */
+  const selectedManager =
+    users.find(
+      (user) =>
+        String(user.id) ===
+        String(
+          newGoal.manager_id
+        )
+    );
 
-        teamMembers.forEach(
-          (member) => {
+  /* TEAM MEMBERS */
+  const teamMembers =
+    users.filter(
+      (user) =>
+        String(
+          user.manager_id
+        ) ===
+          String(
+            newGoal.manager_id
+          ) &&
+        user.role
+          ?.toLowerCase()
+          ?.trim() ===
+          "member"
+    );
 
-            goalsToCreate.push({
-              ...basePayload,
+  /*
+    CREATE GOAL FOR MANAGER
+  */
 
-              owner_id:
-                member.id,
-            });
-          }
-        );
-      }
+  if (selectedManager) {
 
-      /*
-        =====================================
-        TEAM (MANAGER)
-        =====================================
-      */
+    goalsToCreate.push({
+      ...basePayload,
 
-      else if (
-        newGoal.assignment_type ===
-        "team"
-      ) {
+      owner_id:
+        selectedManager.id,
 
-        const teamMembers =
-          users.filter(
-            (user) =>
-              String(
-                user.manager_id
-              ) ===
-                String(
-                  profile?.id
-                ) &&
-              user.role
-                ?.toLowerCase()
-                ?.trim() ===
-              "member"
-          );
+      assignment_type:
+        "specific_team",
 
-        teamMembers.forEach(
-          (member) => {
+      manager_id:
+        selectedManager.id,
+    });
+  }
 
-            goalsToCreate.push({
-              ...basePayload,
+  /*
+    CREATE GOALS FOR TEAM MEMBERS
+  */
 
-              owner_id:
-                member.id,
-            });
-          }
-        );
-      }
+  teamMembers.forEach(
+    (member) => {
 
+      goalsToCreate.push({
+        ...basePayload,
+
+        owner_id:
+          member.id,
+
+        assignment_type:
+          "specific_team",
+
+        manager_id:
+          newGoal.manager_id,
+      });
+    }
+  );
+}
+
+/*
+  =====================================
+  TEAM (MANAGER)
+  =====================================
+*/
+
+else if (
+  newGoal.assignment_type ===
+  "team"
+) {
+
+  /* MANAGER MEMBERS */
+  const teamMembers =
+    users.filter(
+      (user) =>
+        String(
+          user.manager_id
+        ) ===
+          String(
+            profile?.id
+          ) &&
+        user.role
+          ?.toLowerCase()
+          ?.trim() ===
+          "member"
+    );
+
+  /*
+    INCLUDE MANAGER
+  */
+
+  goalsToCreate.push({
+    ...basePayload,
+
+    owner_id:
+      profile?.id,
+
+    assignment_type:
+      "team",
+
+    team_manager_id:
+      profile?.id,
+  });
+
+  /*
+    INCLUDE TEAM MEMBERS
+  */
+
+  teamMembers.forEach(
+    (member) => {
+
+      goalsToCreate.push({
+        ...basePayload,
+
+        owner_id:
+          member.id,
+
+        assignment_type:
+          "team",
+
+        team_manager_id:
+          profile?.id,
+      });
+    }
+  );
+}
       /*
         =====================================
         CREATE ALL GOALS
@@ -418,8 +489,9 @@ const handleCreateGoal =
         assignment_type:
           "individual",
 
-        team_manager_id:
-          "",
+         manager_id: "",
+
+         team_member_ids: [],
       });
 
       setIsModalOpen(false);
@@ -982,6 +1054,7 @@ const handleCreateGoal =
           setNewGoal={setNewGoal}
           handleCreateGoal={handleCreateGoal}
           users={users}
+          saving={loading}
         />
 
       {/* EDIT MODAL */}

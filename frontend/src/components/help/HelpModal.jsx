@@ -257,52 +257,142 @@ function HelpModal({
       profile?.role
     ];
 
-  /* ========================================
-     FAQS
-  ======================================== */
+ /* ========================================
+   FAQS 
+======================================== */
 
-  const faqs = [
+const faqData = {
+  admin: [
     {
       question:
-        "How do I update task progress?",
+        "How do I create a company-wide goal?",
 
       answer:
-        "Open the Tasks page, select a task and update its progress or status.",
+        "Open the Goals page and click Create Goal. You can assign goals to individuals, managers, departments or the entire organization.",
     },
 
     {
       question:
-        "Why can’t I edit some goals?",
+        "How do I manage managers and members?",
 
       answer:
-        "Goal permissions depend on your role. Members may only update assigned goals while admins have full access.",
+        "Go to the Team Management section where you can create users, assign managers and organize departments.",
     },
 
     {
       question:
-        "How are performance metrics calculated?",
+        "How can I monitor company performance?",
 
       answer:
-        "Performance is calculated using completed tasks, deadlines, productivity trends and goal completion rates.",
+        "Use the Analytics and Reports pages to monitor KPIs, productivity trends, task completion and team efficiency.",
     },
 
     {
       question:
-        "Can I assign tasks to other users?",
+        "Can I edit or delete any project?",
 
       answer:
-        "Managers and admins can assign tasks. Members can only manage their personal tasks.",
+        "Yes. Admins have full access to create, update and delete all projects and goals across the platform.",
     },
 
     {
       question:
-        "How do I create a new project?",
+        "How do I generate company reports?",
 
       answer:
-        "Go to the Projects page and click the Create Project button.",
+        "Navigate to Reports and generate performance, productivity or goal completion reports for the entire organization.",
     },
-  ];
+  ],
 
+  manager: [
+    {
+      question:
+        "How do I assign tasks to my team?",
+
+      answer:
+        "Open the Tasks page and create or edit a task. You can assign tasks only to members under your management.",
+    },
+
+    {
+      question:
+        "Can I create goals for my department?",
+
+      answer:
+        "Yes. Managers can create team goals and assign them to team members or specific departments.",
+    },
+
+    {
+      question:
+        "How do I monitor team performance?",
+
+      answer:
+        "Use the Team Performance dashboard to review completed tasks, productivity trends and active goals.",
+    },
+
+    {
+      question:
+        "Why can't I access admin settings?",
+
+      answer:
+        "System configuration, organization-wide controls and user administration are restricted to admins only.",
+    },
+
+    {
+      question:
+        "How do I schedule meetings or deadlines?",
+
+      answer:
+        "Use the Calendar page to create events, reminders and team deadlines.",
+    },
+  ],
+
+  member: [
+    {
+      question:
+        "How do I update my assigned tasks?",
+
+      answer:
+        "Open the Tasks page and update task status or progress percentage as you complete work.",
+    },
+
+    {
+      question:
+        "Can I create projects or assign tasks?",
+
+      answer:
+        "No. Members can only manage their assigned work while managers and admins handle assignments.",
+    },
+
+    {
+      question:
+        "How do I track my performance?",
+
+      answer:
+        "Use the Performance page to monitor completed tasks, productivity metrics and goal completion progress.",
+    },
+
+    {
+      question:
+        "Where can I see deadlines?",
+
+      answer:
+        "Your deadlines are available in Tasks, Calendar and Goals sections.",
+    },
+
+    {
+      question:
+        "Why can't I edit some goals?",
+
+      answer:
+        "Members can only update goals assigned to them. Editing organization goals requires manager or admin access.",
+    },
+  ],
+};
+
+const faqs =
+  faqData[
+    profile?.role
+  ] || [];
   /* ========================================
      FILTER FAQS
   ======================================== */
@@ -640,54 +730,39 @@ function HelpModal({
           </div>
 
           {/* SUPPORT */}
-          <div className="bg-slate-50 dark:bg-zinc-800 rounded-[28px] border border-slate-200 dark:border-zinc-700 p-8">
+{profile?.role !==
+  "admin" && (
 
-            <h3 className="text-2xl font-bold dark:text-white mb-6">
+  <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-zinc-800 dark:to-zinc-900 rounded-[32px] border border-slate-200 dark:border-zinc-700 p-8">
+
+    {/* BACKGROUND DECOR */}
+    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
+
+    <div className="absolute bottom-0 left-0 w-56 h-56 bg-blue-500/10 rounded-full blur-3xl" />
+
+    {/* HEADER */}
+    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
+
+      <div>
+
+        <div className="flex items-center gap-4">
+
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-lg">
+
+            <HelpCircle size={30} />
+
+          </div>
+
+          <div>
+
+            <h3 className="text-3xl font-bold dark:text-white">
               Need More Help?
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-              {/* EMAIL */}
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-700">
-
-                <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5">
-
-                  <Mail size={24} />
-
-                </div>
-
-                <h4 className="text-lg font-bold dark:text-white">
-                  Email Support
-                </h4>
-
-                <p className="text-slate-500 dark:text-zinc-400 mt-2">
-                 fayee5552@gmail.com
-                </p>
-
-              </div>
-
-              {/* PHONE */}
-              <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-700">
-
-                <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-5">
-
-                  <Phone size={24} />
-
-                </div>
-
-                <h4 className="text-lg font-bold dark:text-white">
-                  Contact Admin
-                </h4>
-
-                <p className="text-slate-500 dark:text-zinc-400 mt-2">
-                  Reach out to your administrator
-                  for account or permission issues.
-                </p>
-
-              </div>
-
-            </div>
+            <p className="text-slate-500 dark:text-zinc-400 mt-2">
+              Contact support anytime for technical
+              issues, account access or dashboard assistance.
+            </p>
 
           </div>
 
@@ -695,7 +770,103 @@ function HelpModal({
 
       </div>
 
+      {/* STATUS BADGE */}
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
+
+        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+
+        Support Available
+
+      </div>
+
     </div>
+
+    {/* SUPPORT CARDS */}
+    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      {/* EMAIL */}
+      <a
+        href="mailto:fn0740839@gmail.com"
+        className="group bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-[28px] p-7 border border-slate-200 dark:border-zinc-700 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+      >
+
+        <div className="flex items-start justify-between">
+
+          <div>
+
+            <div className="w-16 h-16 rounded-3xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+
+              <Mail size={28} />
+
+            </div>
+
+            <h4 className="text-2xl font-bold dark:text-white">
+              Email Support
+            </h4>
+
+            <p className="text-slate-500 dark:text-zinc-400 mt-3 leading-relaxed">
+              Send an email for technical support,
+              dashboard issues or account assistance.
+            </p>
+
+            <div className="mt-6 inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+
+              fn0740839@gmail.com
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </a>
+
+      {/* PHONE */}
+      <a
+        href="tel:+254740839000"
+        className="group bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-[28px] p-7 border border-slate-200 dark:border-zinc-700 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+      >
+
+        <div className="flex items-start justify-between">
+
+          <div>
+
+            <div className="w-16 h-16 rounded-3xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+
+              <Phone size={28} />
+
+            </div>
+
+            <h4 className="text-2xl font-bold dark:text-white">
+              Call Support
+            </h4>
+
+            <p className="text-slate-500 dark:text-zinc-400 mt-3 leading-relaxed">
+              Contact support directly for urgent
+              issues, permissions or platform help.
+            </p>
+
+            <div className="mt-6 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
+
+              +254 740 839 000
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </a>
+
+    </div>
+
+  </div>
+)}
+</div>
+</div>
+</div>
+
+    
   );
 }
 
