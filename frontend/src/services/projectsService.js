@@ -6,29 +6,50 @@ export async function getProjects() {
   const { data, error } =
     await supabase
       .from("projects")
-      .select(`
-        *,
-        
-        manager:profiles!projects_manager_id_fkey (
-          id,
-          full_name,
-          email,
-          role
-        ),
+                .select(`
+              *,
 
-        project_members (
-          id,
-          user_id,
-          role,
+              manager:profiles!projects_manager_id_fkey (
+                id,
+                full_name,
+                email,
+                role
+              ),
 
-          profiles (
-            id,
-            full_name,
-            role,
-            email
-          )
-        )
-      `)
+              project_members (
+                id,
+                user_id,
+                role,
+
+                profiles (
+                  id,
+                  full_name,
+                  role,
+                  email
+                )
+              ),
+
+              tasks (
+                id,
+                title,
+                status,
+                progress,
+                priority,
+                due_date,
+                project_id,
+
+                task_assignees (
+                  user_id,
+
+                  profiles (
+                    id,
+                    full_name,
+                    email,
+                    role
+                  )
+                )
+              )
+                `)
       .order("created_at", {
         ascending: false,
       });
@@ -307,29 +328,50 @@ export async function getProjectById(
   const { data, error } =
     await supabase
       .from("projects")
-      .select(`
-        *,
+                .select(`
+            *,
 
-        manager:profiles!projects_manager_id_fkey (
-          id,
-          full_name,
-          email,
-          role
-        ),
+            manager:profiles!projects_manager_id_fkey (
+              id,
+              full_name,
+              email,
+              role
+            ),
 
-        project_members (
-          id,
-          user_id,
-          role,
+            project_members (
+              id,
+              user_id,
+              role,
 
-          profiles (
-            id,
-            full_name,
-            role,
-            email
-          )
-        )
-      `)
+              profiles (
+                id,
+                full_name,
+                role,
+                email
+              )
+            ),
+
+            tasks (
+              id,
+              title,
+              status,
+              progress,
+              priority,
+              due_date,
+              project_id,
+
+              task_assignees (
+                user_id,
+
+                profiles (
+                  id,
+                  full_name,
+                  email,
+                  role
+                )
+              )
+            )
+          `)
       .eq("id", id)
       .maybeSingle();
 

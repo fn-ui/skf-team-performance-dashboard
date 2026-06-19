@@ -50,49 +50,70 @@ function MemberProjects() {
     fetchProjects();
   }, [profile?.id]);
 
-  const fetchProjects =
-    async () => {
-      setLoading(true);
+ const fetchProjects =
+  async () => {
+    setLoading(true);
 
-      try {
-        const data =
-          await getProjects();
+    try {
 
-        // 🔥 RELATIONAL FILTER
-        const memberProjects =
-          (data || []).filter(
-            (project) => {
-              const members =
-                Array.isArray(
-                  project.project_members
-                )
-                  ? project.project_members
-                  : [];
+      //  GET ALL PROJECTS
+      const data =
+        await getProjects();
 
-              return members.some(
-                (member) =>
-                  member.user_id ===
-                  profile?.id
-              );
-            }
-          );
+      //  FILTER PROJECTS
+      const memberProjects =
+        (data || []).filter(
+          (project) => {
 
-        setProjects(
-          memberProjects
+            // PROJECT TASKS
+            const tasks =
+              Array.isArray(
+                project.tasks
+              )
+                ? project.tasks
+                : [];
+
+            // CHECK ASSIGNMENTS
+            return tasks.some(
+              (task) => {
+
+                const assignees =
+                  Array.isArray(
+                    task.task_assignees
+                  )
+                    ? task.task_assignees
+                    : [];
+
+                return assignees.some(
+                  (assignment) =>
+                    assignment.user_id ===
+                    profile?.id
+                );
+              }
+            );
+          }
         );
-      } catch (error) {
-        console.error(
-          "FETCH PROJECTS ERROR:",
-          error.message
-        );
 
-        setProjects([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setProjects(
+        memberProjects
+      );
 
-  // 🔎 FILTERED PROJECTS
+    } catch (error) {
+
+      console.error(
+        "FETCH PROJECTS ERROR:",
+        error.message
+      );
+
+      setProjects([]);
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
+  //  FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -102,7 +123,7 @@ function MemberProjects() {
         )
     );
 
-  // 👁 OPEN DETAILS
+  //  OPEN DETAILS
   const handleOpenDetails = (
     project
   ) => {
@@ -111,7 +132,7 @@ function MemberProjects() {
     setIsDetailsOpen(true);
   };
 
-  // 📊 STATS
+  // STATS
   const completedProjects =
     projects.filter(
       (project) =>
@@ -133,7 +154,7 @@ function MemberProjects() {
         "Planning"
     ).length;
 
-  // 🎨 PRIORITY COLORS
+  //  PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -152,7 +173,7 @@ function MemberProjects() {
     }
   };
 
-  // ⏳ LOADING
+  //  LOADING
   if (loading) {
     return (
       <div className="p-10 dark:text-white">
@@ -393,6 +414,7 @@ function MemberProjects() {
           setIsDetailsOpen(false)
         }
         project={selectedProject}
+        mode="member"
       />
 
     </div>

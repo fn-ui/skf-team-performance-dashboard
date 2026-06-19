@@ -47,6 +47,12 @@ function AdminTasks() {
   const [statusFilter, setStatusFilter] =
     useState("All");
 
+      // 📄 PAGINATION
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const tasksPerPage = 10;
+
   const [
     priorityFilter,
     setPriorityFilter,
@@ -164,6 +170,33 @@ function AdminTasks() {
           priorityFilter
     );
 
+
+      // 📄 PAGINATED TASKS
+  const totalPages = Math.ceil(
+    filteredTasks.length / tasksPerPage
+  );
+
+  const startIndex =
+    (currentPage - 1) *
+    tasksPerPage;
+
+  const endIndex =
+    startIndex + tasksPerPage;
+
+  const paginatedTasks =
+    filteredTasks.slice(
+      startIndex,
+      endIndex
+    );
+
+      // 🔄 RESET PAGE WHEN FILTERS CHANGE
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    statusFilter,
+    priorityFilter,
+  ]);
   // 👥 SELECT USERS
   const toggleUserSelection = (
     userId
@@ -677,7 +710,7 @@ const handleEditTask = (task) => {
 
             <tbody>
 
-              {filteredTasks.map((task) => (
+              {paginatedTasks.map((task) => (
 
                 <tr
                   key={task.id}
@@ -835,6 +868,92 @@ const handleEditTask = (task) => {
 
       </div>
 
+
+      {/* PAGINATION */}
+      {filteredTasks.length > 0 && (
+        <div className="flex items-center justify-between mt-6 px-2">
+
+          {/* PAGE INFO */}
+          <p className="text-sm text-slate-500 dark:text-zinc-400">
+            Showing{" "}
+            {startIndex + 1}
+            {" "}to{" "}
+            {Math.min(
+              endIndex,
+              filteredTasks.length
+            )}{" "}
+            of{" "}
+            {filteredTasks.length} tasks
+          </p>
+
+          {/* CONTROLS */}
+          <div className="flex items-center gap-2">
+
+            {/* PREVIOUS */}
+            <button
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    Math.max(prev - 1, 1)
+                )
+              }
+              disabled={
+                currentPage === 1
+              }
+              className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 dark:text-white disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            {/* PAGE NUMBERS */}
+            {Array.from(
+              { length: totalPages },
+              (_, index) => (
+                <button
+                  key={index}
+                  onClick={() =>
+                    setCurrentPage(
+                      index + 1
+                    )
+                  }
+                  className={`w-10 h-10 rounded-lg text-sm font-semibold transition
+                    ${
+                      currentPage ===
+                      index + 1
+                        ? "bg-emerald-600 text-white"
+                        : "border border-slate-200 dark:border-zinc-700 dark:text-white"
+                    }
+                  `}
+                >
+                  {index + 1}
+                </button>
+              )
+            )}
+
+            {/* NEXT */}
+            <button
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    Math.min(
+                      prev + 1,
+                      totalPages
+                    )
+                )
+              }
+              disabled={
+                currentPage ===
+                totalPages
+              }
+              className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 dark:text-white disabled:opacity-50"
+            >
+              Next
+            </button>
+
+          </div>
+
+        </div>
+      )}
       {/* EMPTY STATE */}
       {filteredTasks.length === 0 && (
 

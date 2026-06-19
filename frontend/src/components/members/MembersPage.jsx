@@ -121,9 +121,18 @@ function MembersPage({ mode }) {
   isInviteOpen,
   setIsInviteOpen,
 ] = useState(false);
+/* ================= PAGINATION ================= */
 
-  const [managers, setManagers] = useState([]);
-  const [inviteData, setInviteData] =
+const ITEMS_PER_PAGE = 5;
+
+const [managersPage, setManagersPage] =
+  useState(1);
+
+const [membersPage, setMembersPage] =
+  useState(1);
+
+const [managers, setManagers] = useState([]);
+const [inviteData, setInviteData] =
   useState({
     email: "",
   });
@@ -228,7 +237,7 @@ function MembersPage({ mode }) {
 
   
 
-  // STEP 1: get correct profile (THIS IS THE KEY FIX)
+  //  get correct profile 
   const { data: managerProfile, error } = await supabase
     .from("profiles")
     .select("id, email")
@@ -347,6 +356,17 @@ function MembersPage({ mode }) {
         )
       );
   }, [members, search, department, status]);
+  
+  /* RESET PAGINATION WHEN FILTERS CHANGE */
+
+      useEffect(() => {
+        setManagersPage(1);
+        setMembersPage(1);
+      }, [
+        search,
+        department,
+        status,
+      ]);
   const managersList =
   visibleMembers.filter(
     (member) =>
@@ -362,6 +382,42 @@ const membersList =
         "Manager"
       ) &&
       member.role !== "admin"
+  );
+
+  /* ================= PAGINATED DATA ================= */
+
+const totalManagersPages =
+  Math.ceil(
+    managersList.length /
+      ITEMS_PER_PAGE
+  ) || 1;
+
+const totalMembersPages =
+  Math.ceil(
+    membersList.length /
+      ITEMS_PER_PAGE
+  ) || 1;
+
+/* MANAGERS */
+
+const paginatedManagers =
+  managersList.slice(
+    (managersPage - 1) *
+      ITEMS_PER_PAGE,
+
+    managersPage *
+      ITEMS_PER_PAGE
+  );
+
+/* MEMBERS */
+
+const paginatedMembers =
+  membersList.slice(
+    (membersPage - 1) *
+      ITEMS_PER_PAGE,
+
+    membersPage *
+      ITEMS_PER_PAGE
   );
 
   /* ================= STATS ================= */
@@ -825,7 +881,7 @@ const handleInviteMember =
       </div>
 
       {/* ================= MANAGERS ================= */}
-
+{isAdmin && (
 <div className="space-y-4">
 
   <div className="flex items-center gap-3">
@@ -846,15 +902,31 @@ const handleInviteMember =
   </div>
 
   <MembersTable
-    members={managersList}
+    members={paginatedManagers}
     isAdmin={isAdmin}
     onView={setSelectedMember}
     onEdit={openEdit}
     onDelete={deleteMember}
+    
   />
+              {/* MANAGERS PAGINATION */}
+
+            {totalManagersPages > 1 && (
+              <Pagination
+                currentPage={
+                  managersPage
+                }
+                totalPages={
+                  totalManagersPages
+                }
+                onPageChange={
+                  setManagersPage
+                }
+              />
+            )}
 
 </div>
-
+)}
 {/* ================= MEMBERS ================= */}
 
 <div className="space-y-4 pt-4">
@@ -877,12 +949,28 @@ const handleInviteMember =
   </div>
 
   <MembersTable
-    members={membersList}
+    members={paginatedMembers}
     isAdmin={isAdmin}
     onView={setSelectedMember}
     onEdit={openEdit}
     onDelete={deleteMember}
+    
   />
+        {/* MEMBERS PAGINATION */}
+
+      {totalMembersPages > 1 && (
+        <Pagination
+          currentPage={
+            membersPage
+          }
+          totalPages={
+            totalMembersPages
+          }
+          onPageChange={
+            setMembersPage
+          }
+        />
+      )}
 
 </div>
       {visibleMembers.length === 0 && (
@@ -956,69 +1044,120 @@ function StatCard({ label, value, icon: Icon }) {
   );
 }
 
-function MembersTable({ members, isAdmin, onView, onEdit, onDelete }) {
-  return (
+function MembersTable({
+  members,
+  isAdmin,
+  onView,
+  onEdit,
+  onDelete,
+}) {
+
+return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+
       <div className="overflow-x-auto">
+
         <table className="w-full min-w-[980px] text-left">
+
           <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+
             <tr>
-              <th className="px-5 py-4 font-semibold">Member</th>
-              <th className="px-5 py-4 font-semibold">Role</th>
-              <th className="px-5 py-4 font-semibold">Department</th>
-              <th className="px-5 py-4 font-semibold">Status</th>
-              <th className="px-5 py-4 font-semibold">Productivity</th>
-              <th className="px-5 py-4 font-semibold">Workload</th>
-              <th className="px-5 py-4 font-semibold">Location</th>
-              <th className="px-5 py-4 text-right font-semibold">Actions</th>
+              <th className="px-5 py-4 font-semibold">
+                Member
+              </th>
+
+              <th className="px-5 py-4 font-semibold">
+                Role
+              </th>
+
+              <th className="px-5 py-4 font-semibold">
+                Department
+              </th>
+
+              <th className="px-5 py-4 font-semibold">
+                Status
+              </th>
+
+              <th className="px-5 py-4 font-semibold">
+                Productivity
+              </th>
+
+              <th className="px-5 py-4 font-semibold">
+                Workload
+              </th>
+
+              <th className="px-5 py-4 font-semibold">
+                Location
+              </th>
+
+              <th className="px-5 py-4 text-right font-semibold">
+                Actions
+              </th>
             </tr>
+
           </thead>
 
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+
             {members.map((member) => {
-              const performance = productivityValue(member.productivity);
+
+              const performance =
+                productivityValue(
+                  member.productivity
+                );
 
               return (
                 <tr
                   key={member.id}
                   className="transition hover:bg-slate-50 dark:hover:bg-zinc-800/60"
                 >
+
                   <td className="px-5 py-4">
+
                     <div className="flex min-w-0 items-center gap-3">
+
                       <div
-                      className={`
-                        flex
-                        h-11
-                        w-11
-                        shrink-0
-                        items-center
-                        justify-center
-                        overflow-hidden
-                        rounded-xl
-                        ${member.color}
-                        font-bold
-                        text-white
-                      `}
-                    >
-                    {member.avatar_url ? (
-                      <img
-                        src={member.avatar_url}
-                        alt={member.full_name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      member.avatar
-                    )}
-                  </div>
+                        className={`
+                          flex
+                          h-11
+                          w-11
+                          shrink-0
+                          items-center
+                          justify-center
+                          overflow-hidden
+                          rounded-xl
+                          ${member.color}
+                          font-bold
+                          text-white
+                        `}
+                      >
+
+                        {member.avatar_url ? (
+                          <img
+                            src={member.avatar_url}
+                            alt={member.full_name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          member.avatar
+                        )}
+
+                      </div>
+
                       <div className="min-w-0">
+
                         <p className="truncate font-semibold text-slate-900 dark:text-white">
                           {member.name}
                         </p>
+
                         <p className="truncate text-sm text-slate-500 dark:text-zinc-400">
                           {member.email}
                         </p>
+
                       </div>
+
                     </div>
+
                   </td>
 
                   <td className="px-5 py-4 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -1034,76 +1173,177 @@ function MembersTable({ members, isAdmin, onView, onEdit, onDelete }) {
                   </td>
 
                   <td className="px-5 py-4">
+
                     <div className="flex min-w-[140px] items-center gap-3">
+
                       <div className="h-2 flex-1 rounded-full bg-slate-100 dark:bg-zinc-800">
+
                         <div
                           className="h-2 rounded-full bg-emerald-500"
-                          style={{ width: `${performance}%` }}
+                          style={{
+                            width: `${performance}%`,
+                          }}
                         />
+
                       </div>
+
                       <span className="w-10 text-right text-sm font-semibold text-slate-900 dark:text-white">
                         {member.productivity}
                       </span>
+
                     </div>
+
                   </td>
 
                   <td className="px-5 py-4">
+
                     <div className="text-sm text-slate-600 dark:text-zinc-400">
+
                       <span className="font-semibold text-slate-900 dark:text-white">
                         {member.tasks}
                       </span>{" "}
                       tasks
-                      <span className="mx-2 text-slate-300 dark:text-zinc-700">/</span>
+
+                      <span className="mx-2 text-slate-300 dark:text-zinc-700">
+                        /
+                      </span>
+
                       <span className="font-semibold text-slate-900 dark:text-white">
                         {member.projects}
                       </span>{" "}
                       projects
+
                     </div>
+
                   </td>
 
                   <td className="px-5 py-4 text-sm text-slate-600 dark:text-zinc-400">
+
                     <div className="flex items-center gap-2">
-                      <MapPin size={15} className="text-slate-400" />
-                      <span className="truncate">{member.location}</span>
+
+                      <MapPin
+                        size={15}
+                        className="text-slate-400"
+                      />
+
+                      <span className="truncate">
+                        {member.location}
+                      </span>
+
                     </div>
+
                   </td>
 
                   <td className="px-5 py-4">
+
                     <div className="flex items-center justify-end gap-2">
+
                       <button
-                        onClick={() => onView(member)}
+                        onClick={() =>
+                          onView(member)
+                        }
                         className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white transition hover:bg-emerald-700"
                       >
                         <Eye size={15} />
                       </button>
+
                       {isAdmin && (
                         <>
+
                           <button
-                            onClick={() => onEdit(member)}
+                            onClick={() =>
+                              onEdit(member)
+                            }
                             className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                           >
                             <Edit3 size={15} />
                           </button>
+
                           <button
-                            onClick={() => onDelete(member.id)}
+                            onClick={() =>
+                              onDelete(member.id)
+                            }
                             className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 text-red-500 transition hover:bg-red-50 dark:border-red-500/20 dark:hover:bg-red-500/10"
                           >
                             <Trash2 size={15} />
                           </button>
+
                         </>
                       )}
+
                     </div>
+
                   </td>
+
                 </tr>
               );
             })}
+
           </tbody>
+
         </table>
+
+      </div>
+
+    
+
+    </div>
+  );
+}
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900">
+      
+      <p className="text-sm text-slate-500 dark:text-zinc-400">
+        Page{" "}
+        <span className="font-semibold text-slate-900 dark:text-white">
+          {currentPage}
+        </span>{" "}
+        of{" "}
+        <span className="font-semibold text-slate-900 dark:text-white">
+          {totalPages}
+        </span>
+      </p>
+
+      <div className="flex items-center gap-2">
+        
+        <button
+          onClick={() =>
+            onPageChange(
+              currentPage - 1
+            )
+          }
+          disabled={
+            currentPage === 1
+          }
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+        >
+          Previous
+        </button>
+
+        <button
+          onClick={() =>
+            onPageChange(
+              currentPage + 1
+            )
+          }
+          disabled={
+            currentPage ===
+            totalPages
+          }
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
+        >
+          Next
+        </button>
+
       </div>
     </div>
   );
 }
-
 function StatusBadge({ status }) {
   const classes = {
     Active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",

@@ -58,6 +58,12 @@ function ManagerTasks() {
   const [statusFilter, setStatusFilter] =
     useState("All");
 
+      // 📄 PAGINATION
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const tasksPerPage = 6;
+
   const [
     priorityFilter,
     setPriorityFilter,
@@ -179,7 +185,7 @@ function ManagerTasks() {
       const data =
         await getProjects();
 
-      // 🔥 ONLY MANAGER PROJECTS
+      //  ONLY MANAGER PROJECTS
       const managerProjects =
         (data || []).filter(
           (project) =>
@@ -202,7 +208,7 @@ function ManagerTasks() {
     }
   };
 
-  // 🔎 FILTER USERS
+  //  FILTER USERS
   const filteredUsers =
     users.filter((user) =>
       user.full_name
@@ -212,7 +218,7 @@ function ManagerTasks() {
         )
     );
 
-  // 🔎 FILTER TASKS
+  //  FILTER TASKS
   const filteredTasks = tasks
     .filter((task) =>
       task.title
@@ -234,7 +240,34 @@ function ManagerTasks() {
           priorityFilter
     );
 
-  // 📊 STATS
+      // 📄 PAGINATED TASKS
+  const totalPages = Math.ceil(
+    filteredTasks.length /
+      tasksPerPage
+  );
+
+  const startIndex =
+    (currentPage - 1) *
+    tasksPerPage;
+
+  const endIndex =
+    startIndex + tasksPerPage;
+
+  const paginatedTasks =
+    filteredTasks.slice(
+      startIndex,
+      endIndex
+    );
+      //  RESET PAGE
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    statusFilter,
+    priorityFilter,
+  ]);
+
+  //  STATS
   const completedTasks =
     tasks.filter(
       (task) =>
@@ -285,7 +318,7 @@ setSelectedUsers(
   assignedUsers
 );
 
-// ✅ ASSIGNED USERS FIRST
+//  ASSIGNED USERS FIRST
 const sortedUsers =
   [...users].sort((a, b) => {
 
@@ -326,7 +359,7 @@ setIsEditOpen(true);
       );
     };
 
-  // 💾 UPDATE TASK
+  //  UPDATE TASK
   const handleUpdateTask =
     async () => {
       if (!editedTask?.id)
@@ -369,7 +402,7 @@ setIsEditOpen(true);
       }
     };
 
-  // 🗑 DELETE TASK
+  // DELETE TASK
   const handleDeleteTask =
     async (id) => {
       try {
@@ -390,7 +423,7 @@ setIsEditOpen(true);
     };
 
   
-// ➕ CREATE TASK
+//  CREATE TASK
 const handleCreateTask =
   async () => {
     if (!newTask.title)
@@ -416,7 +449,7 @@ const handleCreateTask =
             newTask.project_id ||
             null,
 
-          // ✅ SAVE PRIMARY ASSIGNEE ID
+          // SAVE PRIMARY ASSIGNEE ID
           assignee_id:
             primaryAssignee ||
             null,
@@ -464,7 +497,7 @@ const handleCreateTask =
           throw error;
       }
 
-      // 🔄 RELOAD TASKS
+      //  RELOAD TASKS
       await loadTasks();
 
       // 🔥 RESET FORM
@@ -493,7 +526,7 @@ const handleCreateTask =
     }
   };
 
-  // 🎨 PRIORITY COLORS
+  //  PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -512,7 +545,7 @@ const handleCreateTask =
     }
   };
 
-  // ⏳ LOADING
+  //  LOADING
   if (loading) {
     return (
       <div className="p-10 dark:text-white">
@@ -691,7 +724,7 @@ const handleCreateTask =
       {/* TASK CARDS */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        {filteredTasks.map((task) => (
+        {paginatedTasks.map((task) => (
 
           <div
             key={task.id}
@@ -772,6 +805,7 @@ const handleCreateTask =
                 </p>
 
               </div>
+              
 
               <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-3">
 
@@ -785,6 +819,7 @@ const handleCreateTask =
               </div>
 
             </div>
+            
 
             {/* FOOTER */}
             <div className="flex items-center justify-between mt-6">
@@ -881,6 +916,94 @@ const handleCreateTask =
   selectedUsers={selectedUsers}
   setSelectedUsers={setSelectedUsers}
 />
+      {/* PAGINATION */}
+      {filteredTasks.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
+
+          {/* INFO */}
+          <p className="text-sm text-slate-500 dark:text-zinc-400">
+            Showing{" "}
+            {startIndex + 1}
+            {" "}to{" "}
+            {Math.min(
+              endIndex,
+              filteredTasks.length
+            )}{" "}
+            of{" "}
+            {filteredTasks.length} tasks
+          </p>
+
+          {/* CONTROLS */}
+          <div className="flex items-center gap-2 flex-wrap">
+
+            {/* PREVIOUS */}
+            <button
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    Math.max(
+                      prev - 1,
+                      1
+                    )
+                )
+              }
+              disabled={
+                currentPage === 1
+              }
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 dark:text-white disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            {/* PAGE NUMBERS */}
+            {Array.from(
+              { length: totalPages },
+              (_, index) => (
+                <button
+                  key={index}
+                  onClick={() =>
+                    setCurrentPage(
+                      index + 1
+                    )
+                  }
+                  className={`w-10 h-10 rounded-xl text-sm font-semibold transition
+                    ${
+                      currentPage ===
+                      index + 1
+                        ? "bg-emerald-600 text-white"
+                        : "border border-slate-200 dark:border-zinc-700 dark:text-white"
+                    }
+                  `}
+                >
+                  {index + 1}
+                </button>
+              )
+            )}
+
+            {/* NEXT */}
+            <button
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    Math.min(
+                      prev + 1,
+                      totalPages
+                    )
+                )
+              }
+              disabled={
+                currentPage ===
+                totalPages
+              }
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 dark:text-white disabled:opacity-50"
+            >
+              Next
+            </button>
+
+          </div>
+
+        </div>
+      )}
 
     </div>
   );

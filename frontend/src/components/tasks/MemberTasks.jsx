@@ -34,6 +34,12 @@ function MemberTasks() {
   const [statusFilter, setStatusFilter] =
     useState("All");
 
+      //  PAGINATION
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const tasksPerPage = 6;
+
   const [selectedTask, setSelectedTask] =
     useState(null);
 
@@ -52,14 +58,14 @@ const [editedTask, setEditedTask] =
   setIsEditOpen(true);
 };
 
-  // 🔥 LOAD TASKS
+  //  LOAD TASKS
   useEffect(() => {
     if (!profile?.id) return;
 
     loadTasks();
   }, [profile?.id]);
 
-  // 📦 FETCH TASKS
+  //  FETCH TASKS
   const loadTasks = async () => {
     try {
       setLoading(true);
@@ -80,7 +86,7 @@ const [editedTask, setEditedTask] =
     }
   };
 
-  // 🔥 MEMBER TASKS
+  //  MEMBER TASKS
   const memberTasks = (tasks || [])
     .filter((task) => {
       const assignees =
@@ -110,7 +116,31 @@ const [editedTask, setEditedTask] =
           statusFilter
     );
 
-  // 📊 STATS
+      //  PAGINATED TASKS
+  const totalPages = Math.ceil(
+    memberTasks.length /
+      tasksPerPage
+  );
+
+  const startIndex =
+    (currentPage - 1) *
+    tasksPerPage;
+
+  const endIndex =
+    startIndex + tasksPerPage;
+
+  const paginatedTasks =
+    memberTasks.slice(
+      startIndex,
+      endIndex
+    );
+
+      //  RESET PAGE
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  //  STATS
   const completedTasks =
     memberTasks.filter(
       (task) =>
@@ -409,7 +439,7 @@ const [editedTask, setEditedTask] =
       {/* TASKS */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        {memberTasks.map((task) => (
+        {paginatedTasks.map((task) => (
 
           <div
             key={task.id}
@@ -523,6 +553,94 @@ const [editedTask, setEditedTask] =
         ))}
 
       </div>
+            {/* PAGINATION */}
+      {memberTasks.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
+
+          {/* INFO */}
+          <p className="text-sm text-slate-500 dark:text-zinc-400">
+            Showing{" "}
+            {startIndex + 1}
+            {" "}to{" "}
+            {Math.min(
+              endIndex,
+              memberTasks.length
+            )}{" "}
+            of{" "}
+            {memberTasks.length} tasks
+          </p>
+
+          {/* CONTROLS */}
+          <div className="flex items-center gap-2 flex-wrap">
+
+            {/* PREVIOUS */}
+            <button
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    Math.max(
+                      prev - 1,
+                      1
+                    )
+                )
+              }
+              disabled={
+                currentPage === 1
+              }
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 dark:text-white disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            {/* PAGE NUMBERS */}
+            {Array.from(
+              { length: totalPages },
+              (_, index) => (
+                <button
+                  key={index}
+                  onClick={() =>
+                    setCurrentPage(
+                      index + 1
+                    )
+                  }
+                  className={`w-10 h-10 rounded-xl text-sm font-semibold transition
+                    ${
+                      currentPage ===
+                      index + 1
+                        ? "bg-emerald-600 text-white"
+                        : "border border-slate-200 dark:border-zinc-700 dark:text-white"
+                    }
+                  `}
+                >
+                  {index + 1}
+                </button>
+              )
+            )}
+
+            {/* NEXT */}
+            <button
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    Math.min(
+                      prev + 1,
+                      totalPages
+                    )
+                )
+              }
+              disabled={
+                currentPage ===
+                totalPages
+              }
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 dark:text-white disabled:opacity-50"
+            >
+              Next
+            </button>
+
+          </div>
+
+        </div>
+      )}
 
       {/* EMPTY STATE */}
       {memberTasks.length === 0 && (
