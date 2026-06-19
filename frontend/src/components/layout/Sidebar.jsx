@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Link,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 
 import {
@@ -16,7 +15,6 @@ import {
   FolderKanban,
   Settings,
   LogOut,
-  CircleHelp,
   Activity,
   ChevronLeft,
   ChevronRight,
@@ -24,8 +22,6 @@ import {
   X,
   Moon,
   Sun,
-  ChevronUp,
-  User,
   HelpCircle,
 } from "lucide-react";
 
@@ -47,7 +43,6 @@ function Sidebar({
 
   const location = useLocation();
 
-  const navigate = useNavigate();
   const [isHelpOpen, setIsHelpOpen] =
   useState(false);
 
@@ -130,7 +125,8 @@ function Sidebar({
             onClick={() =>
               setMobileOpen(true)
             }
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg"
+            aria-label="Open navigation"
+            className="focus-ring flex h-12 w-12 items-center justify-center rounded-2xl border border-white/60 bg-emerald-600 text-white shadow-[0_18px_40px_rgba(16,185,129,0.28)] backdrop-blur transition hover:bg-emerald-500"
           >
             <Menu size={24} />
           </button>
@@ -154,13 +150,13 @@ function Sidebar({
         className={`
           fixed left-0 top-0 z-[60]
           h-screen
-          bg-gradient-to-b
-          from-emerald-950 via-teal-950 to-emerald-900
-          dark:from-black dark:via-zinc-950 dark:to-black
-          border-r border-emerald-900 dark:border-zinc-800
+          bg-[linear-gradient(180deg,#04251f_0%,#0b3535_52%,#151812_100%)]
+          dark:bg-[linear-gradient(180deg,#030706_0%,#06110f_52%,#0f0f0b_100%)]
+          border-r border-white/10
           flex flex-col justify-between
           transition-[width,transform] duration-300
           overflow-y-hidden overflow-x-visible
+          shadow-[18px_0_70px_rgba(4,37,31,0.25)]
           ${
             collapsed
               ? "w-24"
@@ -198,8 +194,8 @@ function Sidebar({
               hidden h-7 w-7
               items-center justify-center
               rounded-full border
-              border-slate-200
-              bg-white text-slate-700
+              border-white/70
+              bg-white/95 text-slate-700
               shadow-md transition-all duration-300
               hover:scale-110
               dark:border-zinc-700
@@ -228,7 +224,7 @@ function Sidebar({
                 : "gap-3"
             }`}
           >
-            <div className="flex h-12 w-12 min-w-[48px] items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg">
+            <div className="flex h-12 w-12 min-w-[48px] items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 via-cyan-500 to-amber-300 text-white shadow-lg shadow-emerald-950/30">
               <Activity size={24} />
             </div>
 
@@ -238,8 +234,8 @@ function Sidebar({
                   WorkPulse
                 </h1>
 
-                <p className="text-xs tracking-wide text-emerald-200/70">
-                  Team Performance
+                <p className="text-xs font-medium uppercase text-emerald-100/70">
+                  Team Performance HQ
                 </p>
               </div>
             )}
@@ -252,7 +248,8 @@ function Sidebar({
               onClick={() =>
                 setMobileOpen(false)
               }
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-white/80 transition hover:bg-white/10 hover:text-white"
+              aria-label="Close navigation"
+              className="focus-ring flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-white/80 transition hover:bg-white/10 hover:text-white"
             >
               <X size={20} />
             </button>
@@ -278,6 +275,7 @@ function Sidebar({
                   <Link
                     key={index}
                     to={menu.path}
+                    title={menu.name}
                     onClick={() => {
                       if (
                         window.innerWidth <
@@ -289,7 +287,7 @@ function Sidebar({
                       }
                     }}
                     className={`
-                      group flex w-full items-center overflow-hidden rounded-xl p-3
+                      group relative flex w-full items-center overflow-hidden rounded-xl border p-3
                       transition-all duration-300
                       ${
                         collapsed
@@ -299,14 +297,19 @@ function Sidebar({
                       ${
                         location.pathname ===
                         menu.path
-                          ? "border border-emerald-500/20 bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/10"
-                          : "text-white/80 hover:bg-white/10 hover:text-white"
+                          ? "border-white/20 bg-white text-emerald-950 shadow-lg shadow-emerald-950/20"
+                          : "border-transparent text-white/80 hover:border-white/10 hover:bg-white/10 hover:text-white"
                       }
                     `}
                   >
+                    {location.pathname ===
+                      menu.path && (
+                      <span className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-amber-400" />
+                    )}
+
                     <Icon
                       size={22}
-                      className="min-w-[22px]"
+                      className="min-w-[22px] transition group-hover:scale-105"
                     />
 
                     {!collapsed && (
@@ -335,10 +338,10 @@ function Sidebar({
       }
     }}
     className={`
-      rounded-2xl bg-white/5 p-3
+      rounded-2xl border border-white/10 bg-white/10 p-3
       backdrop-blur-md flex items-center
       transition cursor-pointer
-      hover:bg-white/10
+      hover:border-white/20 hover:bg-white/15
       ${
         collapsed
           ? "justify-center"
@@ -348,17 +351,18 @@ function Sidebar({
   >
     
 
-    {/* AVATAR */}
+  {/* AVATAR */}
+<div className="flex h-12 w-12 min-w-[48px] items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-lg font-bold text-white shadow-md ring-2 ring-white/20">
 
-<div className="flex h-12 w-12 min-w-[48px] items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-lg font-bold text-white shadow-md">
-
-  {profile?.avatar_url &&
-   profile.avatar_url !== "" ? (
+  {profile?.avatar_url && profile.avatar_url !== "" ? (
     <img
       key={profile.avatar_url}
       src={profile.avatar_url}
       alt="avatar"
       className="h-full w-full object-cover"
+      onError={(e) => {
+        e.target.style.display = 'none'; // Hide broken image
+      }}
     />
   ) : (
     profile?.full_name
@@ -434,7 +438,9 @@ function Sidebar({
               onClick={
                 toggleDarkMode
               }
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 text-white/80 transition hover:bg-white/10 hover:text-white"
+              aria-label="Toggle theme"
+              title="Toggle theme"
+              className="focus-ring flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 text-white/80 transition hover:bg-white/10 hover:text-white"
             >
               {darkMode ? (
                 <Sun size={20} />
@@ -449,7 +455,9 @@ function Sidebar({
                 onClick={() =>
                   setIsHelpOpen(true)
                 }
-                className="w-11 h-11 rounded-2xl bg-emerald-800/40 hover:bg-emerald-700 text-white flex items-center justify-center transition"
+                aria-label="Open help"
+                title="Help"
+                className="focus-ring flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400/15 text-amber-100 transition hover:bg-amber-400/25 hover:text-white"
               >
 
                 <HelpCircle size={20} />
@@ -462,7 +470,9 @@ function Sidebar({
               onClick={() =>
                 signOut()
               }
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-400 transition hover:bg-red-500/20"
+              aria-label="Sign out"
+              title="Sign out"
+              className="focus-ring flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-300 transition hover:bg-red-500/20 hover:text-red-100"
             >
               <LogOut size={20} />
             </button>

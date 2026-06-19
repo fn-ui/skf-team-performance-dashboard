@@ -10,7 +10,7 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
-  UserRound,
+  UsersRound,
   Layers3,
   Link2,
   Building2,
@@ -163,10 +163,9 @@ function EventDetailsModal({
     ]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm">
 
-      <div className="w-full max-w-5xl overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
-
+     <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
         {/* HEADER */}
         <div className="border-b border-slate-200 p-6 dark:border-zinc-800">
 
@@ -184,7 +183,7 @@ function EventDetailsModal({
 
                 <div className="flex flex-wrap items-center gap-3">
 
-                  <h1 className="text-3xl font-bold dark:text-white">
+                  <h1 className="text-2xl font-bold dark:text-white">
                     {selectedEvent.title}
                   </h1>
 
@@ -235,17 +234,17 @@ function EventDetailsModal({
         </div>
 
         {/* BODY */}
-        <div className="space-y-8 p-6">
+        <div className="space-y-5 p-4">
 
           {/* QUICK STATS */}
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
             {/* DATE */}
-            <div className="rounded-3xl bg-slate-50 p-5 dark:bg-zinc-950">
+            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950">
 
                   <CalendarDays className="text-emerald-600 dark:text-emerald-400" />
 
@@ -269,11 +268,11 @@ function EventDetailsModal({
             </div>
 
             {/* TIME */}
-            <div className="rounded-3xl bg-slate-50 p-5 dark:bg-zinc-950">
+            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-950">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-950">
 
                   <Clock3 className="text-blue-600 dark:text-blue-400" />
 
@@ -297,11 +296,11 @@ function EventDetailsModal({
             </div>
 
             {/* TYPE */}
-            <div className="rounded-3xl bg-slate-50 p-5 dark:bg-zinc-950">
+            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-950">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-950">
 
                   <Briefcase className="text-purple-600 dark:text-purple-400" />
 
@@ -325,11 +324,11 @@ function EventDetailsModal({
             </div>
 
             {/* VISIBILITY */}
-            <div className="rounded-3xl bg-slate-50 p-5 dark:bg-zinc-950">
+            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
 
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-950">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-950">
 
                   <Layers3 className="text-amber-600 dark:text-amber-400" />
 
@@ -359,8 +358,7 @@ function EventDetailsModal({
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
             {/* ASSIGNMENT */}
-            <div className="rounded-3xl border border-slate-200 p-6 dark:border-zinc-800">
-
+            <div className="border-b border-slate-200 p-4 dark:border-zinc-800">
               <div className="mb-5 flex items-center gap-3">
 
                 <UsersRound className="text-emerald-600 dark:text-emerald-400" />
@@ -452,7 +450,7 @@ function EventDetailsModal({
             </div>
 
             {/* CREATED BY */}
-            <div className="rounded-3xl border border-slate-200 p-6 dark:border-zinc-800">
+            <div className="rounded-2xl border border-slate-200 p-6 dark:border-zinc-800">
 
               <div className="mb-5 flex items-center gap-3">
 

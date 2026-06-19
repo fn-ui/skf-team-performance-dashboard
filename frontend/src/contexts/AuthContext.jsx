@@ -47,7 +47,9 @@ export function AuthProvider({ children }) {
 
     return {
       ...data,
-      avatar_url: details?.avatar_url || "",
+      avatar_url: details?.avatar_url
+        ? `${details.avatar_url}?t=${Date.now()}`
+        : "",
     };
   };
 
@@ -74,7 +76,7 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    setProfile({ ...profileData }); // ✅ FORCE RE-RENDER
+    setProfile({ ...profileData });
     setLoading(false);
   };
 
@@ -112,9 +114,7 @@ export function AuthProvider({ children }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("AUTH EVENT:", event);
-
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
 
       setLoading(true);
@@ -130,12 +130,14 @@ export function AuthProvider({ children }) {
   /* ================= REFRESH PROFILE ================= */
 
   const refreshProfile = async () => {
-    if (!user?.id) return null;
+    if (!user?.id) {
+      return null;
+    }
 
     const profileData = await fetchProfile(user.id);
 
     if (profileData) {
-      setProfile({ ...profileData }); // ✅ IMPORTANT FIX
+      setProfile({ ...profileData });
     }
 
     return profileData;

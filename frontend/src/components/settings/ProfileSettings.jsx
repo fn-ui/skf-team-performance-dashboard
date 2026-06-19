@@ -102,91 +102,84 @@ function ProfileSettings() {
 
   };
 
-  // SAVE PROFILE
-  const handleSave = async () => {
+// SAVE PROFILE
+const handleSave = async () => {
+  try {
+    setSaving(true);
 
-    try {
+    console.log("💾 Saving profile with data:", {
+      full_name: formData.full_name,
+      bio: formData.bio,
+    });
 
-      setSaving(true);
+    await updateProfileSettings(profile.id, {
+      full_name: formData.full_name,
+      bio: formData.bio,
+    });
 
-      await updateProfileSettings(
-        profile.id,
-        {
-          full_name:
-            formData.full_name,
+    // Give Supabase a moment to save
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-          bio:
-            formData.bio,
-        }
-      );
+    // Refresh global profile
+    const updatedProfile = await refreshProfile();
 
-      // REFRESH SIDEBAR PROFILE
-      await refreshProfile();
-
-      alert(
-        "Profile updated successfully!"
-      );
-
-    } catch (error) {
-
-      console.error(
-        "UPDATE PROFILE ERROR:",
-        error.message
-      );
-
-      alert(
-        "Failed to update profile."
-      );
-
-    } finally {
-
-      setSaving(false);
-
+    // Update local form data
+    if (updatedProfile) {
+      setFormData({
+        full_name: updatedProfile.full_name || formData.full_name,
+        email: updatedProfile.email || formData.email,
+        role: updatedProfile.role || formData.role,
+        bio: updatedProfile.bio || formData.bio,
+        avatar_url: updatedProfile.avatar_url || formData.avatar_url,
+      });
     }
-  };
 
-  const handleAvatarUpload = async (e) => {
+    alert("Profile updated successfully! ✅");
+
+  } catch (error) {
+    console.error("UPDATE PROFILE ERROR:", error.message);
+    alert("Failed to update profile. Please try again.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+const handleAvatarUpload = async (e) => {
   try {
     const file = e.target.files[0];
     if (!file) return;
 
     setUploading(true);
 
+    console.log("📸 Uploading avatar...");
+
     const fileExt = file.name.split(".").pop();
     const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
-    // 1. Upload to Supabase Storage
+    // Use the correct bucket name
     const { error: uploadError } = await supabase.storage
-      .from("profile-images")
-      .upload(filePath, file, {
-        upsert: true,
-      });
+      .from("profile-images")           // ← Changed here
+      .upload(filePath, file, { upsert: true });
 
     if (uploadError) throw uploadError;
 
-    // 2. Get public URL
-    const { data } = supabase.storage
-      .from("profile-images")
+    const { data: urlData } = supabase.storage
+      .from("profile-images")           // ← Changed here too
       .getPublicUrl(filePath);
 
-    const avatar_url = data.publicUrl;
+    const avatar_url = urlData.publicUrl;
 
-    // 3. Update DB
-    await updateProfileSettings(profile.id, {
-      avatar_url,
-    });
-    setFormData((prev) => ({
-  ...prev,
-  avatar_url,
-}));
+    await updateProfileSettings(profile.id, { avatar_url });
 
-    // 4. Refresh UI
+    await new Promise((resolve) => setTimeout(resolve, 400));
     await refreshProfile();
+
+    console.log("✅ Avatar uploaded successfully");
 
   } catch (error) {
     console.error("UPLOAD ERROR:", error.message);
-    alert("Failed to upload image");
+    alert("Failed to upload avatar: " + error.message);
   } finally {
     setUploading(false);
   }

@@ -468,109 +468,73 @@ function AdminCalendarPage() {
         );
       }
     };
-
   /* ================= CREATE / UPDATE ================= */
 
-  const handleAddEvent =
-    async () => {
-      try {
-        if (
-          !newEvent.title ||
-          !newEvent.date
-        )
-          return;
+  const handleAddEvent = async () => {
+    try {
+      if (!newEvent.title || !newEvent.date || !newEvent.time) {
+        alert("Please complete all required fields (Title, Date, Time).");
+        return;
+      }
 
-        setSaving(true);
+      setSaving(true);
 
-        const payload = {
-          ...newEvent,
+      let payload = {
+        ...newEvent,
+        assigned_to: newEvent.assigned_to || null,
+        team_target: newEvent.team_target || null,
+        role_target: newEvent.role_target || null,
+        meeting_link: newEvent.meeting_link || null,
+        created_by: profile?.id || null,
+      };
 
-          assigned_to:
-            newEvent.assigned_to ||
-            null,
+      //  NORMALIZATION
+     if (
+          newEvent.assignment_type === "team" &&
+          newEvent.team_target?.trim()
+        ) {
+          payload.visibility = "team";
 
-          team_target:
-            newEvent.team_target ||
-            null,
-
-          role_target:
-            newEvent.role_target ||
-            null,
-
-          created_by:
-            profile?.id || null,
-
-          meeting_link:
-            newEvent.meeting_link ||
-            null,
-        };
-
-        if (editingEventId) {
-          const updatedEvent =
-            await updateEvent(
-              editingEventId,
-              payload
-            );
-
-          setEvents((prev) =>
-            prev.map((event) =>
-              event.id ===
-              editingEventId
-                ? updatedEvent
-                : event
-            )
-          );
-        } else {
-          const createdEvent =
-            await createEvent(
-              payload
-            );
-
-          setEvents((prev) => [
-            createdEvent,
-            ...prev,
-          ]);
+          
         }
 
-        setNewEvent({
-          title: "",
-          description: "",
-          date: "",
-          time: "",
-          type: "Meeting",
-          priority: "Medium",
-          status: "Upcoming",
-
-          visibility:
-            "individual",
-
-          assignment_type:
-            "individual",
-
-          assigned_to: "",
-
-          team_target: "",
-
-          role_target: "",
-
-          meeting_link: "",
-
-          created_by:
-            profile?.id || null,
-        });
-
-        setEditingEventId(null);
-
-        setIsAddOpen(false);
-      } catch (error) {
-        console.error(
-          "SAVE EVENT ERROR:",
-          error.message
+      if (editingEventId) {
+        const updatedEvent = await updateEvent(editingEventId, payload);
+        setEvents((prev) =>
+          prev.map((event) => (event.id === editingEventId ? updatedEvent : event))
         );
-      } finally {
-        setSaving(false);
+      } else {
+        const createdEvent = await createEvent(payload);
+        setEvents((prev) => [createdEvent, ...prev]);
       }
-    };
+
+      // Reset form
+      setNewEvent({
+        title: "",
+        description: "",
+        date: "",
+        time: "",
+        type: "Meeting",
+        priority: "Medium",
+        status: "Upcoming",
+        visibility: "individual",
+        assignment_type: "individual",
+        assigned_to: "",
+        team_target: "",
+        role_target: "",
+        meeting_link: "",
+        created_by: profile?.id || null,
+      });
+
+      setEditingEventId(null);
+      setIsAddOpen(false);
+    } catch (error) {
+      console.error("SAVE EVENT ERROR:", error.message);
+      alert("Failed to save event. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   /* ================= LOADING ================= */
 

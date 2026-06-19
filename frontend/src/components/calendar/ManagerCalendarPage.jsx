@@ -17,7 +17,6 @@ import {
   Loader2,
   CalendarClock,
   AlertTriangle,
-  Filter,
   Briefcase,
   Link2,
   UserRound,
@@ -44,47 +43,18 @@ function ManagerCalendarPage() {
      STATES
   ===================================================== */
 
-  const [events, setEvents] =
-    useState([]);
-
-  const [members, setMembers] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [priorityFilter, setPriorityFilter] =
-    useState("All");
-
-  const [statusFilter, setStatusFilter] =
-    useState("All");
-
-  const [typeFilter, setTypeFilter] =
-    useState("All");
-
-  const [isAddOpen, setIsAddOpen] =
-    useState(false);
-
-  const [
-    isDetailsOpen,
-    setIsDetailsOpen,
-  ] = useState(false);
-
-  const [
-    selectedEvent,
-    setSelectedEvent,
-  ] = useState(null);
-
-  const [
-    editingEventId,
-    setEditingEventId,
-  ] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editingEventId, setEditingEventId] = useState(null);
 
   /* =====================================================
      NEW EVENT
@@ -98,28 +68,16 @@ function ManagerCalendarPage() {
     type: "Meeting",
     priority: "Medium",
     status: "Upcoming",
-
     visibility: "team",
-
-    assignment_type:
-      "individual",
-
+    assignment_type: "individual",
     assigned_to: "",
-
-    team_target:
-      profile?.department ||
-      "",
-
+    team_target: profile?.department || "",
     role_target: "",
-
     meeting_link: "",
-
-    created_by:
-      profile?.id || null,
+    created_by: profile?.id || null,
   };
 
-  const [newEvent, setNewEvent] =
-    useState(initialEventState);
+  const [newEvent, setNewEvent] = useState(initialEventState);
 
   /* =====================================================
      LOAD DATA
@@ -131,622 +89,296 @@ function ManagerCalendarPage() {
     }
   }, [profile?.id]);
 
-  const loadCalendarData =
-    async () => {
-      try {
-        setLoading(true);
+  const loadCalendarData = async () => {
+    try {
+      setLoading(true);
 
-        const [
-          eventsData,
-          usersData,
-        ] = await Promise.all([
-          getEvents(),
-          getUsers(),
-        ]);
+      const [eventsData, usersData] = await Promise.all([
+        getEvents(),
+        getUsers(),
+      ]);
 
-        const allEvents =
-          eventsData || [];
+      const allEvents = eventsData || [];
+      const allUsers = usersData || [];
 
-        const allUsers =
-          usersData || [];
+      /* =========================================
+         TEAM MEMBERS
+      ========================================= */
 
-        /* =========================================
-           TEAM MEMBERS
-        ========================================= */
+      const availableMembers = allUsers.filter((user) => {
+        const isCurrentUser = String(user.id) === String(profile?.id);
+        const isAdmin = String(user.role || "").toLowerCase().trim() === "admin";
+        const belongsToManager = String(user.manager_id) === String(profile?.id);
 
-        const availableMembers =
-          allUsers.filter(
-            (user) => {
-              const isCurrentUser =
-                String(
-                  user.id
-                ) ===
-                String(
-                  profile?.id
-                );
+        return !isCurrentUser && !isAdmin && belongsToManager;
+      });
 
-              const isAdmin =
-                String(
-                  user.role || ""
-                )
-                  .toLowerCase()
-                  .trim() ===
-                "admin";
+      setMembers(availableMembers);
 
-              const belongsToManager =
-                String(
-                  user.manager_id
-                ) ===
-                String(
-                  profile?.id
-                );
+      const memberIds = new Set(availableMembers.map((member) => String(member.id)));
+              //visible events
+            const visibleEvents = allEvents.filter((event) => {
+              const eventCreatedBy = String(event.created_by || "");
+              const eventAssignedTo = String(event.assigned_to || "");
+              const currentUserId = String(profile?.id || "");
 
-              return (
-                !isCurrentUser &&
-                !isAdmin &&
-                belongsToManager
-              );
-            }
-          );
+             const userDepartment = String(
+                profile?.department || ""
+              )
+                .replace(/\s+/g, "")
+                .trim()
+                .toLowerCase();
 
-        setMembers(
-          availableMembers
-        );
+              const eventTeamTarget = String(
+                event.team_target || ""
+              )
+                .replace(/\s+/g, "")
+                .trim()
+                .toLowerCase();
 
-        const memberIds =
-          new Set(
-            availableMembers.map(
-              (member) =>
-                String(
-                  member.id
-                )
-            )
-          );
+              /* =========================================
+                CREATED BY THIS MANAGER
+              ========================================= */
 
-        /* =========================================
-           VISIBLE EVENTS
-        ========================================= */
+              if (eventCreatedBy === currentUserId) {
+                return true;
+              }
 
-        const visibleEvents =
-          allEvents.filter(
-            (event) => {
-              const createdByManager =
-                String(
-                  event.created_by
-                ) ===
-                String(
-                  profile?.id
-                );
+              /* =========================================
+                DIRECTLY ASSIGNED TO THIS MANAGER
+              ========================================= */
 
-              const assignedToManager =
-                String(
-                  event.assigned_to
-                ) ===
-                String(
-                  profile?.id
-                );
+              if (eventAssignedTo === currentUserId) {
+                return true;
+              }
 
-              const assignedToMember =
-                memberIds.has(
-                  String(
-                    event.assigned_to
-                  )
-                );
+              /* =========================================
+                EVENTS ASSIGNED TO TEAM MEMBERS
+              ========================================= */
 
-              const sameDepartment =
-                event.team_target ===
-                profile?.department;
+              if (memberIds.has(eventAssignedTo)) {
+                return true;
+              }
 
-              const isTeamEvent =
-                event.visibility ===
-                  "team" &&
-                sameDepartment;
+                /* =========================================
+                  TEAM EVENTS FOR THIS MANAGER'S DEPARTMENT
+                ========================================= */
 
-              return (
-                createdByManager ||
-                assignedToManager ||
-                assignedToMember ||
-                isTeamEvent
-              );
-            }
-          );
+                if (
+                  event.assignment_type === "team" &&
+                  eventTeamTarget === userDepartment
+                ) {
+                  return true;
+                }
+              /* =========================================
+                ORGANIZATION EVENTS
+              ========================================= */
 
-        const sortedEvents =
-          visibleEvents.sort(
-            (a, b) => {
-              const first =
-                new Date(
-                  `${a.date} ${
-                    a.time ||
-                    "00:00"
-                  }`
-                );
+              if (
+                event.assignment_type === "all" ||
+                event.assignment_type === "all_members" ||
+                event.visibility === "organization"
+              ) {
+                return true;
+              }
 
-              const second =
-                new Date(
-                  `${b.date} ${
-                    b.time ||
-                    "00:00"
-                  }`
-                );
+              return false;
+            });
 
-              return (
-                first - second
-              );
-            }
-          );
+      // Sort 
+      const sortedEvents = [...visibleEvents].sort((a, b) => {
+        const first = new Date(`${a.date} ${a.time || "00:00"}`);
+        const second = new Date(`${b.date} ${b.time || "00:00"}`);
+        return first - second;
+      });
 
-        setEvents(
-          sortedEvents
-        );
-      } catch (error) {
-        console.error(
-          "CALENDAR LOAD ERROR:",
-          error
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+      setEvents(sortedEvents);
+    } catch (error) {
+      console.error("CALENDAR LOAD ERROR:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* =====================================================
      HELPERS
   ===================================================== */
 
-  const formatDate = (
-    dateValue
-  ) => {
-    if (!dateValue)
-      return "-";
-
-    return new Date(
-      dateValue
-    ).toLocaleDateString(
-      "en-KE",
-      {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }
-    );
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "-";
+    return new Date(dateValue).toLocaleDateString("en-KE", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
-  const getAssignedUserName =
-    (userId) => {
-      if (!userId) {
-        return "Entire Team";
-      }
+  const getAssignedUserName = (userId) => {
+    if (!userId) return "Entire Team";
 
-      if (
-        String(userId) ===
-        String(profile?.id)
-      ) {
-        return "You";
-      }
+    if (String(userId) === String(profile?.id)) return "You";
 
-      const user =
-        members.find(
-          (member) =>
-            String(member.id) ===
-            String(userId)
-        );
+    const user = members.find((member) => String(member.id) === String(userId));
+    return user?.full_name || "Unknown Member";
+  };
 
-      return (
-        user?.full_name ||
-        "Unknown Member"
-      );
-    };
+  const isOverdue = (event) => {
+    if (!event.date || event.status === "Completed") return false;
 
-  const isOverdue = (
-    event
-  ) => {
-    if (
-      !event.date ||
-      event.status ===
-        "Completed"
-    ) {
-      return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const eventDate = new Date(event.date);
+    return eventDate < today;
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case "High": return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
+      case "Medium": return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
+      case "Low": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
+      default: return "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
     }
-
-    const today =
-      new Date();
-
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-    const eventDate =
-      new Date(event.date);
-
-    return (
-      eventDate < today
-    );
   };
 
-  const getPriorityColor =
-    (priority) => {
-      switch (priority) {
-        case "High":
-          return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
-
-        case "Medium":
-          return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
-
-        case "Low":
-          return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
-
-        default:
-          return "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
-      }
-    };
-
-  const getStatusColor =
-    (status) => {
-      switch (status) {
-        case "Completed":
-          return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
-
-        case "Ongoing":
-          return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400";
-
-        case "Cancelled":
-          return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
-
-        default:
-          return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
-      }
-    };
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Completed": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
+      case "Ongoing": return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400";
+      case "Cancelled": return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
+      default: return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
+    }
+  };
 
   /* =====================================================
      FILTER EVENTS
   ===================================================== */
 
-  const filteredEvents =
-    events
+  const filteredEvents = events
+    .filter((event) => {
+      const term = search.toLowerCase();
+      return (
+        event.title?.toLowerCase().includes(term) ||
+        event.description?.toLowerCase().includes(term) ||
+        event.type?.toLowerCase().includes(term)
+      );
+    })
+    .filter((event) => priorityFilter === "All" ? true : event.priority === priorityFilter)
+    .filter((event) => statusFilter === "All" ? true : event.status === statusFilter)
+    .filter((event) => typeFilter === "All" ? true : event.type === typeFilter);
+
+  /* =====================================================
+     STATS + NEXT EVENT 
+  ===================================================== */
+
+  const totalEvents = events.length;
+  const completedEvents = events.filter((event) => event.status === "Completed").length;
+  const upcomingEvents = events.filter((event) => 
+    event.status === "Upcoming" || event.status === "Ongoing"
+  ).length;
+  const highPriorityEvents = events.filter((event) => event.priority === "High").length;
+  const overdueEvents = events.filter((event) => isOverdue(event)).length;
+
+  const nextEvent = useMemo(() => {
+    const now = new Date();
+    return events
       .filter((event) => {
-        const term =
-          search.toLowerCase();
-
-        return (
-          event.title
-            ?.toLowerCase()
-            .includes(term) ||
-          event.description
-            ?.toLowerCase()
-            .includes(term) ||
-          event.type
-            ?.toLowerCase()
-            .includes(term)
-        );
+        const eventDate = new Date(`${event.date} ${event.time || "00:00"}`);
+        return eventDate >= now;
       })
-      .filter((event) =>
-        priorityFilter ===
-        "All"
-          ? true
-          : event.priority ===
-            priorityFilter
-      )
-      .filter((event) =>
-        statusFilter ===
-        "All"
-          ? true
-          : event.status ===
-            statusFilter
-      )
-      .filter((event) =>
-        typeFilter === "All"
-          ? true
-          : event.type ===
-            typeFilter
-      );
+      .sort((a, b) => {
+        const first = new Date(`${a.date} ${a.time || "00:00"}`);
+        const second = new Date(`${b.date} ${b.time || "00:00"}`);
+        return first - second;
+      })[0];
+  }, [events]);
 
   /* =====================================================
-     STATS
+     DETAILS, EDIT, DELETE, CREATE/UPDATE
   ===================================================== */
 
-  const totalEvents =
-    events.length;
+  const handleOpenDetails = (event) => {
+    setSelectedEvent(event);
+    setIsDetailsOpen(true);
+  };
 
-  const completedEvents =
-    events.filter(
-      (event) =>
-        event.status ===
-        "Completed"
-    ).length;
+  const handleEditEvent = (event) => {
+    if (String(event.created_by) !== String(profile?.id)) return;
 
-  const upcomingEvents =
-    events.filter(
-      (event) =>
-        event.status ===
-          "Upcoming" ||
-        event.status ===
-          "Ongoing"
-    ).length;
+    setEditingEventId(event.id);
+    setNewEvent({
+      title: event.title || "",
+      description: event.description || "",
+      date: event.date || "",
+      time: event.time || "",
+      type: event.type || "Meeting",
+      priority: event.priority || "Medium",
+      status: event.status || "Upcoming",
+      visibility: event.visibility || "team",
+      assignment_type: event.assignment_type || "individual",
+      assigned_to: event.assigned_to || "",
+      team_target: event.team_target || "",
+      role_target: event.role_target || "",
+      meeting_link: event.meeting_link || "",
+      created_by: profile?.id || null,
+    });
+    setIsAddOpen(true);
+  };
 
-  const highPriorityEvents =
-    events.filter(
-      (event) =>
-        event.priority ===
-        "High"
-    ).length;
+  const handleDeleteEvent = async (id) => {
+    const confirmed = window.confirm("Delete this event permanently?");
+    if (!confirmed) return;
 
-  const overdueEvents =
-    events.filter((event) =>
-      isOverdue(event)
-    ).length;
+    try {
+      await deleteEvent(id);
+      setEvents((prev) => prev.filter((event) => event.id !== id));
+    } catch (error) {
+      console.error("DELETE EVENT ERROR:", error.message);
+    }
+  };
 
-  /* =====================================================
-     NEXT EVENT
-  ===================================================== */
-
-  const nextEvent =
-    useMemo(() => {
-      const now =
-        new Date();
-
-      return events
-        .filter((event) => {
-          const eventDate =
-            new Date(
-              `${event.date} ${
-                event.time ||
-                "00:00"
-              }`
-            );
-
-          return (
-            eventDate >= now
-          );
-        })
-        .sort((a, b) => {
-          const first =
-            new Date(
-              `${a.date} ${
-                a.time ||
-                "00:00"
-              }`
-            );
-
-          const second =
-            new Date(
-              `${b.date} ${
-                b.time ||
-                "00:00"
-              }`
-            );
-
-          return (
-            first - second
-          );
-        })[0];
-    }, [events]);
-
-  /* =====================================================
-     DETAILS
-  ===================================================== */
-
-  const handleOpenDetails =
-    (event) => {
-      setSelectedEvent(event);
-
-      setIsDetailsOpen(true);
-    };
-
-  /* =====================================================
-     EDIT EVENT
-  ===================================================== */
-
-  const handleEditEvent =
-    (event) => {
-      if (
-        String(
-          event.created_by
-        ) !==
-        String(profile?.id)
-      ) {
+  const handleAddEvent = async () => {
+    try {
+      if (!newEvent.title || !newEvent.date || !newEvent.time) {
+        alert("Please complete all required fields.");
         return;
       }
 
-      setEditingEventId(
-        event.id
-      );
+      setSaving(true);
 
-      setNewEvent({
-        title:
-          event.title || "",
+      const payload = {
+        ...newEvent,
+        assigned_to: newEvent.assigned_to || null,
+        team_target: newEvent.team_target || null,
+        role_target: newEvent.role_target || null,
+        meeting_link: newEvent.meeting_link || null,
+        created_by: profile?.id || null,
+      };
 
-        description:
-          event.description ||
-          "",
-
-        date:
-          event.date || "",
-
-        time:
-          event.time || "",
-
-        type:
-          event.type ||
-          "Meeting",
-
-        priority:
-          event.priority ||
-          "Medium",
-
-        status:
-          event.status ||
-          "Upcoming",
-
-        visibility:
-          event.visibility ||
-          "team",
-
-        assignment_type:
-          event.assignment_type ||
-          "individual",
-
-        assigned_to:
-          event.assigned_to ||
-          "",
-
-        team_target:
-          event.team_target ||
-          "",
-
-        role_target:
-          event.role_target ||
-          "",
-
-        meeting_link:
-          event.meeting_link ||
-          "",
-
-        created_by:
-          profile?.id || null,
-      });
-
-      setIsAddOpen(true);
-    };
-
-  /* =====================================================
-     DELETE EVENT
-  ===================================================== */
-
-  const handleDeleteEvent =
-    async (id) => {
-      const confirmed =
-        window.confirm(
-          "Delete this event permanently?"
-        );
-
-      if (!confirmed)
-        return;
-
-      try {
-        await deleteEvent(id);
-
+      if (editingEventId) {
+        const updatedEvent = await updateEvent(editingEventId, payload);
         setEvents((prev) =>
-          prev.filter(
-            (event) =>
-              event.id !== id
-          )
+          prev.map((event) => (event.id === editingEventId ? updatedEvent : event))
         );
-      } catch (error) {
-        console.error(
-          "DELETE EVENT ERROR:",
-          error.message
-        );
+      } else {
+        const createdEvent = await createEvent(payload);
+        setEvents((prev) => [createdEvent, ...prev]);
       }
-    };
 
-  /* =====================================================
-     CREATE / UPDATE EVENT
-  ===================================================== */
-
-  const handleAddEvent =
-    async () => {
-      try {
-        if (
-          !newEvent.title ||
-          !newEvent.date ||
-          !newEvent.time
-        ) {
-          alert(
-            "Please complete all required fields."
-          );
-
-          return;
-        }
-
-        setSaving(true);
-
-        const payload = {
-          ...newEvent,
-
-          assigned_to:
-            newEvent.assigned_to ||
-            null,
-
-          team_target:
-            newEvent.team_target ||
-            null,
-
-          role_target:
-            newEvent.role_target ||
-            null,
-
-          meeting_link:
-            newEvent.meeting_link ||
-            null,
-
-          created_by:
-            profile?.id ||
-            null,
-        };
-
-        /* ================= UPDATE ================= */
-
-        if (
-          editingEventId
-        ) {
-          const updatedEvent =
-            await updateEvent(
-              editingEventId,
-              payload
-            );
-
-          setEvents((prev) =>
-            prev.map((event) =>
-              event.id ===
-              editingEventId
-                ? updatedEvent
-                : event
-            )
-          );
-        }
-
-        /* ================= CREATE ================= */
-
-        else {
-          const createdEvent =
-            await createEvent(
-              payload
-            );
-
-          setEvents((prev) => [
-            createdEvent,
-            ...prev,
-          ]);
-        }
-
-        /* ================= RESET ================= */
-
-        setNewEvent({
-          ...initialEventState,
-
-          created_by:
-            profile?.id ||
-            null,
-        });
-
-        setEditingEventId(
-          null
-        );
-
-        setIsAddOpen(false);
-      } catch (error) {
-        console.error(
-          "SAVE EVENT ERROR:",
-          error.message
-        );
-      } finally {
-        setSaving(false);
-      }
-    };
+      // Reset form
+      setNewEvent({
+        ...initialEventState,
+        created_by: profile?.id || null,
+      });
+      setEditingEventId(null);
+      setIsAddOpen(false);
+    } catch (error) {
+      console.error("SAVE EVENT ERROR:", error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   /* =====================================================
      LOADING

@@ -97,99 +97,64 @@ function MemberCalendarPage() {
 
         setMembers(allUsers);
 
-        /* ========================================
-           MEMBER VISIBLE EVENTS
-        ======================================== */
+              /* ========================================
+                MEMBER VISIBLE EVENTS 
+              ======================================== */
 
-        const visibleEvents =
-          allEvents.filter(
-            (event) => {
-              /* CREATED BY MEMBER */
+              const visibleEvents = allEvents.filter((event) => {
+                const eventCreatedBy = String(event.created_by || "");
+                const eventAssignedTo = String(event.assigned_to || "");
+                const currentUserId = String(profile?.id || "");
+                const myManagerId = String(profile?.manager_id || "");
+                const userDepartment = String(profile?.department || "").trim().toLowerCase();
+                const eventTeamTarget = String(event.team_target || "").trim().toLowerCase();
 
-              const createdByMe =
-                String(
-                  event.created_by
-                ) ===
-                String(
-                  profile?.id
-                );
+                /* CREATED BY ME */
+                const createdByMe = eventCreatedBy === currentUserId;
 
-              /* ASSIGNED TO MEMBER */
+                /* DIRECTLY ASSIGNED TO ME */
+                const assignedToMe = eventAssignedTo === currentUserId;
 
-              const assignedToMe =
-                String(
-                  event.assigned_to
-                ) ===
-                String(
-                  profile?.id
-                );
+                /* ASSIGNED TO MY MANAGER */
+                const assignedToMyManager = eventAssignedTo === myManagerId;
 
-              /* TEAM EVENT FROM MANAGER */
-
-              const myManagerTeamEvent =
-                event.visibility ===
-                  "team" &&
-                String(
-                  event.created_by
-                ) ===
-                  String(
-                    profile?.manager_id
+                /* TEAM EVENT (from manager OR admin) */
+                const isTeamEvent = 
+                  (event.visibility === "team" || event.visibility === "individual") &&
+                  (
+                    eventCreatedBy === myManagerId ||                    
+                    eventTeamTarget === userDepartment ||                
+                    eventTeamTarget.includes("team") ||                  
+                    !event.team_target                                  
                   );
 
-              /* ORGANIZATION EVENT */
+                /* ORGANIZATION-WIDE EVENT */
+                const organizationEvent = event.visibility === "organization";
 
-              const organizationEvent =
-                event.visibility ===
-                "organization";
+                /* ROLE-BASED EVENT */
+                const roleEvent = 
+                  event.assignment_type === "role" && 
+                  event.role_target === profile?.role;
 
-              /* ROLE EVENT */
-
-              const roleEvent =
-                event.assignment_type ===
-                  "role" &&
-                event.role_target ===
-                  profile?.role;
-
-              return (
-                createdByMe ||
-                assignedToMe ||
-                myManagerTeamEvent ||
-                organizationEvent ||
-                roleEvent
-              );
-            }
-          );
-
-        /* SORT EVENTS */
-
-        const sortedEvents =
-          visibleEvents.sort(
-            (a, b) => {
-              const first =
-                new Date(
-                  `${a.date} ${
-                    a.time ||
-                    "00:00"
-                  }`
+                return (
+                  createdByMe ||
+                  assignedToMe ||
+                  assignedToMyManager ||
+                  isTeamEvent ||
+                  organizationEvent ||
+                  roleEvent
                 );
+              });
 
-              const second =
-                new Date(
-                  `${b.date} ${
-                    b.time ||
-                    "00:00"
-                  }`
-                );
+        /* SORT EVENTS  */
 
-              return (
-                first - second
-              );
-            }
-          );
+        const sortedEvents = [...visibleEvents].sort((a, b) => {
+          const first = new Date(`${a.date} ${a.time || "00:00"}`);
+          const second = new Date(`${b.date} ${b.time || "00:00"}`);
+          return first - second;
+        });
 
-        setEvents(
-          sortedEvents
-        );
+        setEvents(sortedEvents);
       } catch (error) {
         console.error(
           "LOAD EVENTS ERROR:",

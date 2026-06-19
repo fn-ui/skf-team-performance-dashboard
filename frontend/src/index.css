@@ -2,6 +2,25 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    background: #f4f7f4;
+    color: #17211e;
+    font-family: "Aptos Display", Aptos, "Segoe UI Variable", "Segoe UI", sans-serif;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: rgba(16, 185, 129, 0.22);
+  }
+}
+
 @layer utilities {
   /* Hide scrollbar but keep scrolling */
   .scrollbar-hide::-webkit-scrollbar {
@@ -11,6 +30,25 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .dashboard-grid {
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .dark .dashboard-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  }
+
+  .fine-noise {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.08) 1px, transparent 0);
+    background-size: 18px 18px;
   }
 }
 @keyframes fadeIn {
@@ -30,6 +68,18 @@
 
 @layer components {
   .input-field {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none transition focus:ring-2 focus:ring-emerald-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white;
+  }
+
+  .surface-panel {
+    @apply rounded-2xl border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-black/25;
+  }
+
+  .hover-lift {
+    @apply transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_70px_rgba(15,23,42,0.12)] dark:hover:shadow-black/35;
+  }
+
+  .focus-ring {
+    @apply outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/25;
   }
 }

@@ -424,7 +424,7 @@ const fetchProjects =
                       project
                     )
                   }
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 text-white"
                 >
 
                   <Pencil size={18} />

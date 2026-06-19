@@ -39,33 +39,35 @@ export async function updateProfileSettings(
     await supabase
       .from("profiles")
       .update({
-        full_name:
-          updates.full_name,
-
-        bio:
-          updates.bio,
-
-        phone:
-          updates.phone,
-
-        avatar_url:
-          updates.avatar_url,
-
-        notifications_enabled:
-          updates.notifications_enabled,
-
-        dark_mode:
-          updates.dark_mode,
+        full_name: updates.full_name,
+        bio: updates.bio,
+        phone: updates.phone,
+        avatar_url: updates.avatar_url,           // Keep for profiles
+        notifications_enabled: updates.notifications_enabled,
+        dark_mode: updates.dark_mode,
       })
       .eq("id", userId)
       .select()
       .single();
 
+  // Also update member_details table (important for consistency)
+  if (updates.avatar_url) {
+    const { error: memberError } = await supabase
+      .from("member_details")
+      .upsert({
+        user_id: userId,
+        avatar_url: updates.avatar_url,
+      }, { onConflict: 'user_id' });
+
+    if (memberError) {
+      console.warn("Member details update warning:", memberError.message);
+    }
+  }
+
   if (error) throw error;
 
   return data;
 }
-
 
 // UPDATE PASSWORD
 export async function updatePassword(
