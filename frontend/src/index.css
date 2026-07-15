@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -22,7 +22,6 @@
 }
 
 @layer utilities {
-  /* Hide scrollbar but keep scrolling */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -72,7 +71,7 @@
   }
 
   .surface-panel {
-    @apply rounded-2xl border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-black/25;
+    @apply rounded-xl border border-white/70 bg-white/90 shadow-[0_12px_40px_rgba(15,23,42,0.07)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-black/25;
   }
 
   .hover-lift {

@@ -1,4 +1,4 @@
-import {
+﻿import {
   X,
   Target,
   CalendarDays,
@@ -24,20 +24,12 @@ function CreateGoalModal({
 }) {
   const { profile } = useAuth();
 
-  if (!isOpen) return null;
-
-  /* ========================================
-   ROLE
-======================================== */
 
 const currentRole =
   profile?.role
     ?.toLowerCase()
     ?.trim() || "member";
 
-/* ========================================
-   AVAILABLE USERS
-======================================== */
 
 const availableUsers =
   (users || []).filter(
@@ -50,7 +42,6 @@ const availableUsers =
 
           
 
-      /* ========= ADMIN ========= */
 
       if (
         currentRole ===
@@ -62,7 +53,6 @@ const availableUsers =
         );
       }
 
-      /* ========= MANAGER ========= */
 
       if (
         currentRole ===
@@ -71,11 +61,9 @@ const availableUsers =
 
         return (
 
-            /* EXCLUDE ADMINS + MANAGERS */
             role !== "admin" &&
             role !== "team manager" &&
 
-            /* ONLY USERS UNDER THIS MANAGER */
             String(
               user.manager_id
             ) ===
@@ -85,7 +73,6 @@ const availableUsers =
           );
       }
 
-      /* ========= MEMBER ========= */
 
       if (
         currentRole ===
@@ -102,9 +89,6 @@ const availableUsers =
     }
   );
 
-/* ========================================
-   MANAGERS
-======================================== */
 const managers =
   users?.filter(
     (user) =>
@@ -114,9 +98,6 @@ const managers =
       "team manager"
   ) || [];
 
-/* ========================================
-   MEMBERS
-======================================== */
 
 const members =
   availableUsers.filter(
@@ -127,14 +108,10 @@ const members =
       "member"
   );
 
-/* ========================================
-   SPECIFIC TEAMS
-======================================== */
 
 const managerTeams =
   (users || [])
 
-    /* ONLY TEAM MANAGERS */
     .filter((user) => {
 
       const role =
@@ -149,7 +126,6 @@ const managerTeams =
 
     .map((manager) => {
 
-      /* MEMBERS UNDER THIS MANAGER */
       const teamMembers =
         (users || []).filter(
           (user) =>
@@ -160,7 +136,6 @@ const managerTeams =
                 manager.id
               ) &&
 
-            /* EXCLUDE ADMINS + MANAGERS */
             user.role
               ?.toLowerCase()
               ?.trim() !==
@@ -206,9 +181,6 @@ const managerTeams =
         team.totalMembers > 0
     );
 
-/* ========================================
-   SELECTED TEAM
-======================================== */
 
 const selectedTeam =
   managerTeams.find(
@@ -221,9 +193,6 @@ const selectedTeam =
       )
   );
 
-/* ========================================
-   TEAM PREVIEW USERS
-======================================== */
 
 const selectedTeamUsers =
   (users || []).filter(
@@ -232,9 +201,6 @@ const selectedTeamUsers =
         user.id
       )
   );
-  /* ========================================
-     PRIORITY COLORS
-  ======================================== */
 
   const priorityStyles = {
     High: "text-red-600",
@@ -243,76 +209,15 @@ const selectedTeamUsers =
     Low: "text-emerald-600",
   };
 
-  /* ========================================
-   TEAM STRUCTURE
-======================================== */
+  if (!isOpen) return null;
 
-const teamOptions =
-  useMemo(() => {
-
-    /* ONLY MANAGERS */
-    const managers =
-      (members || []).filter(
-        (member) => {
-
-          const role =
-            member.role
-              ?.toLowerCase()
-              ?.trim();
-
-          return (
-            role ===
-              "manager" ||
-            role ===
-              "team manager"
-          );
-        }
-      );
-
-    return managers.map(
-      (manager) => {
-
-        const teamMembers =
-          (members || []).filter(
-            (member) =>
-              String(
-                member.manager_id
-              ) ===
-                String(
-                  manager.id
-                )
-          );
-
-        return {
-          managerName:
-            manager.full_name,
-
-          teamName:
-            `${manager.full_name}'s Team`,
-
-          department:
-            manager.department,
-
-          totalMembers:
-            teamMembers.length,
-
-          managerId:
-            manager.id,
-        };
-      }
-    );
-
-  }, [members]);
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
 
-      {/* MODAL */}
       <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 rounded-[32px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto">
 
-        {/* HEADER */}
-        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-8">
+        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-5">
 
-          {/* CLOSE */}
           <button
             onClick={onClose}
             className="absolute top-5 right-5 w-11 h-11 rounded-2xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition"
@@ -322,7 +227,7 @@ const teamOptions =
 
           <div className="flex items-start gap-5">
 
-            <div className="w-16 h-16 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-lg">
 
               <Target size={30} />
 
@@ -347,10 +252,8 @@ const teamOptions =
 
         </div>
 
-        {/* BODY */}
-        <div className="p-8 space-y-7">
+        <div className="p-5 space-y-5">
 
-          {/* TITLE */}
           <div>
 
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
@@ -380,7 +283,6 @@ const teamOptions =
 
           </div>
 
-          {/* DESCRIPTION */}
           <div>
 
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
@@ -412,7 +314,6 @@ const teamOptions =
 
           </div>
 
-          {/* ASSIGNMENT TYPE */}
           <div>
 
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
@@ -448,7 +349,6 @@ const teamOptions =
                 Select Assignment Type
               </option>
 
-              {/* ADMIN OPTIONS */}
               {currentRole ===
                 "admin" && (
                 <>
@@ -474,7 +374,6 @@ const teamOptions =
                 </>
               )}
 
-              {/* MANAGER OPTIONS */}
               {currentRole ===
                 "team manager" && (
                 <>
@@ -488,7 +387,6 @@ const teamOptions =
                 </>
               )}
 
-              {/* MEMBER */}
               {currentRole ===
                 "member" && (
                 <option value="self">
@@ -502,7 +400,6 @@ const teamOptions =
 
           </div>
 
-          {/* CONDITIONAL ASSIGNMENT */}
           {(newGoal.assignment_type ===
             "individual" ||
             newGoal.assignment_type ===
@@ -548,7 +445,7 @@ const teamOptions =
                       {
                         user.full_name
                       }{" "}
-                      •{" "}
+                      â€¢{" "}
                       {user.role}
                     </option>
                   )
@@ -558,7 +455,6 @@ const teamOptions =
 
             </div>
           )}
-{/* SPECIFIC TEAM */}
 {currentRole ===
   "admin" &&
   newGoal.assignment_type ===
@@ -566,7 +462,6 @@ const teamOptions =
 
   <div className="space-y-5">
 
-    {/* LABEL */}
     <div>
 
       <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
@@ -588,7 +483,6 @@ const teamOptions =
 
     </div>
 
-    {/* SELECT */}
     <div className="relative">
 
       <select
@@ -618,7 +512,6 @@ const teamOptions =
             manager_id:
               selectedManagerId,
 
-            /* TEAM IDS */
             team_member_ids:
               selectedTeam
                 ?.allTeamIds || [],
@@ -644,7 +537,7 @@ const teamOptions =
             >
 
               {team.teamName}
-              {" • "}
+              {" â€¢ "}
               {
                 team.totalMembers
               }{" "}
@@ -658,12 +551,10 @@ const teamOptions =
 
     </div>
 
-    {/* TEAM PREVIEW */}
     {selectedTeam && (
 
-      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-[28px] p-6">
+      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-[28px] p-5">
 
-        {/* HEADER */}
         <div className="flex items-center justify-between gap-4 mb-5">
 
           <div className="flex items-center gap-4">
@@ -695,7 +586,6 @@ const teamOptions =
 
           </div>
 
-          {/* TOTAL */}
           <div className="px-4 py-2 rounded-2xl bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-semibold text-sm">
 
             {
@@ -709,7 +599,6 @@ const teamOptions =
 
         </div>
 
-        {/* MANAGER */}
         <div className="mb-6">
 
           <div className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-3">
@@ -746,7 +635,6 @@ const teamOptions =
 
         </div>
 
-        {/* TEAM MEMBERS */}
         <div>
 
           <div className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-3">
@@ -799,11 +687,9 @@ const teamOptions =
   </div>
 )}
 
-          {/* GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
            
-            {/* TARGET DATE */}
             <div>
 
               <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
@@ -838,7 +724,6 @@ const teamOptions =
 
           </div>
 
-          {/* PRIORITY */}
           <div>
 
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold dark:text-white">
@@ -887,7 +772,6 @@ const teamOptions =
 
           </div>
 
-          {/* INFO */}
           <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-5">
 
             <div className="flex items-start gap-3">
@@ -923,7 +807,6 @@ const teamOptions =
 
         </div>
 
-        {/* FOOTER */}
         <div className="sticky bottom-0 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 px-8 py-5 flex items-center justify-end gap-4">
 
           <button

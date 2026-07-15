@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// GET MEMBERS OF A PROJECT
 export async function getProjectMembers(projectId) {
   const { data, error } = await supabase
     .from("project_members")
@@ -21,7 +20,6 @@ export async function getProjectMembers(projectId) {
   return data;
 }
 
-// ADD MEMBER
 export async function addProjectMember(projectId, userId, role = "member") {
   const { data, error } = await supabase
     .from("project_members")
@@ -32,7 +30,6 @@ export async function addProjectMember(projectId, userId, role = "member") {
   return data[0];
 }
 
-// REMOVE MEMBER
 export async function removeProjectMember(id) {
   const { error } = await supabase
     .from("project_members")

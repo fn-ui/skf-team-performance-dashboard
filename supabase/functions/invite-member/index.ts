@@ -1,46 +1,40 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
 import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
-console.log("Hello from Functions!");
-
-// This endpoint uses 'publishable' | 'secret' access, apiKey is required.
-// Use publishable for Client-facing, key-validated endpoints
-// Use secret for Server-to-server, internal calls
-export default {
-  fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
-    // Called by another service with a secret key
-    // ctx.supabaseAdmin bypasses RLS — use for privileged operations
-    /*
-    if (ctx.authMode === "secret") {
-      const { user_id } = await req.json();
-      const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
-
-      return Response.json({
-        email: data?.user?.email,
-      });
-    }
-    */
-
-    const { name } = await req.json();
-
-    return Response.json({
-      message: `Hello ${name}!`,
-    });
-  }),
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-/* To invoke locally:
+Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  try {
+    const authorization = request.headers.get("Authorization");
+    if (!authorization) return Response.json({ error: "Authentication required" }, { status: 401, headers: corsHeaders });
 
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
+    const url = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !anonKey || !serviceRoleKey) throw new Error("Supabase function secrets are not configured");
 
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/invite-member' \
-    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
-    --data '{"name":"Functions"}'
+    const userClient = createClient(url, anonKey, { global: { headers: { Authorization: authorization } } });
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    if (userError || !userData.user) return Response.json({ error: "Invalid session" }, { status: 401, headers: corsHeaders });
 
-*/
+    const adminClient = createClient(url, serviceRoleKey);
+    const { data: caller } = await adminClient.from("profiles").select("role").eq("id", userData.user.id).single();
+    const role = String(caller?.role || "").trim().toLowerCase();
+    if (!["admin", "administrator", "manager", "team manager"].includes(role)) return Response.json({ error: "You do not have permission to invite members" }, { status: 403, headers: corsHeaders });
+
+    const { email } = await request.json();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) return Response.json({ error: "A valid email is required" }, { status: 400, headers: corsHeaders });
+
+    const redirectTo = Deno.env.get("APP_URL");
+    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(normalizedEmail, redirectTo ? { redirectTo } : undefined);
+    if (error) return Response.json({ error: error.message }, { status: 400, headers: corsHeaders });
+    return Response.json({ invited: true, user_id: data.user?.id }, { headers: corsHeaders });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Invitation failed" }, { status: 500, headers: corsHeaders });
+  }
+});

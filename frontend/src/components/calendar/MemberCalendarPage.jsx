@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useMemo,
   useState,
@@ -17,6 +17,7 @@ import {
   Link2,
   Flag,
 } from "lucide-react";
+import CalendarFocusPanel from "./CalendarFocusPanel";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -30,9 +31,6 @@ function MemberCalendarPage() {
   const { profile } =
     useAuth();
 
-  /* ========================================
-     STATES
-  ======================================== */
 
   const [events, setEvents] =
     useState([]);
@@ -66,9 +64,6 @@ function MemberCalendarPage() {
     setIsDetailsOpen,
   ] = useState(false);
 
-  /* ========================================
-     LOAD EVENTS
-  ======================================== */
 
   useEffect(() => {
     if (profile?.id) {
@@ -97,9 +92,6 @@ function MemberCalendarPage() {
 
         setMembers(allUsers);
 
-              /* ========================================
-                MEMBER VISIBLE EVENTS 
-              ======================================== */
 
               const visibleEvents = allEvents.filter((event) => {
                 const eventCreatedBy = String(event.created_by || "");
@@ -109,16 +101,12 @@ function MemberCalendarPage() {
                 const userDepartment = String(profile?.department || "").trim().toLowerCase();
                 const eventTeamTarget = String(event.team_target || "").trim().toLowerCase();
 
-                /* CREATED BY ME */
                 const createdByMe = eventCreatedBy === currentUserId;
 
-                /* DIRECTLY ASSIGNED TO ME */
                 const assignedToMe = eventAssignedTo === currentUserId;
 
-                /* ASSIGNED TO MY MANAGER */
                 const assignedToMyManager = eventAssignedTo === myManagerId;
 
-                /* TEAM EVENT (from manager OR admin) */
                 const isTeamEvent = 
                   (event.visibility === "team" || event.visibility === "individual") &&
                   (
@@ -128,10 +116,8 @@ function MemberCalendarPage() {
                     !event.team_target                                  
                   );
 
-                /* ORGANIZATION-WIDE EVENT */
                 const organizationEvent = event.visibility === "organization";
 
-                /* ROLE-BASED EVENT */
                 const roleEvent = 
                   event.assignment_type === "role" && 
                   event.role_target === profile?.role;
@@ -146,7 +132,6 @@ function MemberCalendarPage() {
                 );
               });
 
-        /* SORT EVENTS  */
 
         const sortedEvents = [...visibleEvents].sort((a, b) => {
           const first = new Date(`${a.date} ${a.time || "00:00"}`);
@@ -165,9 +150,6 @@ function MemberCalendarPage() {
       }
     };
 
-  /* ========================================
-     HELPERS
-  ======================================== */
 
   const formatDate = (
     dateValue
@@ -244,9 +226,6 @@ function MemberCalendarPage() {
     );
   };
 
-  /* ========================================
-     FILTER EVENTS
-  ======================================== */
 
   const filteredEvents =
     useMemo(() => {
@@ -320,9 +299,6 @@ function MemberCalendarPage() {
       statusFilter,
     ]);
 
-  /* ========================================
-     STATS
-  ======================================== */
 
   const totalEvents =
     filteredEvents.length;
@@ -356,9 +332,6 @@ function MemberCalendarPage() {
         isOverdue(event)
     ).length;
 
-  /* ========================================
-     NEXT EVENT
-  ======================================== */
 
   const nextEvent =
     useMemo(() => {
@@ -402,9 +375,6 @@ function MemberCalendarPage() {
         })[0];
     }, [filteredEvents]);
 
-  /* ========================================
-     OPEN DETAILS
-  ======================================== */
 
   const handleOpenDetails =
     (event) => {
@@ -413,9 +383,6 @@ function MemberCalendarPage() {
       setIsDetailsOpen(true);
     };
 
-  /* ========================================
-     PRIORITY COLORS
-  ======================================== */
 
   const getPriorityColor =
     (priority) => {
@@ -436,9 +403,6 @@ function MemberCalendarPage() {
       }
     };
 
-  /* ========================================
-     STATUS COLORS
-  ======================================== */
 
   const getStatusColor =
     (status) => {
@@ -459,13 +423,10 @@ function MemberCalendarPage() {
       }
     };
 
-  /* ========================================
-     LOADING
-  ======================================== */
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-10 dark:text-white">
+      <div className="flex items-center gap-3 p-5 dark:text-white">
         <Loader2 className="animate-spin" />
 
         Loading calendar...
@@ -474,13 +435,12 @@ function MemberCalendarPage() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-5 space-y-6">
 
-      {/* HEADER */}
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
-          Team Calendar
+          My Calendar
         </h1>
 
         <p className="mt-2 text-slate-500 dark:text-zinc-400">
@@ -491,9 +451,10 @@ function MemberCalendarPage() {
 
       </div>
 
-      {/* NEXT EVENT */}
+      <CalendarFocusPanel events={events} roleMode="member" />
+
       {nextEvent && (
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-3xl p-7 text-white shadow-xl">
+        <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl p-5 text-white shadow-xl">
 
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
@@ -561,7 +522,6 @@ function MemberCalendarPage() {
         </div>
       )}
 
-      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
 
         <StatCard
@@ -612,12 +572,10 @@ function MemberCalendarPage() {
 
       </div>
 
-      {/* FILTERS */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 border border-slate-200 dark:border-zinc-800">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-          {/* SEARCH */}
           <div className="lg:col-span-2 relative">
 
             <Search
@@ -639,7 +597,6 @@ function MemberCalendarPage() {
 
           </div>
 
-          {/* PRIORITY */}
           <select
             value={
               priorityFilter
@@ -670,7 +627,6 @@ function MemberCalendarPage() {
 
           </select>
 
-          {/* STATUS */}
           <select
             value={
               statusFilter
@@ -709,7 +665,6 @@ function MemberCalendarPage() {
 
       </div>
 
-      {/* EVENTS */}
       <div className="space-y-5">
 
         {filteredEvents.map(
@@ -717,12 +672,11 @@ function MemberCalendarPage() {
 
             <div
               key={event.id}
-              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition"
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition"
             >
 
               <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
 
-                {/* LEFT */}
                 <div className="flex-1">
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -775,7 +729,6 @@ function MemberCalendarPage() {
                     }
                   </p>
 
-                  {/* INFO GRID */}
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mt-6">
 
                     <InfoCard
@@ -817,7 +770,6 @@ function MemberCalendarPage() {
 
                   </div>
 
-                  {/* MEETING LINK */}
                   {event.meeting_link && (
                     <a
                       href={
@@ -837,7 +789,6 @@ function MemberCalendarPage() {
 
                 </div>
 
-                {/* ACTION */}
                 <button
                   onClick={() =>
                     handleOpenDetails(
@@ -859,11 +810,10 @@ function MemberCalendarPage() {
 
       </div>
 
-      {/* EMPTY STATE */}
       {filteredEvents.length ===
         0 && (
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-16 border border-slate-200 dark:border-zinc-800 text-center">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 text-center">
 
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
 
@@ -890,7 +840,6 @@ function MemberCalendarPage() {
         </div>
       )}
 
-      {/* DETAILS MODAL */}
       <EventDetailsModal
         isOpen={
           isDetailsOpen
@@ -909,9 +858,6 @@ function MemberCalendarPage() {
   );
 }
 
-/* ========================================
-   MINI STAT
-======================================== */
 
 function MiniStat({
   label,
@@ -932,9 +878,6 @@ function MiniStat({
   );
 }
 
-/* ========================================
-   STAT CARD
-======================================== */
 
 function StatCard({
   title,
@@ -942,7 +885,7 @@ function StatCard({
   icon,
 }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
       <div className="flex items-center justify-between">
 
@@ -970,9 +913,6 @@ function StatCard({
   );
 }
 
-/* ========================================
-   INFO CARD
-======================================== */
 
 function InfoCard({
   label,

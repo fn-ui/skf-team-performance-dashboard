@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import { supabase } from "../../lib/supabase";
 
@@ -117,7 +117,6 @@ export default function ResetPassword() {
 
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* SUCCESS */}
 
         {success ? (
 
@@ -155,7 +154,6 @@ export default function ResetPassword() {
         ) : (
 
           <>
-            {/* HEADER */}
 
             <div className="mb-8 text-center">
 
@@ -179,7 +177,6 @@ export default function ResetPassword() {
 
             </div>
 
-            {/* FORM */}
 
             <form
               onSubmit={
@@ -188,7 +185,6 @@ export default function ResetPassword() {
               className="space-y-5"
             >
 
-              {/* PASSWORD */}
 
               <div>
 
@@ -243,7 +239,6 @@ export default function ResetPassword() {
 
               </div>
 
-              {/* CONFIRM */}
 
               <div>
 
@@ -273,7 +268,6 @@ export default function ResetPassword() {
 
               </div>
 
-              {/* BUTTON */}
 
               <button
                 type="submit"

@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// 👥 GET ALL USERS
 export async function getUsers() {
   const { data, error } =
     await supabase

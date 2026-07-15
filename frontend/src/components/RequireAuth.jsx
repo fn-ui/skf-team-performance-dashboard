@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+﻿import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
 
@@ -12,7 +12,6 @@ export default function RequireAuth({
     profile,
   } = useAuth();
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
@@ -22,7 +21,6 @@ export default function RequireAuth({
     );
   }
 
-  /* ================= NOT AUTHENTICATED ================= */
 
   if (!user) {
     return (
@@ -33,7 +31,6 @@ export default function RequireAuth({
     );
   }
 
-  /* ================= FORCE PASSWORD CREATION ================= */
 
   const passwordCreated =
     user?.user_metadata
@@ -48,7 +45,6 @@ export default function RequireAuth({
     );
   }
 
-  /* ================= PROFILE NOT READY ================= */
 
   if (!profile) {
     return (
@@ -58,7 +54,6 @@ export default function RequireAuth({
     );
   }
 
-  /* ================= ROLE CHECK ================= */
 
   const role = profile.role;
 
@@ -74,7 +69,6 @@ export default function RequireAuth({
     );
   }
 
-  /* ================= ALLOWED ================= */
 
   return children;
 }

@@ -1,3 +1,4 @@
+﻿import ProjectDeliveryPanel from "./ProjectDeliveryPanel";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   CalendarDays,
@@ -61,9 +62,8 @@ const { profile } = useAuth();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-slate-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* HEADER */}
         <div className="mb-8 flex items-start justify-between gap-6">
 
           <div>
@@ -82,12 +82,11 @@ const { profile } = useAuth();
             onClick={onClose}
             className="h-10 w-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
           >
-            ✕
+            âœ•
           </button>
 
         </div>
 
-        {/* STATUS + PRIORITY */}
         <div className="mb-8 flex flex-wrap gap-4">
 
           <span
@@ -108,7 +107,6 @@ const { profile } = useAuth();
 
         </div>
 
-        {/* PROGRESS */}
         <div className="mb-8">
 
           <div className="mb-3 flex items-center justify-between">
@@ -138,11 +136,9 @@ const { profile } = useAuth();
 
         </div>
 
-        {/* DETAILS GRID */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
           
-          {/* MANAGER */}
               {mode !== "manager" && (
                 <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
@@ -162,9 +158,8 @@ const { profile } = useAuth();
               </div>
             )}
 
-                        {/* MEMBER TASK VIEW */}
                       {isMember && (
-                <div className="mt-8 rounded-2xl bg-slate-50 p-6 dark:bg-zinc-800">
+                <div className="mt-8 rounded-2xl bg-slate-50 p-5 dark:bg-zinc-800">
 
                   <h3 className="mb-5 text-xl font-bold dark:text-white">
                     Your Assigned Tasks
@@ -230,7 +225,6 @@ const { profile } = useAuth();
 
                 </div>
               )}
-          {/* DEADLINE */}
           <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-800">
 
             <div className="mb-2 flex items-center gap-2">
@@ -253,7 +247,6 @@ const { profile } = useAuth();
 
           </div>
 
-                      {/* TASKS */}
               <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-800">
 
                 <div className="mb-2 flex items-center gap-2">
@@ -284,7 +277,6 @@ const { profile } = useAuth();
                 </h3>
               </div>
 
-                          {/* MEMBERS */}
                 {!isMember && (
                   <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-800">
 
@@ -355,7 +347,6 @@ const { profile } = useAuth();
 
         </div>
 
-        {/* MANAGER EXTRA SECTION */}
         {isManager && (
           <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/30">
 
@@ -373,7 +364,8 @@ const { profile } = useAuth();
           </div>
         )}
 
-        {/* FOOTER */}
+        <ProjectDeliveryPanel projectId={project.id} roleMode={mode} />
+
         <div className="mt-10 flex items-center justify-end">
 
           <button

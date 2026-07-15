@@ -1,8 +1,7 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// ========================================
-// GET USER NOTIFICATIONS
-// ========================================
+let notificationSubscriptionId = 0;
+
 
 export const getNotifications =
   async (userId) => {
@@ -34,9 +33,6 @@ export const getNotifications =
     }
   };
 
-// ========================================
-// CREATE NOTIFICATION
-// ========================================
 
 export const createNotification =
   async ({
@@ -79,9 +75,6 @@ export const createNotification =
     }
   };
 
-// ========================================
-// MARK ONE AS READ
-// ========================================
 
 export const markNotificationAsRead =
   async (
@@ -113,9 +106,6 @@ export const markNotificationAsRead =
     }
   };
 
-// ========================================
-// MARK ALL AS READ
-// ========================================
 
 export const markAllNotificationsAsRead =
   async (userId) => {
@@ -144,9 +134,6 @@ export const markAllNotificationsAsRead =
     }
   };
 
-// ========================================
-// DELETE NOTIFICATION
-// ========================================
 
 export const deleteNotification =
   async (
@@ -174,9 +161,6 @@ export const deleteNotification =
     }
   };
 
-// ========================================
-// DELETE ALL USER NOTIFICATIONS
-// ========================================
 
 export const clearNotifications =
   async (userId) => {
@@ -202,18 +186,17 @@ export const clearNotifications =
     }
   };
 
-// ========================================
-// REALTIME SUBSCRIPTION
-// ========================================
 
 export const subscribeToNotifications =
   (
     userId,
     callback
   ) => {
+    notificationSubscriptionId += 1;
+
     return supabase
       .channel(
-        `notifications-${userId}`
+        `notifications-${userId}-${notificationSubscriptionId}`
       )
       .on(
         "postgres_changes",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import {
   LockKeyhole,
@@ -45,10 +45,8 @@ function SecuritySettings() {
 
   };
 
-  // UPDATE PASSWORD
   const handleSave = async () => {
 
-    // VALIDATION
     if (
       !securityData.newPassword ||
       !securityData.confirmPassword
@@ -95,7 +93,6 @@ function SecuritySettings() {
         "Password updated successfully!"
       );
 
-      // RESET FORM
       setSecurityData({
         currentPassword: "",
         newPassword: "",
@@ -123,9 +120,8 @@ function SecuritySettings() {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8">
+    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
-      {/* HEADER */}
       <div>
 
         <h2 className="text-2xl font-bold dark:text-white">
@@ -139,10 +135,8 @@ function SecuritySettings() {
 
       </div>
 
-      {/* PASSWORD SECTION */}
       <div className="mt-10 space-y-6">
 
-        {/* CURRENT PASSWORD */}
         <div>
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -195,7 +189,6 @@ function SecuritySettings() {
 
         </div>
 
-        {/* NEW PASSWORD */}
         <div>
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -230,7 +223,6 @@ function SecuritySettings() {
 
         </div>
 
-        {/* CONFIRM PASSWORD */}
         <div>
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -267,8 +259,7 @@ function SecuritySettings() {
 
       </div>
 
-      {/* SECURITY INFO */}
-      <div className="mt-10 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+      <div className="mt-10 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
         <div className="flex items-start gap-4">
 
@@ -297,7 +288,6 @@ function SecuritySettings() {
 
       </div>
 
-      {/* SAVE */}
       <div className="flex justify-end mt-10">
 
         <button

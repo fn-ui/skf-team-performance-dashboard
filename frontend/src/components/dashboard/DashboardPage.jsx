@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import {
   useCallback,
   useEffect,
@@ -689,8 +689,8 @@ function DashboardPage({ mode }) {
   }
 
   return (
-    <div className="space-y-7 pb-8">
-      <section className="relative overflow-hidden rounded-2xl border border-white/70 bg-[linear-gradient(135deg,rgba(4,120,87,0.96)_0%,rgba(8,94,104,0.96)_48%,rgba(113,73,24,0.92)_100%)] p-5 text-white shadow-[0_26px_80px_rgba(4,120,87,0.22)] dark:border-white/10 dark:shadow-black/40 sm:p-7">
+    <div className="space-y-5 pb-8">
+      <section className="relative overflow-hidden rounded-2xl border border-white/70 bg-[linear-gradient(135deg,rgba(4,120,87,0.96)_0%,rgba(8,94,104,0.96)_48%,rgba(113,73,24,0.92)_100%)] p-5 text-white shadow-[0_26px_80px_rgba(4,120,87,0.22)] dark:border-white/10 dark:shadow-black/40 sm:p-5">
         <div className="fine-noise absolute inset-0 opacity-20" />
 
         <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1fr)_430px] xl:items-end">
@@ -1106,7 +1106,7 @@ function DashboardPage({ mode }) {
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 pb-8">
-      <div className="surface-panel min-h-[220px] animate-pulse p-6">
+      <div className="surface-panel min-h-[220px] animate-pulse p-5">
         <div className="h-8 w-44 rounded-full bg-slate-200 dark:bg-zinc-800" />
         <div className="mt-8 h-10 w-2/3 rounded-full bg-slate-200 dark:bg-zinc-800" />
         <div className="mt-4 h-4 w-1/2 rounded-full bg-slate-200 dark:bg-zinc-800" />
@@ -1421,7 +1421,7 @@ function EmptyState({
   compact = false,
 }) {
   return (
-    <div className={`flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 text-center dark:border-zinc-800 dark:bg-zinc-900/40 ${compact ? "m-4 p-6" : "min-h-[220px] p-8"}`}>
+    <div className={`flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 text-center dark:border-zinc-800 dark:bg-zinc-900/40 ${compact ? "m-4 p-5" : "min-h-[220px] p-5"}`}>
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm dark:bg-zinc-900 dark:text-zinc-400">
         <Icon size={22} />
       </div>

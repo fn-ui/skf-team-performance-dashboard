@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-/* ================= GET PROJECTS ================= */
 
 export async function getProjects() {
   const { data, error } =
@@ -37,6 +36,7 @@ export async function getProjects() {
                 priority,
                 due_date,
                 project_id,
+                assignee_id,
 
                 task_assignees (
                   user_id,
@@ -63,7 +63,6 @@ export async function getProjects() {
     throw error;
   }
 
-  /* FORMAT DATA */
 
   const formatted =
     (data || []).map(
@@ -95,7 +94,6 @@ export async function getProjects() {
   return formatted;
 }
 
-/* ================= CREATE PROJECT ================= */
 
 export async function createProject(
   project
@@ -165,7 +163,6 @@ export async function createProject(
   };
 }
 
-/* ================= UPDATE PROJECT ================= */
 
 export async function updateProject(
   id,
@@ -238,7 +235,6 @@ export async function updateProject(
   };
 }
 
-/* ================= DELETE PROJECT ================= */
 
 export async function deleteProject(
   id
@@ -261,13 +257,11 @@ export async function deleteProject(
   return true;
 }
 
-/* ================= ASSIGN MEMBERS ================= */
 
 export async function assignProjectMembers(
   projectId,
   members
 ) {
-  /* REMOVE OLD MEMBERS */
 
   const {
     error: deleteError,
@@ -285,13 +279,11 @@ export async function assignProjectMembers(
     throw deleteError;
   }
 
-  /* NO MEMBERS */
 
   if (!members?.length) {
     return [];
   }
 
-  /* INSERT NEW MEMBERS */
 
   const membersToInsert =
     members.map((userId) => ({
@@ -320,7 +312,6 @@ export async function assignProjectMembers(
   return data;
 }
 
-/* ================= GET SINGLE PROJECT ================= */
 
 export async function getProjectById(
   id

@@ -1,4 +1,4 @@
-import {
+﻿import {
   X,
   HelpCircle,
   ShieldCheck,
@@ -31,6 +31,8 @@ function HelpModal({
   isOpen,
   onClose,
 }) {
+  const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || "support@example.com";
+  const supportPhone = import.meta.env.VITE_SUPPORT_PHONE || "+12025550100";
 
   const { profile } =
     useAuth();
@@ -43,9 +45,6 @@ function HelpModal({
 
   
 
-  /* ========================================
-     ROLE CONFIG
-  ======================================== */
 
   const roleConfig = {
 
@@ -257,9 +256,6 @@ function HelpModal({
       profile?.role
     ];
 
- /* ========================================
-   FAQS 
-======================================== */
 
 const faqData = {
   admin: [
@@ -393,9 +389,6 @@ const faqs =
   faqData[
     profile?.role
   ] || [];
-  /* ========================================
-     FILTER FAQS
-  ======================================== */
 
   const filteredFaqs =
     useMemo(() => {
@@ -425,13 +418,10 @@ const faqs =
 
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
 
-      {/* MODAL */}
       <div className="relative w-full max-w-6xl bg-white dark:bg-zinc-900 rounded-[32px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden max-h-[94vh] overflow-y-auto">
 
-        {/* HEADER */}
         <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-8">
 
-          {/* CLOSE */}
           <button
             onClick={onClose}
             className="absolute top-5 right-5 w-11 h-11 rounded-2xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition"
@@ -441,7 +431,6 @@ const faqs =
 
           </button>
 
-          {/* HEADER CONTENT */}
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">
 
             <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-lg">
@@ -470,10 +459,8 @@ const faqs =
 
         </div>
 
-        {/* BODY */}
         <div className="p-8 space-y-10">
 
-          {/* SEARCH */}
           <div>
 
             <div className="relative">
@@ -499,7 +486,6 @@ const faqs =
 
           </div>
 
-          {/* ROLE GUIDE */}
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-[28px] border border-slate-200 dark:border-zinc-700 p-8">
 
             <div className="flex items-start gap-5 mb-8">
@@ -536,7 +522,6 @@ const faqs =
 
             </div>
 
-            {/* FEATURES */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
 
               {currentRole?.features?.map(
@@ -586,7 +571,6 @@ const faqs =
 
           </div>
 
-          {/* PRODUCTIVITY TIPS */}
           <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-[28px] p-8">
 
             <div className="flex items-start gap-5">
@@ -649,7 +633,6 @@ const faqs =
 
           </div>
 
-          {/* FAQS */}
           <div>
 
             <h3 className="text-3xl font-bold dark:text-white mb-6">
@@ -729,18 +712,15 @@ const faqs =
 
           </div>
 
-          {/* SUPPORT */}
 {profile?.role !==
   "admin" && (
 
   <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-zinc-800 dark:to-zinc-900 rounded-[32px] border border-slate-200 dark:border-zinc-700 p-8">
 
-    {/* BACKGROUND DECOR */}
     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
 
     <div className="absolute bottom-0 left-0 w-56 h-56 bg-blue-500/10 rounded-full blur-3xl" />
 
-    {/* HEADER */}
     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
 
       <div>
@@ -770,7 +750,6 @@ const faqs =
 
       </div>
 
-      {/* STATUS BADGE */}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
 
         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -781,12 +760,10 @@ const faqs =
 
     </div>
 
-    {/* SUPPORT CARDS */}
     <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      {/* EMAIL */}
       <a
-        href="mailto:fn0740839@gmail.com"
+        href={`mailto:${supportEmail}`}
         className="group bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-[28px] p-7 border border-slate-200 dark:border-zinc-700 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
       >
 
@@ -811,7 +788,7 @@ const faqs =
 
             <div className="mt-6 inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
 
-              fn0740839@gmail.com
+              {supportEmail}
 
             </div>
 
@@ -821,9 +798,8 @@ const faqs =
 
       </a>
 
-      {/* PHONE */}
       <a
-        href="tel:+254740839000"
+        href={`tel:${supportPhone}`}
         className="group bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-[28px] p-7 border border-slate-200 dark:border-zinc-700 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
       >
 

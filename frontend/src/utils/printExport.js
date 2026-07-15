@@ -1,7 +1,4 @@
-// ========================================
-// 🖨️ PRINT HTML ELEMENT
-// ========================================
-
+﻿
 export function printElementById(
   id,
   options = {}
@@ -12,7 +9,6 @@ export function printElementById(
     const element =
       document.getElementById(id);
 
-    // 🚫 NOT FOUND
     if (!element) {
 
       alert(
@@ -22,9 +18,6 @@ export function printElementById(
       return;
     }
 
-    // ========================================
-    // OPTIONS
-    // ========================================
 
     const {
       title = "Print Document",
@@ -32,14 +25,10 @@ export function printElementById(
       extraStyles = "",
     } = options;
 
-    // ========================================
-    // CLONE CONTENT
-    // ========================================
 
     const clonedContent =
       element.cloneNode(true);
 
-    // 🚫 REMOVE BUTTONS
     if (removeButtons) {
 
       clonedContent
@@ -49,9 +38,6 @@ export function printElementById(
         );
     }
 
-    // ========================================
-    // OPEN PRINT WINDOW
-    // ========================================
 
     const printWindow =
       window.open(
@@ -69,9 +55,6 @@ export function printElementById(
       return;
     }
 
-    // ========================================
-    // DOCUMENT CONTENT
-    // ========================================
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -171,9 +154,6 @@ export function printElementById(
 
     printWindow.document.close();
 
-    // ========================================
-    // WAIT FOR CONTENT
-    // ========================================
 
     printWindow.onload = () => {
 

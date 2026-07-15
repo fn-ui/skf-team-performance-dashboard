@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   Link,
   useLocation,
@@ -23,6 +23,11 @@ import {
   Moon,
   Sun,
   HelpCircle,
+  Bell,
+  GitFork,
+  MessageCircle,
+  Gauge,
+  Rocket,
 } from "lucide-react";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -86,10 +91,6 @@ function Sidebar({
       name: "Reports",
       icon: FileText,
       path: "/reports",
-      roles: [
-        "admin",
-        "Team Manager",
-      ],
     },
     {
       name: "Goals",
@@ -102,22 +103,47 @@ function Sidebar({
       path: "/calendar",
     },
     {
+      name: "Team Chat",
+      icon: MessageCircle,
+      path: "/chat",
+    },
+    {
+      name: "Notifications",
+      icon: Bell,
+      path: "/notifications",
+    },
+    {
+      name: "Sprints",
+      icon: Gauge,
+      path: "/sprints",
+    },
+    {
+      name: "Releases",
+      icon: Rocket,
+      path: "/releases",
+    },
+    {
+      name: "Activity",
+      icon: Activity,
+      path: "/activity",
+    },
+    {
+      name: "Integrations",
+      icon: GitFork,
+      path: "/integrations",
+    },
+    {
       name: "Settings",
       icon: Settings,
       path: "/settings",
-      roles: ["admin"],
-    },
-    {
-      name: "User Management",
-      icon: Users,
-      path: "/admin/users",
-      roles: ["admin"],
     },
   ];
 
+  const rawRole = String(profile?.role || "member").trim().toLowerCase();
+  const normalizedRole = rawRole === "manager" ? "team manager" : rawRole;
+
   return (
     <>
-      {/* MOBILE MENU BUTTON */}
 
       {!mobileOpen && (
         <div className="fixed left-4 top-4 z-[80] lg:hidden">
@@ -133,7 +159,6 @@ function Sidebar({
         </div>
       )}
 
-      {/* MOBILE OVERLAY */}
 
       {mobileOpen && (
         <div
@@ -144,7 +169,6 @@ function Sidebar({
         />
       )}
 
-      {/* SIDEBAR */}
 
       <aside
         className={`
@@ -169,11 +193,10 @@ function Sidebar({
           }
         `}
       >
-        {/* TOP */}
 
         <div
           className={`
-            relative flex-1 overflow-x-hidden p-5
+            relative flex-1 overflow-x-hidden p-4
             ${
               collapsed
                 ? "overflow-y-auto"
@@ -181,7 +204,6 @@ function Sidebar({
             }
           `}
         >
-          {/* COLLAPSE BUTTON */}
 
           <button
             onClick={() =>
@@ -215,10 +237,9 @@ function Sidebar({
             )}
           </button>
 
-          {/* LOGO */}
 
           <div
-            className={`mb-10 flex items-center ${
+            className={`mb-6 flex items-center ${
               collapsed
                 ? "justify-center"
                 : "gap-3"
@@ -241,7 +262,6 @@ function Sidebar({
             )}
           </div>
 
-          {/* MOBILE CLOSE BUTTON */}
 
           <div className="mb-6 flex justify-end lg:hidden">
             <button
@@ -255,17 +275,13 @@ function Sidebar({
             </button>
           </div>
 
-          {/* MENU */}
 
-          <nav className="flex flex-col gap-3 overflow-x-hidden">
+          <nav className="flex flex-col gap-1.5 overflow-x-hidden">
             {menus
               .filter(
                 (m) =>
                   !m.roles ||
-                  m.roles.includes(
-                    profile?.role ||
-                      "member"
-                  )
+                  m.roles.map((role) => role.toLowerCase()).includes(normalizedRole)
               )
               .map((menu, index) => {
                 const Icon =
@@ -287,7 +303,7 @@ function Sidebar({
                       }
                     }}
                     className={`
-                      group relative flex w-full items-center overflow-hidden rounded-xl border p-3
+                      group relative flex w-full items-center overflow-hidden rounded-xl border px-3 py-2.5
                       transition-all duration-300
                       ${
                         collapsed
@@ -323,22 +339,14 @@ function Sidebar({
           </nav>
         </div>
 
-        {/* BOTTOM */}
 
-        <div className="border-t border-white/10 p-5">
-          {/* PROFILE */}
+        <div className="border-t border-white/10 p-4">
 
 <div className="relative mb-5">
   <div
-    onClick={() => {
-      if (profile?.role !== "admin") {
-        setProfileOpen(
-          !profileOpen
-        );
-      }
-    }}
+    onClick={() => setProfileOpen(!profileOpen)}
     className={`
-      rounded-2xl border border-white/10 bg-white/10 p-3
+      rounded-xl border border-white/10 bg-white/10 p-2.5
       backdrop-blur-md flex items-center
       transition cursor-pointer
       hover:border-white/20 hover:bg-white/15
@@ -351,7 +359,6 @@ function Sidebar({
   >
     
 
-  {/* AVATAR */}
 <div className="flex h-12 w-12 min-w-[48px] items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-lg font-bold text-white shadow-md ring-2 ring-white/20">
 
   {profile?.avatar_url && profile.avatar_url !== "" ? (
@@ -361,7 +368,7 @@ function Sidebar({
       alt="avatar"
       className="h-full w-full object-cover"
       onError={(e) => {
-        e.target.style.display = 'none'; // Hide broken image
+        e.target.style.display = 'none';
       }}
     />
   ) : (
@@ -387,29 +394,14 @@ function Sidebar({
           </p>
         </div>
 
-        {/* ONLY SHOW DROPDOWN ICON FOR NON-ADMINS */}
-
-        {profile?.role !==
-          "admin" && (
-          <ChevronRight
-            size={18}
-            className={`text-white/70 transition ${
-              profileOpen
-                ? "rotate-90"
-                : ""
-            }`}
-          />
-        )}
+        <ChevronRight size={18} className={`text-white/70 transition ${profileOpen ? "rotate-90" : ""}`} />
       </>
     )}
   </div>
 
-  {/* DROPDOWN */}
 
   {!collapsed &&
-    profileOpen &&
-    profile?.role !==
-      "admin" && (
+    profileOpen && (
       <div className="mt-2 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-xl">
         <Link
           to="/profile"
@@ -423,7 +415,6 @@ function Sidebar({
       </div>
     )}
 </div>
-          {/* ACTION BUTTONS */}
 
           <div
             className={`flex items-center ${
@@ -432,7 +423,6 @@ function Sidebar({
                 : "justify-between"
             }`}
           >
-            {/* DARK MODE */}
 
             <button
               onClick={
@@ -449,7 +439,6 @@ function Sidebar({
               )}
             </button>
 
-            {/* HELP */}
 
             <button
                 onClick={() =>
@@ -464,7 +453,6 @@ function Sidebar({
 
               </button>
 
-            {/* LOGOUT */}
 
             <button
               onClick={() =>

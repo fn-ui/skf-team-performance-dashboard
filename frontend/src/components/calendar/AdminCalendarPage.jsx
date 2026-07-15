@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useMemo,
   useState,
@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Layers3,
 } from "lucide-react";
+import CalendarFocusPanel from "./CalendarFocusPanel";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -39,7 +40,6 @@ import EventDetailsModal from "./EventDetailsModal";
 function AdminCalendarPage() {
   const { profile } = useAuth();
 
-  /* ================= STATE ================= */
 
   const [events, setEvents] =
     useState([]);
@@ -119,7 +119,6 @@ function AdminCalendarPage() {
         profile?.id || null,
     });
 
-  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
     loadData();
@@ -137,9 +136,6 @@ function AdminCalendarPage() {
         getUsers(),
       ]);
 
-      /* =========================================
-         ADMIN CAN SEE EVERYTHING
-      ========================================= */
 
       const sortedEvents =
         (eventsData || []).sort(
@@ -161,7 +157,6 @@ function AdminCalendarPage() {
     }
   };
 
-  /* ================= HELPERS ================= */
 
   const getAssignedUserName =
     (userId) => {
@@ -257,7 +252,6 @@ function AdminCalendarPage() {
       }
     };
 
-  /* ================= FILTER EVENTS ================= */
 
   const filteredEvents =
     events
@@ -308,7 +302,6 @@ function AdminCalendarPage() {
             assignmentFilter
       );
 
-  /* ================= STATS ================= */
 
   const totalEvents =
     events.length;
@@ -348,7 +341,6 @@ function AdminCalendarPage() {
           "organization"
     ).length;
 
-  /* ================= UPCOMING EVENT ================= */
 
   const nextEvent = useMemo(() => {
     const upcoming =
@@ -368,7 +360,6 @@ function AdminCalendarPage() {
     return upcoming[0];
   }, [events]);
 
-  /* ================= DETAILS ================= */
 
   const handleOpenDetails = (
     event
@@ -378,7 +369,6 @@ function AdminCalendarPage() {
     setIsDetailsOpen(true);
   };
 
-  /* ================= EDIT ================= */
 
   const handleEditEvent = (
     event
@@ -441,7 +431,6 @@ function AdminCalendarPage() {
     setIsAddOpen(true);
   };
 
-  /* ================= DELETE ================= */
 
   const handleDeleteEvent =
     async (id) => {
@@ -468,7 +457,6 @@ function AdminCalendarPage() {
         );
       }
     };
-  /* ================= CREATE / UPDATE ================= */
 
   const handleAddEvent = async () => {
     try {
@@ -488,7 +476,6 @@ function AdminCalendarPage() {
         created_by: profile?.id || null,
       };
 
-      //  NORMALIZATION
      if (
           newEvent.assignment_type === "team" &&
           newEvent.team_target?.trim()
@@ -508,7 +495,6 @@ function AdminCalendarPage() {
         setEvents((prev) => [createdEvent, ...prev]);
       }
 
-      // Reset form
       setNewEvent({
         title: "",
         description: "",
@@ -536,11 +522,10 @@ function AdminCalendarPage() {
     }
   };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-10 dark:text-white">
+      <div className="flex items-center gap-3 p-5 dark:text-white">
 
         <Loader2 className="animate-spin" />
 
@@ -551,9 +536,8 @@ function AdminCalendarPage() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-5 space-y-6">
 
-      {/* HEADER */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
 
         <div>
@@ -625,9 +609,10 @@ function AdminCalendarPage() {
 
       </div>
 
-      {/* UPCOMING EVENT */}
+      <CalendarFocusPanel events={events} roleMode="admin" />
+
       {nextEvent && (
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white shadow-xl">
+        <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-2xl p-5 text-white shadow-xl">
 
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
 
@@ -695,7 +680,6 @@ function AdminCalendarPage() {
         </div>
       )}
 
-      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-6">
 
         <StatCard
@@ -748,12 +732,10 @@ function AdminCalendarPage() {
 
       </div>
 
-      {/* FILTERS */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-5">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-5">
 
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
 
-          {/* SEARCH */}
           <div className="xl:col-span-2 relative">
 
             <Search
@@ -775,7 +757,6 @@ function AdminCalendarPage() {
 
           </div>
 
-          {/* STATUS */}
           <select
             value={statusFilter}
             onChange={(e) =>
@@ -808,7 +789,6 @@ function AdminCalendarPage() {
 
           </select>
 
-          {/* PRIORITY */}
           <select
             value={priorityFilter}
             onChange={(e) =>
@@ -837,7 +817,6 @@ function AdminCalendarPage() {
 
           </select>
 
-          {/* ASSIGNMENT */}
           <select
             value={
               assignmentFilter
@@ -884,7 +863,6 @@ function AdminCalendarPage() {
 
       </div>
 
-      {/* EVENTS */}
       <div className="space-y-5">
 
         {filteredEvents.map(
@@ -892,10 +870,10 @@ function AdminCalendarPage() {
 
             <div
               key={event.id}
-              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition"
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition"
             >
 
-              <div className="flex flex-col xl:flex-row xl:justify-between gap-8">
+              <div className="flex flex-col xl:flex-row xl:justify-between gap-6">
 
                 <div className="flex-1">
 
@@ -1029,10 +1007,9 @@ function AdminCalendarPage() {
 
       </div>
 
-      {/* EMPTY */}
       {filteredEvents.length ===
         0 && (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-6">
 
@@ -1051,7 +1028,6 @@ function AdminCalendarPage() {
         </div>
       )}
 
-      {/* MODALS */}
       <AddEventModal
         isOpen={isAddOpen}
         onClose={() => {
@@ -1090,7 +1066,6 @@ function AdminCalendarPage() {
   );
 }
 
-/* ================= MINI STAT ================= */
 
 function MiniStat({
   label,
@@ -1111,7 +1086,6 @@ function MiniStat({
   );
 }
 
-/* ================= STAT CARD ================= */
 
 function StatCard({
   title,
@@ -1119,7 +1093,7 @@ function StatCard({
   icon,
 }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
       <div className="flex items-center justify-between">
 
@@ -1147,7 +1121,6 @@ function StatCard({
   );
 }
 
-/* ================= INFO CARD ================= */
 
 function InfoCard({
   label,
@@ -1168,7 +1141,6 @@ function InfoCard({
   );
 }
 
-/* ================= ACTION BUTTON ================= */
 
 function ActionButton({
   icon,

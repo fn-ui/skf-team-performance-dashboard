@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useRef } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -42,7 +42,6 @@ function ProfileSettings() {
       avatar_url: "",
     });
 
-  // FETCH PROFILE SETTINGS
   useEffect(() => {
 
     if (profile?.id) {
@@ -91,7 +90,6 @@ function ProfileSettings() {
     }
   };
 
-  // HANDLE INPUT CHANGE
   const handleChange = (e) => {
 
     setFormData({
@@ -102,12 +100,11 @@ function ProfileSettings() {
 
   };
 
-// SAVE PROFILE
 const handleSave = async () => {
   try {
     setSaving(true);
 
-    console.log("💾 Saving profile with data:", {
+    console.log("ðŸ’¾ Saving profile with data:", {
       full_name: formData.full_name,
       bio: formData.bio,
     });
@@ -117,13 +114,10 @@ const handleSave = async () => {
       bio: formData.bio,
     });
 
-    // Give Supabase a moment to save
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Refresh global profile
     const updatedProfile = await refreshProfile();
 
-    // Update local form data
     if (updatedProfile) {
       setFormData({
         full_name: updatedProfile.full_name || formData.full_name,
@@ -134,7 +128,7 @@ const handleSave = async () => {
       });
     }
 
-    alert("Profile updated successfully! ✅");
+    alert("Profile updated successfully! âœ…");
 
   } catch (error) {
     console.error("UPDATE PROFILE ERROR:", error.message);
@@ -151,21 +145,20 @@ const handleAvatarUpload = async (e) => {
 
     setUploading(true);
 
-    console.log("📸 Uploading avatar...");
+    console.log("ðŸ“¸ Uploading avatar...");
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
-    // Use the correct bucket name
     const { error: uploadError } = await supabase.storage
-      .from("profile-images")           // ← Changed here
+      .from("profile-images")
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) throw uploadError;
 
     const { data: urlData } = supabase.storage
-      .from("profile-images")           // ← Changed here too
+      .from("profile-images")
       .getPublicUrl(filePath);
 
     const avatar_url = urlData.publicUrl;
@@ -175,7 +168,7 @@ const handleAvatarUpload = async (e) => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     await refreshProfile();
 
-    console.log("✅ Avatar uploaded successfully");
+    console.log("âœ… Avatar uploaded successfully");
 
   } catch (error) {
     console.error("UPLOAD ERROR:", error.message);
@@ -185,11 +178,10 @@ const handleAvatarUpload = async (e) => {
   }
 };
 
-  // LOADING
   if (loading) {
 
     return (
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
         <div className="flex items-center gap-3 dark:text-white">
 
@@ -204,9 +196,8 @@ const handleAvatarUpload = async (e) => {
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8">
+    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 
         <div>
@@ -223,7 +214,6 @@ const handleAvatarUpload = async (e) => {
 
         </div>
 
-        {/* PROFILE IMAGE */}
         <div className="relative">
 
           <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
@@ -260,10 +250,8 @@ const handleAvatarUpload = async (e) => {
 
       </div>
 
-      {/* FORM */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
 
-        {/* FULL NAME */}
         <div>
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -293,7 +281,6 @@ const handleAvatarUpload = async (e) => {
 
         </div>
 
-        {/* EMAIL */}
         <div>
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -319,7 +306,6 @@ const handleAvatarUpload = async (e) => {
 
         </div>
 
-        {/* ROLE */}
         <div>
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -345,7 +331,6 @@ const handleAvatarUpload = async (e) => {
 
         </div>
 
-        {/* BIO */}
         <div className="md:col-span-2">
 
           <label className="block text-sm font-medium dark:text-white mb-2">
@@ -365,7 +350,6 @@ const handleAvatarUpload = async (e) => {
 
       </div>
 
-      {/* SAVE BUTTON */}
       <div className="flex justify-end mt-10">
 
         <button

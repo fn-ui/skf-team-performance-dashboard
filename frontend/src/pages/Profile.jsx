@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useState,
 } from "react";
@@ -34,7 +34,6 @@ function Profile() {
   const [avatarUrl, setAvatarUrl] =
     useState("");
 
-  /* ================= FORM ================= */
 
   const [fullName, setFullName] =
     useState("");
@@ -51,7 +50,6 @@ function Profile() {
   const [department, setDepartment] =
     useState("");
 
-  /* ================= FETCH DETAILS ================= */
 
   useEffect(() => {
     const fetchDetails =
@@ -61,13 +59,11 @@ function Profile() {
         try {
           setLoading(true);
 
-          /* PROFILE */
 
           setFullName(
             profile?.full_name || ""
           );
 
-          /* MEMBER DETAILS */
 
           const { data, error } =
             await supabase
@@ -117,7 +113,6 @@ function Profile() {
     fetchDetails();
   }, [user, profile]);
 
-  /* ================= IMAGE UPLOAD ================= */
 
   const handleImageUpload =
     async (e) => {
@@ -174,7 +169,6 @@ function Profile() {
       }
     };
 
-  /* ================= SAVE ================= */
 
   const handleSave =
     async (e) => {
@@ -185,7 +179,6 @@ function Profile() {
       try {
         setSaving(true);
 
-        /* UPDATE PROFILE */
 
         const {
           error: profileError,
@@ -201,7 +194,6 @@ function Profile() {
           throw profileError;
         }
 
-        /* UPSERT MEMBER DETAILS */
             const {
             error: detailsError,
             } = await supabase
@@ -252,19 +244,17 @@ function Profile() {
 
   if (loading) {
     return (
-      <div className="p-6 text-slate-500 dark:text-zinc-400">
+      <div className="p-5 text-slate-500 dark:text-zinc-400">
         Loading profile...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 dark:bg-zinc-950">
-      <div className="mx-auto max-w-5xl rounded-3xl bg-white p-8 shadow-xl dark:bg-zinc-900">
-        {/* HEADER */}
+    <div className="min-h-screen bg-slate-100 p-5 dark:bg-zinc-950">
+      <div className="mx-auto max-w-5xl rounded-2xl bg-white p-5 shadow-xl dark:bg-zinc-900">
 
         <div className="mb-10 flex flex-col items-center">
-          {/* AVATAR */}
 
           <div className="relative mb-5">
             <div className="flex h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-5xl font-bold text-white shadow-2xl">
@@ -282,7 +272,6 @@ function Profile() {
               )}
             </div>
 
-            {/* IMAGE BUTTON */}
 
             <label className="absolute bottom-2 right-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition hover:scale-105 hover:bg-emerald-700">
               <Camera size={18} />
@@ -309,13 +298,11 @@ function Profile() {
           </p>
         </div>
 
-        {/* FORM */}
 
         <form
           onSubmit={handleSave}
           className="grid gap-6 md:grid-cols-2"
         >
-          {/* FULL NAME */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -335,7 +322,6 @@ function Profile() {
             />
           </div>
 
-          {/* PHONE */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -355,7 +341,6 @@ function Profile() {
             />
           </div>
 
-          {/* LOCATION */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -377,7 +362,6 @@ function Profile() {
 
           
 
-          {/* DEPARTMENT */}
 
             <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -398,7 +382,6 @@ function Profile() {
             </p>
             </div>
 
-          {/* EMAIL */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -415,7 +398,6 @@ function Profile() {
             />
           </div>
 
-          {/* ROLE */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -433,7 +415,6 @@ function Profile() {
             />
           </div>
 
-          {/* BIO */}
 
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -454,7 +435,6 @@ function Profile() {
           </div>
    
 
-          {/* SAVE */}
 
           <div className="md:col-span-2">
             <button
@@ -470,9 +450,8 @@ function Profile() {
             </button>
           </div>
         </form>
-                 {/* SECURITY SECTION */}
 
-<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
   
   <div className="mb-4">
     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">

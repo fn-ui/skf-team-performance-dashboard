@@ -1,4 +1,4 @@
-import { FileDown } from "lucide-react";
+﻿import { FileDown } from "lucide-react";
 
 function ExportReportModal({
   isOpen,
@@ -13,9 +13,8 @@ function ExportReportModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-2xl border border-slate-200 dark:border-zinc-800 p-8 shadow-2xl">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl border border-slate-200 dark:border-zinc-800 p-5 shadow-2xl">
 
-        {/* HEADER */}
         <div className="flex items-start justify-between gap-4">
 
           <div>
@@ -44,12 +43,11 @@ function ExportReportModal({
             onClick={onClose}
             className="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center text-slate-500 hover:text-red-500 transition"
           >
-            ✕
+            âœ•
           </button>
 
         </div>
 
-        {/* QUICK STATS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
 
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4">
@@ -102,15 +100,13 @@ function ExportReportModal({
 
         </div>
 
-        {/* EXPORT OPTIONS */}
         <div className="space-y-5 mt-10">
 
-          {/* PDF */}
           <button
             onClick={() =>
               setSelectedFormat("PDF")
             }
-            className={`w-full border rounded-3xl p-6 text-left transition-all
+            className={`w-full border rounded-2xl p-5 text-left transition-all
               ${
                 selectedFormat === "PDF"
                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow-sm"
@@ -154,12 +150,11 @@ function ExportReportModal({
 
           </button>
 
-          {/* EXCEL */}
           <button
             onClick={() =>
               setSelectedFormat("Excel")
             }
-            className={`w-full border rounded-3xl p-6 text-left transition-all
+            className={`w-full border rounded-2xl p-5 text-left transition-all
               ${
                 selectedFormat === "Excel"
                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow-sm"
@@ -203,12 +198,11 @@ function ExportReportModal({
 
           </button>
 
-          {/* CSV */}
           <button
             onClick={() =>
               setSelectedFormat("CSV")
             }
-            className={`w-full border rounded-3xl p-6 text-left transition-all
+            className={`w-full border rounded-2xl p-5 text-left transition-all
               ${
                 selectedFormat === "CSV"
                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow-sm"
@@ -254,7 +248,6 @@ function ExportReportModal({
 
         </div>
 
-        {/* FOOTER */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10 pt-6 border-t border-slate-200 dark:border-zinc-800">
 
           <div>

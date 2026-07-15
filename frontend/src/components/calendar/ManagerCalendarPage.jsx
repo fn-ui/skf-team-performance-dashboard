@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useMemo,
   useState,
@@ -21,6 +21,7 @@ import {
   Link2,
   UserRound,
 } from "lucide-react";
+import CalendarFocusPanel from "./CalendarFocusPanel";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -39,9 +40,6 @@ import EventDetailsModal from "./EventDetailsModal";
 function ManagerCalendarPage() {
   const { profile } = useAuth();
 
-  /* =====================================================
-     STATES
-  ===================================================== */
 
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);
@@ -56,9 +54,6 @@ function ManagerCalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
 
-  /* =====================================================
-     NEW EVENT
-  ===================================================== */
 
   const initialEventState = {
     title: "",
@@ -79,9 +74,6 @@ function ManagerCalendarPage() {
 
   const [newEvent, setNewEvent] = useState(initialEventState);
 
-  /* =====================================================
-     LOAD DATA
-  ===================================================== */
 
   useEffect(() => {
     if (profile?.id) {
@@ -101,9 +93,6 @@ function ManagerCalendarPage() {
       const allEvents = eventsData || [];
       const allUsers = usersData || [];
 
-      /* =========================================
-         TEAM MEMBERS
-      ========================================= */
 
       const availableMembers = allUsers.filter((user) => {
         const isCurrentUser = String(user.id) === String(profile?.id);
@@ -116,7 +105,6 @@ function ManagerCalendarPage() {
       setMembers(availableMembers);
 
       const memberIds = new Set(availableMembers.map((member) => String(member.id)));
-              //visible events
             const visibleEvents = allEvents.filter((event) => {
               const eventCreatedBy = String(event.created_by || "");
               const eventAssignedTo = String(event.assigned_to || "");
@@ -136,33 +124,21 @@ function ManagerCalendarPage() {
                 .trim()
                 .toLowerCase();
 
-              /* =========================================
-                CREATED BY THIS MANAGER
-              ========================================= */
 
               if (eventCreatedBy === currentUserId) {
                 return true;
               }
 
-              /* =========================================
-                DIRECTLY ASSIGNED TO THIS MANAGER
-              ========================================= */
 
               if (eventAssignedTo === currentUserId) {
                 return true;
               }
 
-              /* =========================================
-                EVENTS ASSIGNED TO TEAM MEMBERS
-              ========================================= */
 
               if (memberIds.has(eventAssignedTo)) {
                 return true;
               }
 
-                /* =========================================
-                  TEAM EVENTS FOR THIS MANAGER'S DEPARTMENT
-                ========================================= */
 
                 if (
                   event.assignment_type === "team" &&
@@ -170,9 +146,6 @@ function ManagerCalendarPage() {
                 ) {
                   return true;
                 }
-              /* =========================================
-                ORGANIZATION EVENTS
-              ========================================= */
 
               if (
                 event.assignment_type === "all" ||
@@ -185,7 +158,6 @@ function ManagerCalendarPage() {
               return false;
             });
 
-      // Sort 
       const sortedEvents = [...visibleEvents].sort((a, b) => {
         const first = new Date(`${a.date} ${a.time || "00:00"}`);
         const second = new Date(`${b.date} ${b.time || "00:00"}`);
@@ -200,9 +172,6 @@ function ManagerCalendarPage() {
     }
   };
 
-  /* =====================================================
-     HELPERS
-  ===================================================== */
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "-";
@@ -251,9 +220,6 @@ function ManagerCalendarPage() {
     }
   };
 
-  /* =====================================================
-     FILTER EVENTS
-  ===================================================== */
 
   const filteredEvents = events
     .filter((event) => {
@@ -268,9 +234,6 @@ function ManagerCalendarPage() {
     .filter((event) => statusFilter === "All" ? true : event.status === statusFilter)
     .filter((event) => typeFilter === "All" ? true : event.type === typeFilter);
 
-  /* =====================================================
-     STATS + NEXT EVENT 
-  ===================================================== */
 
   const totalEvents = events.length;
   const completedEvents = events.filter((event) => event.status === "Completed").length;
@@ -294,9 +257,6 @@ function ManagerCalendarPage() {
       })[0];
   }, [events]);
 
-  /* =====================================================
-     DETAILS, EDIT, DELETE, CREATE/UPDATE
-  ===================================================== */
 
   const handleOpenDetails = (event) => {
     setSelectedEvent(event);
@@ -366,7 +326,6 @@ function ManagerCalendarPage() {
         setEvents((prev) => [createdEvent, ...prev]);
       }
 
-      // Reset form
       setNewEvent({
         ...initialEventState,
         created_by: profile?.id || null,
@@ -380,13 +339,10 @@ function ManagerCalendarPage() {
     }
   };
 
-  /* =====================================================
-     LOADING
-  ===================================================== */
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-10 dark:text-white">
+      <div className="flex items-center gap-3 p-5 dark:text-white">
         <Loader2 className="animate-spin" />
 
         Loading calendar...
@@ -395,11 +351,8 @@ function ManagerCalendarPage() {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-6 p-5">
 
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
@@ -446,12 +399,11 @@ function ManagerCalendarPage() {
 
       </div>
 
-      {/* =====================================================
-          UPCOMING EVENT
-      ===================================================== */}
+      <CalendarFocusPanel events={events} roleMode="manager" />
+
 
       {nextEvent && (
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-700 p-8 text-white shadow-xl">
+        <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 p-5 text-white shadow-xl">
 
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
 
@@ -519,9 +471,6 @@ function ManagerCalendarPage() {
         </div>
       )}
 
-      {/* =====================================================
-          STATS
-      ===================================================== */}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
 
@@ -567,15 +516,11 @@ function ManagerCalendarPage() {
 
       </div>
 
-      {/* =====================================================
-          FILTERS
-      ===================================================== */}
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
 
-          {/* SEARCH */}
 
           <div className="relative xl:col-span-2">
 
@@ -598,7 +543,6 @@ function ManagerCalendarPage() {
 
           </div>
 
-          {/* PRIORITY */}
 
           <select
             value={priorityFilter}
@@ -628,7 +572,6 @@ function ManagerCalendarPage() {
 
           </select>
 
-          {/* STATUS */}
 
           <select
             value={statusFilter}
@@ -662,7 +605,6 @@ function ManagerCalendarPage() {
 
           </select>
 
-          {/* TYPE */}
 
           <select
             value={typeFilter}
@@ -704,9 +646,6 @@ function ManagerCalendarPage() {
 
       </div>
 
-      {/* =====================================================
-          EVENTS
-      ===================================================== */}
 
       <div className="space-y-5">
 
@@ -715,14 +654,13 @@ function ManagerCalendarPage() {
 
             <div
               key={event.id}
-              className="rounded-3xl border border-slate-200 bg-white p-6 transition hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700"
+              className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700"
             >
 
               <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
 
                 <div className="flex-1">
 
-                  {/* TITLE */}
 
                   <div className="flex flex-wrap items-center gap-3">
 
@@ -764,7 +702,6 @@ function ManagerCalendarPage() {
 
                   </div>
 
-                  {/* DESCRIPTION */}
 
                   <p className="mt-4 leading-relaxed text-slate-500 dark:text-zinc-400">
                     {
@@ -772,7 +709,6 @@ function ManagerCalendarPage() {
                     }
                   </p>
 
-                  {/* INFO */}
 
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
@@ -833,7 +769,6 @@ function ManagerCalendarPage() {
 
                 </div>
 
-                {/* ACTIONS */}
 
                 <div className="flex gap-3 xl:flex-col">
 
@@ -892,13 +827,10 @@ function ManagerCalendarPage() {
 
       </div>
 
-      {/* =====================================================
-          EMPTY STATE
-      ===================================================== */}
 
       {filteredEvents.length ===
         0 && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
 
@@ -918,9 +850,6 @@ function ManagerCalendarPage() {
         </div>
       )}
 
-      {/* =====================================================
-          ADD EVENT MODAL
-      ===================================================== */}
 
       <AddEventModal
         isOpen={isAddOpen}
@@ -948,9 +877,6 @@ function ManagerCalendarPage() {
         saving={saving}
       />
 
-      {/* =====================================================
-          DETAILS MODAL
-      ===================================================== */}
 
       <EventDetailsModal
         isOpen={
@@ -970,9 +896,6 @@ function ManagerCalendarPage() {
   );
 }
 
-/* =====================================================
-   MINI STAT
-===================================================== */
 
 function MiniStat({
   label,
@@ -993,9 +916,6 @@ function MiniStat({
   );
 }
 
-/* =====================================================
-   STAT CARD
-===================================================== */
 
 function StatCard({
   title,
@@ -1003,7 +923,7 @@ function StatCard({
   icon,
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
 
       <div className="flex items-center justify-between">
 
@@ -1031,9 +951,6 @@ function StatCard({
   );
 }
 
-/* =====================================================
-   INFO CARD
-===================================================== */
 
 function InfoCard({
   icon,
@@ -1061,9 +978,6 @@ function InfoCard({
   );
 }
 
-/* =====================================================
-   ACTION BUTTON
-===================================================== */
 
 function ActionButton({
   icon,

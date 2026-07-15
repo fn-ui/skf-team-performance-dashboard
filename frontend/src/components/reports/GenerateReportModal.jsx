@@ -1,4 +1,4 @@
-function GenerateReportModal({
+﻿function GenerateReportModal({
   isOpen,
   onClose,
   newReport,
@@ -11,9 +11,8 @@ function GenerateReportModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-2xl border border-slate-200 dark:border-zinc-800 p-8 shadow-2xl">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl border border-slate-200 dark:border-zinc-800 p-5 shadow-2xl">
 
-        {/* HEADER */}
         <div className="flex items-start justify-between gap-4">
 
           <div>
@@ -32,15 +31,13 @@ function GenerateReportModal({
             onClick={onClose}
             className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 transition"
           >
-            ✕
+            âœ•
           </button>
 
         </div>
 
-        {/* FORM */}
-        <div className="space-y-7 mt-10">
+        <div className="space-y-5 mt-10">
 
-          {/* TITLE */}
           <div>
 
             <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -62,7 +59,6 @@ function GenerateReportModal({
 
           </div>
 
-          {/* PROJECT */}
           <div>
 
             <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -103,10 +99,8 @@ function GenerateReportModal({
 
           </div>
 
-          {/* CATEGORY + TYPE */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* CATEGORY */}
             <div>
 
               <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -134,7 +128,6 @@ function GenerateReportModal({
 
             </div>
 
-            {/* EXPORT TYPE */}
             <div>
 
               <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -162,10 +155,8 @@ function GenerateReportModal({
 
           </div>
 
-          {/* STATUS + DATE */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* STATUS */}
             <div>
 
               <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -190,7 +181,6 @@ function GenerateReportModal({
 
             </div>
 
-            {/* DATE */}
             <div>
 
               <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -213,7 +203,6 @@ function GenerateReportModal({
 
           </div>
 
-          {/* INFO CARD */}
           <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-5">
 
             <h3 className="font-bold text-emerald-700 dark:text-emerald-400">
@@ -276,7 +265,6 @@ function GenerateReportModal({
 
         </div>
 
-        {/* ACTIONS */}
         <div className="flex items-center justify-end gap-4 mt-10">
 
           <button

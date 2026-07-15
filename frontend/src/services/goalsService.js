@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// GET GOALS
 export async function getGoals() {
 
   const { data, error } =
@@ -22,7 +21,6 @@ export async function getGoals() {
   return data;
 }
 
-// CREATE GOAL
 export async function createGoal(goal) {
 
   const { data, error } =
@@ -42,7 +40,6 @@ export async function createGoal(goal) {
   return data[0];
 }
 
-// UPDATE GOAL
 export async function updateGoal(
   id,
   updates
@@ -66,7 +63,6 @@ export async function updateGoal(
   return data[0];
 }
 
-// DELETE GOAL
 export async function deleteGoal(id) {
 
   const { error } =

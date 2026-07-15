@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 function CreateProjectModal({
   isOpen,
@@ -13,9 +13,8 @@ function CreateProjectModal({
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 p-4">
 
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* HEADER */}
         <div className="mb-8 flex items-center justify-between">
 
           <div>
@@ -32,15 +31,13 @@ function CreateProjectModal({
             onClick={onClose}
             className="h-10 w-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
           >
-            ✕
+            âœ•
           </button>
 
         </div>
 
-        {/* FORM */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-          {/* NAME */}
           <div className="md:col-span-2">
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -62,7 +59,6 @@ function CreateProjectModal({
 
           </div>
 
-          {/* DESCRIPTION */}
           <div className="md:col-span-2">
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -84,7 +80,6 @@ function CreateProjectModal({
 
           </div>
 
-          {/* MANAGER */}
           <div>
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -119,7 +114,6 @@ function CreateProjectModal({
 
           </div>
 
-          {/* DEADLINE */}
           <div>
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -140,7 +134,6 @@ function CreateProjectModal({
 
           </div>
 
-          {/* PRIORITY */}
           <div>
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -176,7 +169,6 @@ function CreateProjectModal({
 
         </div>
 
-        {/* FOOTER */}
         <div className="mt-10 flex items-center justify-end gap-4">
 
           <button

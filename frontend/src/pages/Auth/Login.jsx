@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -35,9 +35,6 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  /* ========================================
-     LOGIN
-  ======================================== */
 
   const handleSubmit = async (
     e
@@ -54,10 +51,6 @@ export default function Login() {
         password
       );
 
-      /*
-        DashboardRouter
-        handles role redirects
-      */
 
       navigate("/");
 
@@ -74,9 +67,6 @@ export default function Login() {
     }
   };
 
-  /* ========================================
-     FORGOT PASSWORD
-  ======================================== */
 
   const handleForgotPassword =
     async () => {
@@ -129,7 +119,6 @@ export default function Login() {
 
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* HEADER */}
 
         <div className="mb-8 text-center">
 
@@ -149,14 +138,12 @@ export default function Login() {
 
         </div>
 
-        {/* FORM */}
 
         <form
           onSubmit={handleSubmit}
           className="space-y-5"
         >
 
-          {/* EMAIL */}
 
           <div>
 
@@ -190,7 +177,6 @@ export default function Login() {
 
           </div>
 
-          {/* PASSWORD */}
 
           <div>
 
@@ -246,7 +232,6 @@ export default function Login() {
 
           </div>
 
-          {/* FORGOT PASSWORD */}
 
           <div className="flex justify-end">
 
@@ -269,7 +254,6 @@ export default function Login() {
 
           </div>
 
-          {/* SUBMIT */}
 
           <button
             type="submit"

@@ -1,11 +1,7 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-/* =========================================================
-   📊 ADMIN REPORT STATS
-========================================================= */
 export async function getAdminReportStats() {
   try {
-    /* ================= TASKS ================= */
     const {
       data: tasks,
       error: tasksError,
@@ -31,7 +27,6 @@ export async function getAdminReportStats() {
 
     if (tasksError) throw tasksError;
 
-    /* ================= PROJECTS ================= */
     const {
       data: projects,
       error: projectsError,
@@ -49,7 +44,6 @@ export async function getAdminReportStats() {
 
     if (projectsError) throw projectsError;
 
-    /* ================= USERS ================= */
     const {
       data: users,
       error: usersError,
@@ -66,9 +60,6 @@ export async function getAdminReportStats() {
 
     if (usersError) throw usersError;
 
-    /* =========================================================
-       📊 TASK ANALYTICS
-    ========================================================= */
 
     const completedTasks = tasks.filter(
       (task) => task.status === "Completed"
@@ -90,9 +81,6 @@ export async function getAdminReportStats() {
         task.status !== "Completed"
     );
 
-    /* =========================================================
-       📊 USER ANALYTICS
-    ========================================================= */
 
     const admins = users.filter(
       (user) => user.role === "admin"
@@ -106,9 +94,6 @@ export async function getAdminReportStats() {
       (user) => user.role === "member"
     );
 
-    /* =========================================================
-       📊 PROJECT ANALYTICS
-    ========================================================= */
 
     const completedProjects =
       projects.filter(
@@ -128,9 +113,6 @@ export async function getAdminReportStats() {
           project.status === "Pending"
       );
 
-    /* =========================================================
-       📊 PRODUCTIVITY
-    ========================================================= */
 
     const productivity =
       tasks.length === 0
@@ -141,9 +123,6 @@ export async function getAdminReportStats() {
               100
           );
 
-    /* =========================================================
-       📊 PRIORITY BREAKDOWN
-    ========================================================= */
 
     const highPriorityTasks =
       tasks.filter(
@@ -163,9 +142,6 @@ export async function getAdminReportStats() {
           task.priority === "Low"
       );
 
-    /* =========================================================
-       📊 RECENT TASKS
-    ========================================================= */
 
     const recentTasks = [...tasks]
       .sort(
@@ -175,9 +151,6 @@ export async function getAdminReportStats() {
       )
       .slice(0, 10);
 
-    /* =========================================================
-       📊 RECENT PROJECTS
-    ========================================================= */
 
     const recentProjects = [...projects]
       .sort(
@@ -187,9 +160,6 @@ export async function getAdminReportStats() {
       )
       .slice(0, 10);
 
-    /* =========================================================
-       📊 MEMBER PERFORMANCE
-    ========================================================= */
 
     const memberPerformance =
       members.map((member) => {
@@ -238,17 +208,12 @@ export async function getAdminReportStats() {
         };
       });
 
-    /* =========================================================
-       RETURN EVERYTHING
-    ========================================================= */
 
     return {
-      // RAW DATA
       tasks: tasks || [],
       projects: projects || [],
       users: users || [],
 
-      // TASK STATS
       totalTasks: tasks.length,
       completedTasks:
         completedTasks.length,
@@ -259,7 +224,6 @@ export async function getAdminReportStats() {
       overdueTasks:
         overdueTasks.length,
 
-      // PROJECT STATS
       totalProjects:
         projects.length,
       completedProjects:
@@ -269,7 +233,6 @@ export async function getAdminReportStats() {
       pendingProjects:
         pendingProjects.length,
 
-      // USER STATS
       totalUsers: users.length,
       totalAdmins:
         admins.length,
@@ -278,10 +241,8 @@ export async function getAdminReportStats() {
       totalMembers:
         members.length,
 
-      // PRODUCTIVITY
       productivity,
 
-      // PRIORITIES
       highPriorityTasks:
         highPriorityTasks.length,
       mediumPriorityTasks:
@@ -289,11 +250,9 @@ export async function getAdminReportStats() {
       lowPriorityTasks:
         lowPriorityTasks.length,
 
-      // RECENT DATA
       recentTasks,
       recentProjects,
 
-      // MEMBER PERFORMANCE
       memberPerformance,
     };
   } catch (error) {

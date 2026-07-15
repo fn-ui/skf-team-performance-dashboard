@@ -1,4 +1,4 @@
-import { useAuth } from "../../contexts/AuthContext";
+﻿import { useAuth } from "../../contexts/AuthContext";
 
 import AdminMembers from "./AdminMembers";
 import ManagerMembers from "./ManagerMembers";
@@ -15,7 +15,7 @@ export default function MembersRouter() {
   }
 
   return (
-    <div className="p-6 text-gray-500 text-center">
+    <div className="p-5 text-gray-500 text-center">
       Access denied
     </div>
   );

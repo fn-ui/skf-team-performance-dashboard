@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// 📦 GET EVENTS
 export async function getEvents() {
   const { data, error } = await supabase
     .from("calendar_events")
@@ -19,7 +18,6 @@ export async function getEvents() {
   return data;
 }
 
-// ➕ CREATE EVENT
 export async function createEvent(
   eventData
 ) {
@@ -41,7 +39,6 @@ export async function createEvent(
   return data;
 }
 
-// ✏️ UPDATE EVENT
 export async function updateEvent(
   id,
   updates
@@ -65,7 +62,6 @@ export async function updateEvent(
   return data;
 }
 
-// 🗑 DELETE EVENT
 export async function deleteEvent(id) {
   const { error } = await supabase
     .from("calendar_events")

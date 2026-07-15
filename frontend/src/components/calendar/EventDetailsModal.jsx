@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 
 import {
   X,
@@ -27,9 +27,6 @@ function EventDetailsModal({
     return null;
   }
 
-  /* ========================================
-     PRIORITY COLORS
-  ======================================== */
 
   const getPriorityColor = (
     priority
@@ -49,9 +46,6 @@ function EventDetailsModal({
     }
   };
 
-  /* ========================================
-     STATUS COLORS
-  ======================================== */
 
   const getStatusColor = (
     status
@@ -74,9 +68,6 @@ function EventDetailsModal({
     }
   };
 
-  /* ========================================
-     ASSIGNED USER
-  ======================================== */
 
   const assignedUser =
     members.find(
@@ -85,9 +76,6 @@ function EventDetailsModal({
         selectedEvent.assigned_to
     );
 
-  /* ========================================
-     CREATED BY USER
-  ======================================== */
 
   const createdByUser =
     members.find(
@@ -96,9 +84,6 @@ function EventDetailsModal({
         selectedEvent.created_by
     );
 
-  /* ========================================
-     ASSIGNMENT LABEL
-  ======================================== */
 
   const assignmentLabel =
     useMemo(() => {
@@ -112,7 +97,7 @@ function EventDetailsModal({
             : "Individual Member";
 
         case "team":
-          return `Team • ${
+          return `Team â€¢ ${
             selectedEvent.team_target ||
             "Department"
           }`;
@@ -121,7 +106,7 @@ function EventDetailsModal({
           return "Managers";
 
         case "role":
-          return `Role • ${
+          return `Role â€¢ ${
             selectedEvent.role_target ||
             "-"
           }`;
@@ -140,9 +125,6 @@ function EventDetailsModal({
       assignedUser,
     ]);
 
-  /* ========================================
-     VISIBILITY LABEL
-  ======================================== */
 
   const visibilityLabel =
     useMemo(() => {
@@ -165,15 +147,14 @@ function EventDetailsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm">
 
-     <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
-        {/* HEADER */}
-        <div className="border-b border-slate-200 p-6 dark:border-zinc-800">
+     <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="border-b border-slate-200 p-5 dark:border-zinc-800">
 
           <div className="flex items-start justify-between gap-5">
 
             <div className="flex items-start gap-4">
 
-              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
 
                 <CalendarDays size={30} />
 
@@ -233,13 +214,10 @@ function EventDetailsModal({
 
         </div>
 
-        {/* BODY */}
         <div className="space-y-5 p-4">
 
-          {/* QUICK STATS */}
           <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
-            {/* DATE */}
             <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
@@ -267,7 +245,6 @@ function EventDetailsModal({
 
             </div>
 
-            {/* TIME */}
             <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
@@ -295,7 +272,6 @@ function EventDetailsModal({
 
             </div>
 
-            {/* TYPE */}
             <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
@@ -323,7 +299,6 @@ function EventDetailsModal({
 
             </div>
 
-            {/* VISIBILITY */}
             <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-950">
 
               <div className="flex items-center gap-4">
@@ -354,10 +329,8 @@ function EventDetailsModal({
 
           </div>
 
-          {/* ASSIGNMENT + CREATOR */}
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
-            {/* ASSIGNMENT */}
             <div className="border-b border-slate-200 p-4 dark:border-zinc-800">
               <div className="mb-5 flex items-center gap-3">
 
@@ -449,8 +422,7 @@ function EventDetailsModal({
 
             </div>
 
-            {/* CREATED BY */}
-            <div className="rounded-2xl border border-slate-200 p-6 dark:border-zinc-800">
+            <div className="rounded-2xl border border-slate-200 p-5 dark:border-zinc-800">
 
               <div className="mb-5 flex items-center gap-3">
 
@@ -518,9 +490,8 @@ function EventDetailsModal({
 
           </div>
 
-          {/* MEETING LINK */}
           {selectedEvent.meeting_link && (
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950/20">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
 
               <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
@@ -564,8 +535,7 @@ function EventDetailsModal({
             </div>
           )}
 
-          {/* DESCRIPTION */}
-          <div className="rounded-3xl bg-slate-50 p-6 dark:bg-zinc-950">
+          <div className="rounded-2xl bg-slate-50 p-5 dark:bg-zinc-950">
 
             <div className="mb-5 flex items-center gap-3">
 
@@ -584,8 +554,7 @@ function EventDetailsModal({
 
           </div>
 
-          {/* REMINDER */}
-          <div className="flex items-start gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950/20">
+          <div className="flex items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950/20">
 
             <AlertCircle className="mt-0.5 text-amber-600 dark:text-amber-400" />
 

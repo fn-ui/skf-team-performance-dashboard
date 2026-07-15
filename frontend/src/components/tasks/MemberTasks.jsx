@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -34,7 +34,6 @@ function MemberTasks() {
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-      //  PAGINATION
   const [currentPage, setCurrentPage] =
     useState(1);
 
@@ -58,14 +57,12 @@ const [editedTask, setEditedTask] =
   setIsEditOpen(true);
 };
 
-  //  LOAD TASKS
   useEffect(() => {
     if (!profile?.id) return;
 
     loadTasks();
   }, [profile?.id]);
 
-  //  FETCH TASKS
   const loadTasks = async () => {
     try {
       setLoading(true);
@@ -86,7 +83,6 @@ const [editedTask, setEditedTask] =
     }
   };
 
-  //  MEMBER TASKS
   const memberTasks = (tasks || [])
     .filter((task) => {
       const assignees =
@@ -116,7 +112,6 @@ const [editedTask, setEditedTask] =
           statusFilter
     );
 
-      //  PAGINATED TASKS
   const totalPages = Math.ceil(
     memberTasks.length /
       tasksPerPage
@@ -135,12 +130,10 @@ const [editedTask, setEditedTask] =
       endIndex
     );
 
-      //  RESET PAGE
   useEffect(() => {
     setCurrentPage(1);
   }, [search, statusFilter]);
 
-  //  STATS
   const completedTasks =
     memberTasks.filter(
       (task) =>
@@ -162,7 +155,6 @@ const [editedTask, setEditedTask] =
         "Pending"
     ).length;
 
-  // 👁 OPEN DETAILS
   const handleOpenDetails = (
     task
   ) => {
@@ -171,7 +163,6 @@ const [editedTask, setEditedTask] =
     setIsDetailsOpen(true);
   };
 
-  // 🔄 UPDATE STATUS
  const handleStatusChange =
   async (
     id,
@@ -258,7 +249,6 @@ const [editedTask, setEditedTask] =
     }
   };
 
-  // 🎨 PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -279,18 +269,16 @@ const [editedTask, setEditedTask] =
 
  
 
-  // ⏳ LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading tasks...
       </div>
     );
   }
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
         <h1 className="text-3xl font-bold dark:text-white">
           My Tasks
@@ -301,11 +289,9 @@ const [editedTask, setEditedTask] =
         </p>
       </div>
 
-      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <p className="text-slate-500 dark:text-zinc-400">
             Total Tasks
@@ -317,8 +303,7 @@ const [editedTask, setEditedTask] =
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -343,8 +328,7 @@ const [editedTask, setEditedTask] =
 
         </div>
 
-        {/* IN PROGRESS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -369,8 +353,7 @@ const [editedTask, setEditedTask] =
 
         </div>
 
-        {/* PENDING */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -397,10 +380,8 @@ const [editedTask, setEditedTask] =
 
       </div>
 
-      {/* FILTERS */}
       <div className="flex flex-col lg:flex-row gap-4">
 
-        {/* SEARCH */}
         <div className="relative flex-1">
 
           <Search
@@ -420,7 +401,6 @@ const [editedTask, setEditedTask] =
 
         </div>
 
-        {/* FILTER */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -436,17 +416,15 @@ const [editedTask, setEditedTask] =
 
       </div>
 
-      {/* TASKS */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
         {paginatedTasks.map((task) => (
 
           <div
             key={task.id}
-            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6"
+            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
           >
 
-            {/* TOP */}
             <div className="flex items-start justify-between gap-4">
 
               <div>
@@ -477,12 +455,10 @@ const [editedTask, setEditedTask] =
 
             </div>
 
-            {/* DESCRIPTION */}
             <p className="text-slate-500 dark:text-zinc-400 mt-5 leading-relaxed">
               {task.description}
             </p>
 
-            {/* PROGRESS */}
             <div className="mt-6">
 
               <div className="flex items-center justify-between mb-2">
@@ -510,7 +486,6 @@ const [editedTask, setEditedTask] =
 
             </div>
 
-            {/* FOOTER */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-6">
 
               <p className="text-sm text-slate-500">
@@ -519,7 +494,6 @@ const [editedTask, setEditedTask] =
 
               <div className="flex items-center gap-3">
 
-                {/* VIEW */}
                 <button
                   onClick={() =>
                     handleOpenDetails(task)
@@ -530,7 +504,6 @@ const [editedTask, setEditedTask] =
                   <Eye size={16} />
 
                 </button>
-                {/* EDIT */}
                 <button
                   onClick={() =>
                     handleEditTask(task)
@@ -553,11 +526,9 @@ const [editedTask, setEditedTask] =
         ))}
 
       </div>
-            {/* PAGINATION */}
       {memberTasks.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
 
-          {/* INFO */}
           <p className="text-sm text-slate-500 dark:text-zinc-400">
             Showing{" "}
             {startIndex + 1}
@@ -570,10 +541,8 @@ const [editedTask, setEditedTask] =
             {memberTasks.length} tasks
           </p>
 
-          {/* CONTROLS */}
           <div className="flex items-center gap-2 flex-wrap">
 
-            {/* PREVIOUS */}
             <button
               onClick={() =>
                 setCurrentPage(
@@ -592,7 +561,6 @@ const [editedTask, setEditedTask] =
               Previous
             </button>
 
-            {/* PAGE NUMBERS */}
             {Array.from(
               { length: totalPages },
               (_, index) => (
@@ -617,7 +585,6 @@ const [editedTask, setEditedTask] =
               )
             )}
 
-            {/* NEXT */}
             <button
               onClick={() =>
                 setCurrentPage(
@@ -642,10 +609,9 @@ const [editedTask, setEditedTask] =
         </div>
       )}
 
-      {/* EMPTY STATE */}
       {memberTasks.length === 0 && (
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <div className="bg-slate-100 dark:bg-zinc-800 w-24 h-24 rounded-full flex items-center justify-center mx-auto">
 
@@ -668,13 +634,13 @@ const [editedTask, setEditedTask] =
 
       )}
 
-      {/* DETAILS MODAL */}
       <TaskDetailsModal
         isOpen={isDetailsOpen}
         onClose={() =>
           setIsDetailsOpen(false)
         }
         task={selectedTask}
+        roleMode="member"
       />
       <EditTaskModal
   isOpen={isEditOpen}

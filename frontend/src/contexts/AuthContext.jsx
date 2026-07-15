@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useContext,
   useEffect,
@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* ================= FETCH PROFILE ================= */
 
   const fetchProfile = async (userId) => {
     if (!userId) return null;
@@ -53,7 +52,6 @@ export function AuthProvider({ children }) {
     };
   };
 
-  /* ================= LOAD USER ================= */
 
   const loadUser = async (session) => {
     const currentUser = session?.user || null;
@@ -80,7 +78,6 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
-  /* ================= INIT ================= */
 
   useEffect(() => {
     let mounted = true;
@@ -110,7 +107,6 @@ export function AuthProvider({ children }) {
 
     init();
 
-    /* ================= AUTH LISTENER ================= */
 
     const {
       data: { subscription },
@@ -127,7 +123,6 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  /* ================= REFRESH PROFILE ================= */
 
   const refreshProfile = async () => {
     if (!user?.id) {
@@ -143,7 +138,6 @@ export function AuthProvider({ children }) {
     return profileData;
   };
 
-  /* ================= AUTH ACTIONS ================= */
 
   const signUp = async (email, password, role = "member", full_name = "") => {
     const { data, error } = await supabase.auth.signUp({
@@ -191,7 +185,6 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
-  /* ================= CONTEXT ================= */
 
   return (
     <AuthContext.Provider

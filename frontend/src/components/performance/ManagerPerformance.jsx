@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
+import PerformanceActionCenter from "./PerformanceActionCenter";
 
 import {
   Users,
@@ -26,7 +27,6 @@ function ManagerPerformance() {
   const [loading, setLoading] =
     useState(true);
 
-  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
     loadData();
@@ -88,7 +88,6 @@ function ManagerPerformance() {
     }
   };
 
-  /* ================= MANAGER PROJECTS ================= */
 
   const managerProjects =
     projects.filter(
@@ -102,7 +101,6 @@ function ManagerPerformance() {
       (project) => project.id
     );
 
-  /* ================= TEAM MEMBERS ================= */
 
   const teamMembers =
     profiles.filter(
@@ -111,7 +109,6 @@ function ManagerPerformance() {
         profile?.id
     );
 
-  /* ================= PERFORMANCE DATA ================= */
 
   const teamPerformance =
     teamMembers.map((member) => {
@@ -186,7 +183,6 @@ function ManagerPerformance() {
       };
     });
 
-  /* ================= SORT BY PRODUCTIVITY ================= */
 
   const sortedPerformance =
     [...teamPerformance].sort(
@@ -195,7 +191,6 @@ function ManagerPerformance() {
         a.productivity
     );
 
-  /* ================= KPI STATS ================= */
 
   const totalMembers =
     teamPerformance.length;
@@ -228,7 +223,6 @@ function ManagerPerformance() {
           1)
     );
 
-  /* ================= TOP MEMBER ================= */
 
   const bestMember =
     sortedPerformance[0] || {
@@ -237,11 +231,10 @@ function ManagerPerformance() {
       productivity: 0,
     };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-10">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-5">
 
         <div className="flex items-center gap-3 dark:text-white">
 
@@ -256,9 +249,8 @@ function ManagerPerformance() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
@@ -273,11 +265,11 @@ function ManagerPerformance() {
 
       </div>
 
-      {/* KPI CARDS */}
+      <PerformanceActionCenter roleMode="manager" tasks={tasks.filter((task) => managerProjectIds.includes(task.project_id))} projects={managerProjects} />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* TEAM MEMBERS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -306,8 +298,7 @@ function ManagerPerformance() {
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -336,8 +327,7 @@ function ManagerPerformance() {
 
         </div>
 
-        {/* PENDING */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -366,8 +356,7 @@ function ManagerPerformance() {
 
         </div>
 
-        {/* PRODUCTIVITY */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -398,10 +387,9 @@ function ManagerPerformance() {
 
       </div>
 
-      {/* TOP MEMBER */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-2xl p-5 text-white">
 
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
           <div>
 
@@ -441,10 +429,9 @@ function ManagerPerformance() {
 
       </div>
 
-      {/* TEAM TABLE */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
 
-        <div className="p-6 border-b border-slate-200 dark:border-zinc-800">
+        <div className="p-5 border-b border-slate-200 dark:border-zinc-800">
 
           <h2 className="text-2xl font-bold dark:text-white">
             Team Rankings

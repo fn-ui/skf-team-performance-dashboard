@@ -1,4 +1,4 @@
-import {
+﻿import {
   X,
   CalendarDays,
   User,
@@ -7,11 +7,13 @@ import {
   CheckCircle2,
   FolderKanban,
 } from "lucide-react";
+import GoalKeyResultsPanel from "./GoalKeyResultsPanel";
 
 function GoalDetailsModal({
   isOpen,
   onClose,
   goal,
+  roleMode = "member",
 }) {
   if (!isOpen || !goal)
     return null;
@@ -38,10 +40,9 @@ function GoalDetailsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl border border-slate-200 dark:border-zinc-800 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-3xl border border-slate-200 dark:border-zinc-800 overflow-hidden max-h-[90vh] overflow-y-auto">
 
-        {/* HEADER */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-zinc-800">
 
           <div>
 
@@ -69,10 +70,8 @@ function GoalDetailsModal({
 
         </div>
 
-        {/* BODY */}
-        <div className="p-6 space-y-8">
+        <div className="p-5 space-y-6">
 
-          {/* TITLE */}
           <div>
 
             <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -98,7 +97,6 @@ function GoalDetailsModal({
 
           </div>
 
-          {/* PROGRESS */}
           <div>
 
             <div className="flex items-center justify-between mb-3">
@@ -137,10 +135,8 @@ function GoalDetailsModal({
 
           </div>
 
-          {/* DETAILS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* ASSIGNED */}
             <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
 
               <div className="flex items-center gap-3">
@@ -165,7 +161,6 @@ function GoalDetailsModal({
 
             </div>
 
-            {/* PROJECT */}
             <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
 
               <div className="flex items-center gap-3">
@@ -189,7 +184,6 @@ function GoalDetailsModal({
 
             </div>
 
-            {/* TARGET DATE */}
             <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
 
               <div className="flex items-center gap-3">
@@ -213,7 +207,6 @@ function GoalDetailsModal({
 
             </div>
 
-            {/* STATUS */}
             <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5">
 
               <div className="flex items-center gap-3">
@@ -237,7 +230,6 @@ function GoalDetailsModal({
 
             </div>
 
-            {/* PRIORITY */}
             <div className="bg-slate-50 dark:bg-zinc-950 rounded-2xl p-5 md:col-span-2">
 
               <div className="flex items-center gap-3">
@@ -263,6 +255,10 @@ function GoalDetailsModal({
 
           </div>
 
+        </div>
+
+        <div className="px-5 pb-5">
+          <GoalKeyResultsPanel goal={goal} roleMode={roleMode} />
         </div>
 
       </div>

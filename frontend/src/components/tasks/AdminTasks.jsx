@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 import {
   getTasks,
@@ -40,14 +40,12 @@ function AdminTasks() {
   const [loading, setLoading] =
     useState(true);
 
-  // 🔎 FILTERS
   const [search, setSearch] =
     useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-      // 📄 PAGINATION
   const [currentPage, setCurrentPage] =
     useState(1);
 
@@ -58,17 +56,14 @@ function AdminTasks() {
     setPriorityFilter,
   ] = useState("All");
 
-  // 👥 USER SEARCH
   const [userSearch, setUserSearch] =
     useState("");
 
-  // 👥 ASSIGNED USERS
   const [
     selectedUsers,
     setSelectedUsers,
   ] = useState([]);
 
-  // MODALS
   const [
     isCreateOpen,
     setIsCreateOpen,
@@ -82,7 +77,6 @@ function AdminTasks() {
     setIsDetailsOpen,
   ] = useState(false);
 
-  // SELECTED TASKS
   const [
     selectedTask,
     setSelectedTask,
@@ -91,7 +85,6 @@ function AdminTasks() {
   const [editedTask, setEditedTask] =
     useState(null);
 
-  // 🆕 NEW TASK
   const [newTask, setNewTask] =
     useState({
       title: "",
@@ -103,13 +96,11 @@ function AdminTasks() {
       due_date: "",
     });
 
-  // 🔥 INITIAL LOAD
   useEffect(() => {
     fetchTasks();
     fetchUsers();
   }, []);
 
-  // 📦 FETCH TASKS
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -127,7 +118,6 @@ function AdminTasks() {
     }
   };
 
-  // 👥 FETCH USERS
   const fetchUsers = async () => {
     try {
       const data = await getUsers();
@@ -141,7 +131,6 @@ function AdminTasks() {
     }
   };
 
-  // 🔎 FILTERED USERS
   const filteredUsers = users.filter(
     (user) =>
       user.full_name
@@ -151,7 +140,6 @@ function AdminTasks() {
         )
   );
 
-  // 🔎 FILTERED TASKS
   const filteredTasks = tasks
     .filter((task) =>
       task.title
@@ -171,7 +159,6 @@ function AdminTasks() {
     );
 
 
-      // 📄 PAGINATED TASKS
   const totalPages = Math.ceil(
     filteredTasks.length / tasksPerPage
   );
@@ -189,7 +176,6 @@ function AdminTasks() {
       endIndex
     );
 
-      // 🔄 RESET PAGE WHEN FILTERS CHANGE
   useEffect(() => {
     setCurrentPage(1);
   }, [
@@ -197,7 +183,6 @@ function AdminTasks() {
     statusFilter,
     priorityFilter,
   ]);
-  // 👥 SELECT USERS
   const toggleUserSelection = (
     userId
   ) => {
@@ -210,7 +195,6 @@ function AdminTasks() {
     );
   };
 
-  // 🗑 DELETE TASK
   const handleDeleteTask = async (
     id
   ) => {
@@ -230,7 +214,6 @@ function AdminTasks() {
     }
   };
 
-  // 👁 OPEN DETAILS
   const handleOpenDetails = (
     task
   ) => {
@@ -240,23 +223,19 @@ function AdminTasks() {
   };
 
   
-  // ✏️ OPEN EDIT
 const handleEditTask = (task) => {
 
   setEditedTask({
     ...task,
   });
 
-  // ✅ GET ASSIGNED USER IDS
   const assignedUserIds =
   (task.task_assignees ?? [])
     .map(a => a.user_id)
     .filter(Boolean);
 
-  // ✅ PRESELECT ASSIGNED USERS
   setSelectedUsers(assignedUserIds);
 
-  // ✅ SORT USERS → ASSIGNED USERS FIRST
   const sortedUsers = [...users].sort(
     (a, b) => {
       const aAssigned =
@@ -279,7 +258,6 @@ const handleEditTask = (task) => {
 
   setIsEditOpen(true);
 };
-  // 💾 UPDATE TASK
   const handleUpdateTask =
   async () => {
     try {
@@ -307,7 +285,6 @@ const handleEditTask = (task) => {
           payload
         );
 
-      // 🔥 UPDATE ASSIGNED USERS
       await assignTaskUsers(
         editedTask.id,
         selectedUsers
@@ -328,7 +305,6 @@ const handleEditTask = (task) => {
     }
   };
 
-  // ➕ CREATE TASK
  const handleCreateTask =
   async () => {
     if (!newTask.title)
@@ -336,13 +312,11 @@ const handleEditTask = (task) => {
 
     try {
 
-      /* ================= PRIMARY ASSIGNEE ================= */
 
       const primaryAssignee =
         selectedUsers[0] ||
         null;
 
-      // 🔥 CREATE TASK
       const createdTask =
         await createTask({
           title:
@@ -371,12 +345,10 @@ const handleEditTask = (task) => {
           created_by:
             user?.id || null,
 
-          // ✅ SAVE ASSIGNEE
           assignee_id:
             primaryAssignee,
         });
 
-      /* ================= MULTIPLE ASSIGNEES ================= */
 
       if (
         selectedUsers.length > 0
@@ -406,10 +378,8 @@ const handleEditTask = (task) => {
           throw error;
       }
 
-      // 🔄 REFRESH TASKS
       await fetchTasks();
 
-      // 🔥 RESET FORM
       setNewTask({
         title: "",
         description: "",
@@ -436,7 +406,6 @@ const handleEditTask = (task) => {
     }
   };
 
-  // 📊 STATS
   const completedTasks =
     tasks.filter(
       (task) =>
@@ -457,7 +426,6 @@ const handleEditTask = (task) => {
         task.status === "Pending"
     ).length;
 
-  // 🎨 PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -476,19 +444,17 @@ const handleEditTask = (task) => {
     }
   };
 
-  // ⏳ LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading tasks...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
         <div>
@@ -512,11 +478,9 @@ const handleEditTask = (task) => {
 
       </div>
 
-      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <p className="text-slate-500 dark:text-zinc-400">
             Total Tasks
@@ -528,8 +492,7 @@ const handleEditTask = (task) => {
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -554,8 +517,7 @@ const handleEditTask = (task) => {
 
         </div>
 
-        {/* IN PROGRESS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -580,8 +542,7 @@ const handleEditTask = (task) => {
 
         </div>
 
-        {/* PENDING */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -608,10 +569,8 @@ const handleEditTask = (task) => {
 
       </div>
 
-      {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-        {/* SEARCH */}
         <div className="lg:col-span-2 relative">
 
           <Search
@@ -631,7 +590,6 @@ const handleEditTask = (task) => {
 
         </div>
 
-        {/* STATUS FILTER */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -645,7 +603,6 @@ const handleEditTask = (task) => {
           <option>Pending</option>
         </select>
 
-        {/* PRIORITY FILTER */}
         <select
           value={priorityFilter}
           onChange={(e) =>
@@ -661,7 +618,6 @@ const handleEditTask = (task) => {
 
       </div>
 
-      {/* TASKS TABLE */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
 
         <div className="overflow-x-auto">
@@ -717,7 +673,6 @@ const handleEditTask = (task) => {
                   className="border-t border-slate-200 dark:border-zinc-800"
                 >
 
-                  {/* TASK */}
                   <td className="px-6 py-5">
 
                     <div>
@@ -732,19 +687,16 @@ const handleEditTask = (task) => {
 
                   </td>
 
-                  {/* PROJECT */}
                   <td className="px-6 py-5 dark:text-white">
                     {task.projects?.name || "No Project"}
                   </td>
 
-                  {/* ASSIGNEE */}
                   <td className="px-6 py-5 dark:text-white">
                     {task.task_assignees?.map(
                     (a) => a.profiles?.full_name
                   ).join(", ") || "Unassigned"}
                   </td>
 
-                  {/* STATUS */}
                   <td className="px-6 py-5">
 
                     <span
@@ -763,7 +715,6 @@ const handleEditTask = (task) => {
 
                   </td>
 
-                  {/* PRIORITY */}
                   <td className="px-6 py-5">
 
                     <span
@@ -782,7 +733,6 @@ const handleEditTask = (task) => {
 
                   </td>
 
-                  {/* PROGRESS */}
                   <td className="px-6 py-5 min-w-[180px]">
 
                     <div className="flex items-center gap-3">
@@ -806,17 +756,14 @@ const handleEditTask = (task) => {
 
                   </td>
 
-                  {/* DATE */}
                   <td className="px-6 py-5 dark:text-white">
                     {task.due_date}
                   </td>
 
-                  {/* ACTIONS */}
                   <td className="px-6 py-5">
 
                     <div className="flex items-center gap-2">
 
-                      {/* VIEW */}
                       <button
                         onClick={() =>
                           handleOpenDetails(task)
@@ -828,7 +775,6 @@ const handleEditTask = (task) => {
 
                       </button>
 
-                      {/* EDIT */}
                       <button
                   onClick={() =>
                     handleEditTask(task)
@@ -840,7 +786,6 @@ const handleEditTask = (task) => {
 
                       </button>
 
-                      {/* DELETE */}
                       <button
                         onClick={() =>
                           handleDeleteTask(task.id)
@@ -869,11 +814,9 @@ const handleEditTask = (task) => {
       </div>
 
 
-      {/* PAGINATION */}
       {filteredTasks.length > 0 && (
         <div className="flex items-center justify-between mt-6 px-2">
 
-          {/* PAGE INFO */}
           <p className="text-sm text-slate-500 dark:text-zinc-400">
             Showing{" "}
             {startIndex + 1}
@@ -886,10 +829,8 @@ const handleEditTask = (task) => {
             {filteredTasks.length} tasks
           </p>
 
-          {/* CONTROLS */}
           <div className="flex items-center gap-2">
 
-            {/* PREVIOUS */}
             <button
               onClick={() =>
                 setCurrentPage(
@@ -905,7 +846,6 @@ const handleEditTask = (task) => {
               Previous
             </button>
 
-            {/* PAGE NUMBERS */}
             {Array.from(
               { length: totalPages },
               (_, index) => (
@@ -930,7 +870,6 @@ const handleEditTask = (task) => {
               )
             )}
 
-            {/* NEXT */}
             <button
               onClick={() =>
                 setCurrentPage(
@@ -954,10 +893,9 @@ const handleEditTask = (task) => {
 
         </div>
       )}
-      {/* EMPTY STATE */}
       {filteredTasks.length === 0 && (
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <h2 className="text-3xl font-bold dark:text-white">
             No Tasks Found
@@ -971,16 +909,15 @@ const handleEditTask = (task) => {
 
       )}
 
-      {/* DETAILS MODAL */}
 <TaskDetailsModal
   isOpen={isDetailsOpen}
   onClose={() =>
     setIsDetailsOpen(false)
   }
   task={selectedTask}
+  roleMode="admin"
 />
 
-{/* EDIT MODAL */}
 <EditTaskModal
   isOpen={isEditOpen}
   onClose={() =>
@@ -991,7 +928,6 @@ const handleEditTask = (task) => {
   setEditedTask={setEditedTask}
   handleUpdateTask={handleUpdateTask}
 
-  // 👥 USERS
   users={users}
   selectedUsers={selectedUsers}
   setSelectedUsers={setSelectedUsers}
@@ -1000,7 +936,6 @@ const handleEditTask = (task) => {
   role="admin"
 />
 
-{/* CREATE MODAL */}
 <CreateTaskModal
   isOpen={isCreateOpen}
   onClose={() =>
@@ -1010,7 +945,6 @@ const handleEditTask = (task) => {
   setNewTask={setNewTask}
   handleCreateTask={handleCreateTask}
 
-  // 👥 USERS
   users={users}
   selectedUsers={selectedUsers}
   setSelectedUsers={setSelectedUsers}

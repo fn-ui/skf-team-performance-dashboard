@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 
 import {
   useNavigate,
@@ -15,7 +15,6 @@ function AuthCallback() {
     const handleAuth =
       async () => {
         try {
-          /* ================= EXCHANGE SESSION ================= */
 
           const {
             data,
@@ -48,7 +47,6 @@ function AuthCallback() {
             session.user.email
           );
 
-          /* ================= WAIT FOR PROFILE ================= */
 
           for (
             let i = 0;

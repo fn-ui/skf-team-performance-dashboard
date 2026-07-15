@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// 🔥 GET TASKS
 export async function getTasks() {
   const { data, error } =
     await supabase
@@ -61,7 +60,6 @@ export async function getTasks() {
   return data || [];
 }
 
-// ➕ CREATE TASK
 export async function createTask(
   task
 ) {
@@ -84,7 +82,6 @@ export async function createTask(
   return data;
 }
 
-// ✏️ UPDATE TASK
 export async function updateTask(
   id,
   updates
@@ -109,11 +106,9 @@ export async function updateTask(
   return data;
 }
 
-// 🗑 DELETE TASK
 export async function deleteTask(
   id
 ) {
-  // 🔥 DELETE ASSIGNEES FIRST
   await supabase
     .from("task_assignees")
     .delete()
@@ -137,13 +132,11 @@ export async function deleteTask(
   return true;
 }
 
-// 👥 ASSIGN USERS TO TASK
 export const assignTaskUsers = async (
   taskId,
   userIds
 ) => {
 
-  // DELETE OLD ASSIGNEES
   const { error: deleteError } =
     await supabase
       .from("task_assignees")
@@ -154,10 +147,8 @@ export const assignTaskUsers = async (
     throw deleteError;
   }
 
-  // NO USERS SELECTED
   if (!userIds.length) return;
 
-  // INSERT NEW ASSIGNEES
   const assignments =
     userIds.map((userId) => ({
       task_id: taskId,
@@ -174,7 +165,6 @@ export const assignTaskUsers = async (
   }
 };
 
-// 🔍 GET TASK ASSIGNEES
 export async function getTaskAssignees(
   task_id
 ) {
@@ -207,7 +197,6 @@ export async function getTaskAssignees(
   return data || [];
 }
 
-// ❌ REMOVE ASSIGNEE
 export async function removeTaskAssignee(
   id
 ) {

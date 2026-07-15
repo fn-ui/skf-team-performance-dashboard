@@ -1,4 +1,4 @@
-import { X, Target, Flag, CalendarDays, Users, FolderKanban } from "lucide-react";
+﻿import { X, Target, Flag, CalendarDays, Users, FolderKanban } from "lucide-react";
 
 function EditGoalModal({
   isOpen,
@@ -9,31 +9,28 @@ function EditGoalModal({
   users,
   projects,
   profile,
+  roleMode,
 }) {
   if (!isOpen || !selectedGoal)
     return null;
 
-  /* ========================================
-     ROLE BASED USERS
-  ======================================== */
 
   const role =
-    profile?.role
+    (roleMode || profile?.role)
       ?.toLowerCase()
       ?.trim();
 
   let filteredUsers = [];
 
-  // ADMIN
   if (role === "admin") {
     filteredUsers =
       users?.filter(
         (user) =>
-          user.role !== "admin"
+          user.role?.toLowerCase() !== "admin" ||
+          user.id === selectedGoal.owner_id
       ) || [];
   }
 
-  // MANAGER
   else if (
     role === "manager"
   ) {
@@ -42,11 +39,11 @@ function EditGoalModal({
         (user) =>
           user.manager_id ===
             profile?.id &&
-          user.role !== "admin"
+          user.role?.toLowerCase() !== "admin" ||
+          user.id === selectedGoal.owner_id
       ) || [];
   }
 
-  // MEMBER
   else {
     filteredUsers =
       users?.filter(
@@ -56,9 +53,6 @@ function EditGoalModal({
       ) || [];
   }
 
-  /* ========================================
-     PRIORITY COLORS
-  ======================================== */
 
   const priorityStyles = {
     High: "text-red-600",
@@ -72,11 +66,8 @@ function EditGoalModal({
 
       <div className="w-full max-w-3xl bg-white dark:bg-zinc-900 rounded-[32px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto">
 
-        {/* ========================================
-            TOP HEADER
-        ======================================== */}
 
-        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 px-8 py-8">
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 px-8 py-6">
 
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
 
@@ -86,7 +77,7 @@ function EditGoalModal({
 
             <div className="flex items-start gap-4">
 
-              <div className="w-16 h-16 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
 
                 <Target size={30} />
 
@@ -121,13 +112,9 @@ function EditGoalModal({
 
         </div>
 
-        {/* ========================================
-            BODY
-        ======================================== */}
 
-        <div className="p-8 space-y-7">
+        <div className="p-5 space-y-5">
 
-          {/* TITLE */}
           <div>
 
             <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
@@ -157,7 +144,6 @@ function EditGoalModal({
 
           </div>
 
-          {/* DESCRIPTION */}
           <div>
 
             <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
@@ -187,10 +173,8 @@ function EditGoalModal({
 
           </div>
 
-          {/* PROJECT + USER */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* PROJECT */}
             <div>
 
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
@@ -239,7 +223,6 @@ function EditGoalModal({
 
             </div>
 
-            {/* ASSIGNED USER */}
             <div>
 
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
@@ -278,11 +261,9 @@ function EditGoalModal({
                       {
                         user.full_name
                       }
-                      {" • "}
+                      {" â€¢ "}
                       {user.role}
-                      {user.department
-                        ? ` • ${user.department}`
-                        : ""}
+                      {user.department ? ` · ${user.department}` : ""}
                     </option>
                   )
                 )}
@@ -293,10 +274,8 @@ function EditGoalModal({
 
           </div>
 
-          {/* PRIORITY + DATE */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* PRIORITY */}
             <div>
 
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
@@ -344,7 +323,6 @@ function EditGoalModal({
 
             </div>
 
-            {/* TARGET DATE */}
             <div>
 
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-zinc-300 mb-3">
@@ -377,9 +355,6 @@ function EditGoalModal({
 
         </div>
 
-        {/* ========================================
-            FOOTER
-        ======================================== */}
 
         <div className="sticky bottom-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-zinc-800 px-8 py-5 flex items-center justify-end gap-4">
 

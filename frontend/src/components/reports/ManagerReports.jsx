@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -25,7 +25,6 @@ function ManagerReports() {
   const [loading, setLoading] =
     useState(true);
 
-  /* ================= REAL DATA ================= */
 
   const [tasks, setTasks] =
     useState([]);
@@ -36,12 +35,10 @@ function ManagerReports() {
   const [users, setUsers] =
     useState([]);
 
-  /* ================= REPORTS ================= */
 
   const [reportList, setReportList] =
     useState([]);
 
-  /* ================= MODALS ================= */
 
   const [isModalOpen, setIsModalOpen] =
     useState(false);
@@ -51,14 +48,12 @@ function ManagerReports() {
     setIsExportModalOpen,
   ] = useState(false);
 
-  /* ================= EXPORT ================= */
 
   const [
     selectedFormat,
     setSelectedFormat,
   ] = useState("PDF");
 
-  /* ================= FILTERS ================= */
 
   const [search, setSearch] =
     useState("");
@@ -68,7 +63,6 @@ function ManagerReports() {
     setCategoryFilter,
   ] = useState("All");
 
-  /* ================= NEW REPORT ================= */
 
   const [newReport, setNewReport] =
     useState({
@@ -85,7 +79,6 @@ function ManagerReports() {
       type: "PDF",
     });
 
-  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
     if (profile?.id) {
@@ -125,7 +118,6 @@ function ManagerReports() {
         const allUsers =
           usersData || [];
 
-        /* ================= TEAM MEMBERS ================= */
 
         const teamUsers =
           allUsers.filter(
@@ -136,7 +128,6 @@ function ManagerReports() {
                 profile?.id
           );
 
-        /* ================= TEAM TASKS ================= */
 
         const teamTasks =
           allTasks.filter(
@@ -148,7 +139,6 @@ function ManagerReports() {
               )
           );
 
-        /* ================= TEAM PROJECTS ================= */
 
         const teamProjects =
           allProjects.filter(
@@ -163,7 +153,6 @@ function ManagerReports() {
 
         setUsers(teamUsers);
 
-        /* ================= TASK METRICS ================= */
 
         const completedTasks =
           teamTasks.filter(
@@ -197,7 +186,6 @@ function ManagerReports() {
                 "Completed"
           ).length;
 
-        /* ================= PRODUCTIVITY ================= */
 
         const productivity =
           teamTasks.length === 0
@@ -208,7 +196,6 @@ function ManagerReports() {
                   100
               );
 
-        /* ================= GENERATED REPORTS ================= */
 
         const generatedReports = [
           {
@@ -448,7 +435,6 @@ function ManagerReports() {
       }
     };
 
-  /* ================= FILTER REPORTS ================= */
 
   const filteredReports =
     reportList
@@ -472,7 +458,6 @@ function ManagerReports() {
           new Date(a.date)
       );
 
-  /* ================= STATS ================= */
 
   const totalReports =
     filteredReports.length;
@@ -502,7 +487,6 @@ function ManagerReports() {
             100
         );
 
-  /* ================= TOP MEMBER ================= */
 
   const topMember = useMemo(() => {
     const stats = users.map(
@@ -552,7 +536,6 @@ function ManagerReports() {
     );
   }, [tasks, users]);
 
-  /* ================= GENERATE REPORT ================= */
 
   const handleGenerateReport =
     () => {
@@ -603,7 +586,6 @@ function ManagerReports() {
       setIsModalOpen(false);
     };
 
-  /* ================= DOWNLOAD ================= */
 
   const handleDownload =
     (report) => {
@@ -676,7 +658,6 @@ Generated from WorkPulse
       );
     };
 
-  /* ================= EXPORT ================= */
 
   const handleExport =
     () => {
@@ -751,7 +732,6 @@ Generated from WorkPulse
       );
     };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
@@ -774,9 +754,8 @@ Generated from WorkPulse
   
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
         <div>
@@ -809,11 +788,9 @@ Generated from WorkPulse
 
       </div>
 
-      {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* REPORTS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -839,8 +816,7 @@ Generated from WorkPulse
 
         </div>
 
-        {/* PROJECTS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -866,8 +842,7 @@ Generated from WorkPulse
 
         </div>
 
-        {/* TEAM MEMBERS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -893,8 +868,7 @@ Generated from WorkPulse
 
         </div>
 
-        {/* PRODUCTIVITY */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -924,10 +898,8 @@ Generated from WorkPulse
 
     
 
-      {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-        {/* SEARCH */}
         <div className="lg:col-span-3 relative">
 
           <Search
@@ -949,7 +921,6 @@ Generated from WorkPulse
 
         </div>
 
-        {/* CATEGORY */}
         <select
           value={categoryFilter}
           onChange={(e) =>
@@ -980,7 +951,6 @@ Generated from WorkPulse
 
       </div>
 
-      {/* REPORTS GRID */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
         {filteredReports.map(
@@ -988,10 +958,9 @@ Generated from WorkPulse
 
             <div
               key={report.id}
-              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
             >
 
-              {/* TOP */}
               <div className="flex items-start justify-between gap-4">
 
                 <div>
@@ -1027,7 +996,6 @@ Generated from WorkPulse
 
               </div>
 
-              {/* DETAILS */}
               <div className="space-y-4 mt-6">
 
                 <div className="flex items-center justify-between">
@@ -1088,7 +1056,6 @@ Generated from WorkPulse
 
               </div>
 
-              {/* ACTIONS */}
               <div className="flex items-center gap-3 mt-8">
 
                 <button
@@ -1116,10 +1083,9 @@ Generated from WorkPulse
 
       </div>
 
-      {/* EMPTY */}
       {filteredReports.length ===
         0 && (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
 
@@ -1142,7 +1108,6 @@ Generated from WorkPulse
         </div>
       )}
 
-      {/* MODAL */}
       <GenerateReportModal
         isOpen={isModalOpen}
         onClose={() =>

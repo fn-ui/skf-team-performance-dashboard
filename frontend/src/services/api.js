@@ -1,6 +1,5 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-// Members
 export async function getMembers() {
   const { data, error } = await supabase.from("members").select("*");
   if (error) throw error;
@@ -25,7 +24,6 @@ export async function deleteMember(id) {
   return true;
 }
 
-// Projects
 export async function getProjects() {
   const { data, error } = await supabase.from("projects").select("*");
   if (error) throw error;
@@ -50,7 +48,6 @@ export async function deleteProject(id) {
   return true;
 }
 
-// Tasks
 export async function getTasks() {
   const { data, error } = await supabase.from("tasks").select("*");
   if (error) throw error;
@@ -95,7 +92,6 @@ export async function addComment(taskId, author, body) {
   return data;
 }
 
-// Profiles / Users
 export async function getProfiles() {
   const { data, error } = await supabase.from("profiles").select("id, full_name, role");
   if (error) throw error;

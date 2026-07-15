@@ -1,11 +1,7 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
-/* ==============================
-   GET PERFORMANCE OVERVIEW
-============================== */
 export async function getPerformanceOverview() {
 
-  // TOTAL EMPLOYEES
   const {
     count: employeesCount,
     error: employeesError,
@@ -20,7 +16,6 @@ export async function getPerformanceOverview() {
   if (employeesError)
     throw employeesError;
 
-  // COMPLETED TASKS
   const {
     count: completedTasks,
     error: completedError,
@@ -35,7 +30,6 @@ export async function getPerformanceOverview() {
   if (completedError)
     throw completedError;
 
-  // PENDING TASKS
   const {
     count: pendingTasks,
     error: pendingError,
@@ -50,7 +44,6 @@ export async function getPerformanceOverview() {
   if (pendingError)
     throw pendingError;
 
-  // PRODUCTIVITY
   const totalTasks =
     completedTasks + pendingTasks;
 
@@ -71,9 +64,6 @@ export async function getPerformanceOverview() {
   };
 }
 
-/* ==============================
-   GET TEAM RANKINGS
-============================== */
 export async function getTeamRankings() {
 
   const { data, error } =
@@ -146,9 +136,6 @@ export async function getTeamRankings() {
   return rankings;
 }
 
-/* ==============================
-   GET TOP PERFORMER
-============================== */
 export async function getTopPerformer() {
 
   const rankings =

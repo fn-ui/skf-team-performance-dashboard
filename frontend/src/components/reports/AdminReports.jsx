@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 
 import { getAdminReportStats } from "../../services/reportsService";
 
@@ -26,7 +26,6 @@ function AdminReports() {
   const [loading, setLoading] =
   useState(true);
 
-/* ================= REAL DATA ================= */
 
 const [tasks, setTasks] =
   useState([]);
@@ -37,12 +36,10 @@ const [projects, setProjects] =
 const [users, setUsers] =
   useState([]);
 
-/* ================= REPORTS ================= */
 
 const [reportList, setReportList] =
   useState([]);
 
-/* ================= MODALS ================= */
 
 const [isModalOpen, setIsModalOpen] =
   useState(false);
@@ -52,14 +49,12 @@ const [
   setIsExportModalOpen,
 ] = useState(false);
 
-/* ================= EXPORT ================= */
 
 const [
   selectedFormat,
   setSelectedFormat,
 ] = useState("PDF");
 
-/* ================= FILTERS ================= */
 
 const [search, setSearch] =
   useState("");
@@ -67,7 +62,6 @@ const [search, setSearch] =
 const [statusFilter, setStatusFilter] =
   useState("All");
 
-/* ================= NEW REPORT ================= */
 
 const [newReport, setNewReport] =
   useState({
@@ -82,7 +76,6 @@ const [newReport, setNewReport] =
     type: "PDF",
   });
 
-/* ================= LOAD DATA ================= */
 
 useEffect(() => {
   loadReportsData();
@@ -126,7 +119,6 @@ const loadReportsData =
 
       setUsers(allUsers);
 
-      /* ================= TASK METRICS ================= */
 
       const completedTasks =
         allTasks.filter(
@@ -160,7 +152,6 @@ const loadReportsData =
               "Completed"
         ).length;
 
-      /* ================= PROJECT METRICS ================= */
 
       const activeProjects =
         allProjects.filter(
@@ -176,7 +167,6 @@ const loadReportsData =
             "Completed"
         ).length;
 
-      /* ================= PRODUCTIVITY ================= */
 
       const productivity =
         allTasks.length === 0
@@ -187,7 +177,6 @@ const loadReportsData =
                 100
             );
 
-      /* ================= GENERATED REPORTS ================= */
 
       const generatedReports = [
         {
@@ -448,7 +437,6 @@ const loadReportsData =
     }
   };
 
-/* ================= FILTER REPORTS ================= */
 
 const filteredReports =
   reportList
@@ -466,7 +454,6 @@ const filteredReports =
           statusFilter
     );
 
-/* ================= REAL STATS ================= */
 
 const totalReports =
   reportList.length;
@@ -510,7 +497,6 @@ const productivity =
           100
       );
 
-/* ================= GENERATE REPORT ================= */
 
 const handleGenerateReport =
   () => {
@@ -560,7 +546,6 @@ const handleGenerateReport =
     setIsModalOpen(false);
   };
 
-/* ================= DOWNLOAD ================= */
 
 const handleDownload =
   (report) => {
@@ -626,7 +611,6 @@ Generated from WorkPulse
     );
   };
 
-/* ================= EXPORT ================= */
 
 const handleExport = () => {
 
@@ -638,20 +622,18 @@ const handleExport = () => {
   setIsExportModalOpen(false);
 };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading reports...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
         <div>
@@ -702,11 +684,9 @@ const handleExport = () => {
 
       </div>
 
-      {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* TOTAL REPORTS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -735,8 +715,7 @@ const handleExport = () => {
 
         </div>
 
-        {/* PROJECTS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -765,8 +744,7 @@ const handleExport = () => {
 
         </div>
 
-        {/* EMPLOYEES */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -795,8 +773,7 @@ const handleExport = () => {
 
         </div>
 
-        {/* PRODUCTIVITY */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -828,10 +805,8 @@ const handleExport = () => {
       </div>
 
 
-      {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-        {/* SEARCH */}
         <div className="lg:col-span-3 relative">
 
           <Search
@@ -853,7 +828,6 @@ const handleExport = () => {
 
         </div>
 
-        {/* STATUS */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -880,8 +854,7 @@ const handleExport = () => {
 
       </div>
 
-      {/* REPORTS TABLE */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
 
         <div className="overflow-x-auto">
 
@@ -1029,10 +1002,9 @@ const handleExport = () => {
 
       </div>
 
-      {/* EMPTY STATE */}
       {filteredReports.length ===
         0 && (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
 
@@ -1056,7 +1028,6 @@ const handleExport = () => {
         </div>
       )}
 
-      {/* MODALS */}
       <GenerateReportModal
         isOpen={isModalOpen}
         onClose={() =>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { X, Lock } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -93,7 +93,6 @@ function ChangePasswordModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
         
-        {/* HEADER */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -113,7 +112,6 @@ function ChangePasswordModal({
           </button>
         </div>
 
-        {/* FORM */}
         <form
           onSubmit={
             handleChangePassword

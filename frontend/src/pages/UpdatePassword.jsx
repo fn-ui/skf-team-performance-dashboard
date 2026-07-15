@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import {
   useNavigate,
@@ -29,7 +29,6 @@ function UpdatePassword() {
 
       setError("");
 
-      /* ================= VALIDATION ================= */
 
       if (password.length < 6) {
         setError(
@@ -53,7 +52,6 @@ function UpdatePassword() {
       try {
         setLoading(true);
 
-        /* ================= UPDATE PASSWORD ================= */
 
         const {
           data,
@@ -82,7 +80,6 @@ function UpdatePassword() {
           data
         );
 
-        /* ================= FORCE REFRESH ================= */
 
         window.location.href =
           "/";
@@ -105,7 +102,6 @@ function UpdatePassword() {
         }
         className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-900"
       >
-        {/* TITLE */}
 
         <h1 className="mb-2 text-3xl font-bold text-slate-900 dark:text-white">
           Create Password
@@ -116,7 +112,6 @@ function UpdatePassword() {
           WorkPulse account.
         </p>
 
-        {/* ERROR */}
 
         {error && (
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
@@ -124,7 +119,6 @@ function UpdatePassword() {
           </div>
         )}
 
-        {/* PASSWORD */}
 
         <div className="mb-4">
           <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -146,7 +140,6 @@ function UpdatePassword() {
           />
         </div>
 
-        {/* CONFIRM PASSWORD */}
 
         <div className="mb-6">
           <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -168,7 +161,6 @@ function UpdatePassword() {
           />
         </div>
 
-        {/* BUTTON */}
 
         <button
           type="submit"

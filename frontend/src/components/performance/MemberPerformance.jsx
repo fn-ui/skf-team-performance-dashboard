@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { getTasks } from "../../services/tasksService";
+import PerformanceActionCenter from "./PerformanceActionCenter";
 
 import {
   TrendingUp,
@@ -20,7 +21,6 @@ function MemberPerformance() {
   const [loading, setLoading] =
     useState(true);
 
-  /* ================= LOAD TASKS ================= */
 
   useEffect(() => {
     if (profile?.id) {
@@ -46,17 +46,14 @@ function MemberPerformance() {
     }
   };
 
-  /* ================= MEMBER TASKS ================= */
 
   const memberTasks =
   tasks.filter((task) => {
 
-    // ✅ PRIMARY ASSIGNEE
     const isPrimaryAssignee =
       task.assignee_id ===
       profile?.id;
 
-    // ✅ MULTIPLE ASSIGNEES
     const isInTaskAssignees =
       task.task_assignees?.some(
         (assignee) =>
@@ -70,7 +67,6 @@ function MemberPerformance() {
     );
   });
 
-  /* ================= STATS ================= */
 
   const completed =
     memberTasks.filter(
@@ -113,7 +109,6 @@ function MemberPerformance() {
       ? 0
       : 85;
 
-  /* ================= MEMBER DATA ================= */
 
   const member = {
     member:
@@ -155,7 +150,6 @@ function MemberPerformance() {
     ],
   };
 
-  /* ================= COLORS ================= */
 
   const getProductivityColor =
     (value) => {
@@ -168,7 +162,6 @@ function MemberPerformance() {
       return "bg-amber-500";
     };
 
-  /* ================= LABEL ================= */
 
   const getPerformanceLabel =
     (value) => {
@@ -184,11 +177,10 @@ function MemberPerformance() {
       return "Needs Improvement";
     };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
         <div className="flex items-center gap-3 dark:text-white">
 
@@ -203,9 +195,8 @@ function MemberPerformance() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
@@ -221,10 +212,9 @@ function MemberPerformance() {
 
       </div>
 
-      {/* PROFILE OVERVIEW */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-3xl p-8 text-white">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-2xl p-5 text-white">
 
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
           <div>
 
@@ -269,11 +259,11 @@ function MemberPerformance() {
 
       </div>
 
-      {/* KPI CARDS */}
+      <PerformanceActionCenter roleMode="member" tasks={memberTasks} />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -304,8 +294,7 @@ function MemberPerformance() {
 
         </div>
 
-        {/* PENDING */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -336,8 +325,7 @@ function MemberPerformance() {
 
         </div>
 
-        {/* IN PROGRESS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -368,8 +356,7 @@ function MemberPerformance() {
 
         </div>
 
-        {/* ATTENDANCE */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -403,11 +390,9 @@ function MemberPerformance() {
 
       </div>
 
-      {/* PERFORMANCE SECTIONS */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        {/* PRODUCTIVITY */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <h2 className="text-2xl font-bold dark:text-white">
             Productivity
@@ -496,8 +481,7 @@ function MemberPerformance() {
 
         </div>
 
-        {/* WEEKLY PERFORMANCE */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center gap-3">
 
@@ -559,8 +543,7 @@ function MemberPerformance() {
 
       </div>
 
-      {/* PERFORMANCE MESSAGE */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-8">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
         <h2 className="text-2xl font-bold dark:text-white">
           Performance Summary

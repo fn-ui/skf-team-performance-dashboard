@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useState,
 } from "react";
@@ -20,19 +20,15 @@ import ProjectDetailsModal from "./ProjectDetailsModal";
 function MemberProjects() {
   const { profile } = useAuth();
 
-  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
-  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // SEARCH
   const [search, setSearch] =
     useState("");
 
-  // DETAILS MODAL
   const [
     isDetailsOpen,
     setIsDetailsOpen,
@@ -43,7 +39,6 @@ function MemberProjects() {
     setSelectedProject,
   ] = useState(null);
 
-  // FETCH PROJECTS
   useEffect(() => {
     if (!profile?.id) return;
 
@@ -56,16 +51,13 @@ function MemberProjects() {
 
     try {
 
-      //  GET ALL PROJECTS
       const data =
         await getProjects();
 
-      //  FILTER PROJECTS
       const memberProjects =
         (data || []).filter(
           (project) => {
 
-            // PROJECT TASKS
             const tasks =
               Array.isArray(
                 project.tasks
@@ -73,7 +65,6 @@ function MemberProjects() {
                 ? project.tasks
                 : [];
 
-            // CHECK ASSIGNMENTS
             return tasks.some(
               (task) => {
 
@@ -113,7 +104,6 @@ function MemberProjects() {
     }
   };
 
-  //  FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -123,7 +113,6 @@ function MemberProjects() {
         )
     );
 
-  //  OPEN DETAILS
   const handleOpenDetails = (
     project
   ) => {
@@ -132,7 +121,6 @@ function MemberProjects() {
     setIsDetailsOpen(true);
   };
 
-  // STATS
   const completedProjects =
     projects.filter(
       (project) =>
@@ -154,7 +142,6 @@ function MemberProjects() {
         "Planning"
     ).length;
 
-  //  PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -173,10 +160,9 @@ function MemberProjects() {
     }
   };
 
-  //  LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading projects...
       </div>
     );
@@ -184,9 +170,8 @@ function MemberProjects() {
 
   
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
@@ -199,10 +184,9 @@ function MemberProjects() {
 
       </div>
 
-      {/* KPI */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -228,7 +212,7 @@ function MemberProjects() {
 
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -260,7 +244,7 @@ function MemberProjects() {
 
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -294,7 +278,6 @@ function MemberProjects() {
 
       </div>
 
-      {/* SEARCH */}
       <div className="relative">
 
         <Search
@@ -314,14 +297,13 @@ function MemberProjects() {
 
       </div>
 
-      {/* PROJECTS */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
 
         {filteredProjects.map(
           (project) => (
             <div
               key={project.id}
-              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
             >
 
               <div className="flex items-start justify-between">
@@ -350,7 +332,6 @@ function MemberProjects() {
 
               </div>
 
-              {/* PROGRESS */}
               <div className="mt-6">
 
                 <div className="flex items-center justify-between mb-2">
@@ -378,7 +359,6 @@ function MemberProjects() {
 
               </div>
 
-              {/* ACTIONS */}
               <div className="flex items-center gap-3 mt-8">
 
                 <button

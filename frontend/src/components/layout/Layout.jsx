@@ -1,5 +1,6 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import Sidebar from "./Sidebar";
+import WorkspaceHeader from "./WorkspaceHeader";
 
 function Layout({ children, darkMode, toggleDarkMode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -19,7 +20,6 @@ function Layout({ children, darkMode, toggleDarkMode }) {
       <div className="dashboard-grid pointer-events-none fixed inset-0 opacity-70 dark:opacity-35" />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(120deg,rgba(16,185,129,0.14),transparent_32%,rgba(245,158,11,0.12)_72%,transparent)] dark:bg-[linear-gradient(120deg,rgba(16,185,129,0.11),transparent_36%,rgba(245,158,11,0.08)_78%,transparent)]" />
 
-      {/* SIDEBAR */}
       <Sidebar
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
@@ -27,7 +27,6 @@ function Layout({ children, darkMode, toggleDarkMode }) {
         setCollapsed={setCollapsed}
       />
 
-      {/* PAGE CONTENT */}
       <main
         className={`
           relative z-10
@@ -35,10 +34,10 @@ function Layout({ children, darkMode, toggleDarkMode }) {
           transition-all duration-300
           overflow-x-hidden
 
-          px-4
-          py-5
+          px-3
+          py-4
           sm:px-6
-          lg:py-7
+          lg:py-5
 
           
           ${
@@ -48,6 +47,7 @@ function Layout({ children, darkMode, toggleDarkMode }) {
           }
         `}
       >
+        <WorkspaceHeader />
         {children}
       </main>
     </div>

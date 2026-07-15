@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 
 import { supabase } from "../../lib/supabase";
@@ -28,19 +28,15 @@ import EditProjectModal from "./EditProjectModal";
 import ProjectDetailsModal from "./ProjectDetailsModal";
 
 function AdminProjects() {
-  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
-  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // SEARCH
   const [search, setSearch] =
     useState("");
 
-  // MODALS
   const [isCreateOpen, setIsCreateOpen] =
     useState(false);
 
@@ -52,7 +48,6 @@ function AdminProjects() {
 
   
 
-  // SELECTED PROJECTS
   const [
     selectedProject,
     setSelectedProject,
@@ -60,11 +55,9 @@ function AdminProjects() {
 
   const [editProject, setEditProject] =
     useState(null);
-//managers
     const [managers, setManagers] =
   useState([]);
 
-  // NEW PROJECT
   const [newProject, setNewProject] =
     useState({
       name: "",
@@ -98,7 +91,6 @@ function AdminProjects() {
     setManagers(data || []);
   };
 
-  // FETCH PROJECTS
   useEffect(() => {
   fetchProjects();
   fetchManagers();
@@ -124,7 +116,6 @@ function AdminProjects() {
       }
     };
 
-  // ➕ CREATE PROJECT
   const handleAddProject =
     async () => {
       try {
@@ -162,7 +153,6 @@ function AdminProjects() {
       }
     };
 
-  // 🗑 DELETE PROJECT
   const handleDeleteProject =
     async (id) => {
       try {
@@ -182,7 +172,6 @@ function AdminProjects() {
       }
     };
 
-  // ✏️ OPEN EDIT
   const handleOpenEdit = (
     project
   ) => {
@@ -191,7 +180,6 @@ function AdminProjects() {
     setIsEditOpen(true);
   };
 
-  // 👁 OPEN DETAILS
   const handleOpenDetails = (
     project
   ) => {
@@ -202,7 +190,6 @@ function AdminProjects() {
 
   
 
-  // 💾 UPDATE PROJECT
   const handleUpdateProject =
     async () => {
       if (!editProject?.id)
@@ -236,7 +223,6 @@ function AdminProjects() {
     };
 
   
-  // 🔎 FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -246,7 +232,6 @@ function AdminProjects() {
         )
     );
 
-  // 📊 STATS
   const completedProjects =
     projects.filter(
       (project) =>
@@ -268,7 +253,6 @@ function AdminProjects() {
         "Planning"
     ).length;
 
-  // 🎨 PRIORITY COLOR
   const getPriorityColor = (
     priority
   ) => {
@@ -287,19 +271,17 @@ function AdminProjects() {
     }
   };
 
-  // ⏳ LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading projects...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div className="flex items-center justify-between">
 
         <div>
@@ -329,7 +311,6 @@ function AdminProjects() {
 
       </div>
 
-      {/* SEARCH */}
       <div className="relative">
 
         <Search
@@ -349,14 +330,13 @@ function AdminProjects() {
 
       </div>
 
-      {/* PROJECTS */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
 
         {filteredProjects.map(
           (project) => (
             <div
               key={project.id}
-              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
             >
 
               <div className="flex items-start justify-between">
@@ -385,7 +365,6 @@ function AdminProjects() {
 
               </div>
 
-              {/* PROGRESS */}
               <div className="mt-6">
 
                 <div className="flex items-center justify-between mb-2">
@@ -413,7 +392,6 @@ function AdminProjects() {
 
               </div>
 
-              {/* ACTIONS */}
               <div className="flex items-center gap-3 mt-8">
 
                 <button
@@ -476,7 +454,6 @@ function AdminProjects() {
 
       </div>
 
-      {/* MODALS */}
      <CreateProjectModal
           isOpen={isCreateOpen}
           onClose={() =>

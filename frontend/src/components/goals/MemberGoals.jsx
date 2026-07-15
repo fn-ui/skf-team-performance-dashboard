@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 import { useAuth } from "../../contexts/AuthContext";
 
 import { getGoals } from "../../services/goalsService";
+import GoalDetailsModal from "./GoalDetailsModal";
 
 import {
   Target,
@@ -16,22 +17,20 @@ import {
 function MemberGoals() {
   const { profile } = useAuth();
 
-  // GOALS
   const [goals, setGoals] =
     useState([]);
 
-  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // FILTERS
   const [search, setSearch] =
     useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  // FETCH GOALS
+  const [selectedGoal, setSelectedGoal] = useState(null);
+
   useEffect(() => {
     fetchGoals();
   }, []);
@@ -41,7 +40,6 @@ function MemberGoals() {
       const goalsData =
         await getGoals();
 
-      // 🔥 ONLY MEMBER GOALS
       const memberGoals =
         goalsData.filter(
           (goal) =>
@@ -60,7 +58,6 @@ function MemberGoals() {
     }
   };
 
-  // FILTERED GOALS
   const filteredGoals = goals
     .filter((goal) =>
       goal.title
@@ -73,7 +70,6 @@ function MemberGoals() {
         : goal.status === statusFilter
     );
 
-  // STATS
   const completedGoals =
     goals.filter(
       (goal) =>
@@ -95,7 +91,6 @@ function MemberGoals() {
         "In Progress"
     ).length;
 
-  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -114,19 +109,17 @@ function MemberGoals() {
     }
   };
 
-  // LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading goals...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
@@ -140,11 +133,9 @@ function MemberGoals() {
 
       </div>
 
-      {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -170,8 +161,7 @@ function MemberGoals() {
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -205,8 +195,7 @@ function MemberGoals() {
 
         </div>
 
-        {/* ACTIVE */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -240,8 +229,7 @@ function MemberGoals() {
 
         </div>
 
-        {/* AVG PROGRESS */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -282,10 +270,8 @@ function MemberGoals() {
 
       </div>
 
-      {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-        {/* SEARCH */}
         <div className="lg:col-span-3 relative">
 
           <Search
@@ -305,7 +291,6 @@ function MemberGoals() {
 
         </div>
 
-        {/* STATUS FILTER */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -330,17 +315,15 @@ function MemberGoals() {
 
       </div>
 
-      {/* GOALS */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
 
         {filteredGoals.map((goal) => (
 
           <div
             key={goal.id}
-            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
           >
 
-            {/* TOP */}
             <div className="flex items-start justify-between gap-4">
 
               <div>
@@ -365,7 +348,6 @@ function MemberGoals() {
 
             </div>
 
-            {/* PROGRESS */}
             <div className="mt-6">
 
               <div className="flex items-center justify-between mb-2">
@@ -393,7 +375,6 @@ function MemberGoals() {
 
             </div>
 
-            {/* DETAILS */}
             <div className="space-y-3 mt-6">
 
               <div className="flex items-center justify-between">
@@ -438,7 +419,6 @@ function MemberGoals() {
 
             </div>
 
-            {/* MILESTONES */}
             <div className="mt-6">
 
               <h3 className="font-semibold dark:text-white mb-3">
@@ -483,16 +463,19 @@ function MemberGoals() {
 
             </div>
 
+            <button onClick={() => setSelectedGoal(goal)} className="mt-4 w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-900 dark:text-emerald-400 dark:hover:bg-emerald-950/30">
+              View outcomes and check in
+            </button>
+
           </div>
 
         ))}
 
       </div>
 
-      {/* EMPTY STATE */}
       {filteredGoals.length === 0 && (
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
 
@@ -515,6 +498,8 @@ function MemberGoals() {
         </div>
 
       )}
+
+      <GoalDetailsModal isOpen={Boolean(selectedGoal)} onClose={() => setSelectedGoal(null)} goal={selectedGoal} roleMode="member" />
 
     </div>
   );

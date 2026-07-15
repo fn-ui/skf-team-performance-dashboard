@@ -1,3 +1,6 @@
+﻿import { useAuth } from "../../contexts/AuthContext";
+import TaskWorkPanel from "./TaskWorkPanel";
+import TaskDiscussionPanel from "./TaskDiscussionPanel";
 import {
   CalendarDays,
   FolderKanban,
@@ -9,8 +12,12 @@ function TaskDetailsModal({
   isOpen,
   onClose,
   task,
+  roleMode: explicitRoleMode,
 }) {
+  const { profile } = useAuth();
   if (!isOpen || !task) return null;
+  const normalizedRole = String(profile?.role || "member").toLowerCase();
+  const roleMode = explicitRoleMode || (normalizedRole === "admin" ? "admin" : normalizedRole.includes("manager") ? "manager" : "member");
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -41,9 +48,8 @@ function TaskDetailsModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl p-8 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-3xl p-5 max-h-[90vh] overflow-y-auto">
 
-        {/* HEADER */}
         <div className="flex items-start justify-between gap-4">
 
           <div>
@@ -65,7 +71,6 @@ function TaskDetailsModal({
 
         </div>
 
-        {/* STATUS + PRIORITY */}
         <div className="flex flex-wrap items-center gap-3 mt-8">
 
           <span
@@ -86,10 +91,8 @@ function TaskDetailsModal({
 
         </div>
 
-        {/* TASK INFO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
 
-         {/* PROJECT */}
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
             <div className="flex items-center gap-3">
@@ -116,7 +119,6 @@ function TaskDetailsModal({
 
           </div>
 
-          {/* DEADLINE */}
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
             <div className="flex items-center gap-3">
@@ -143,7 +145,6 @@ function TaskDetailsModal({
 
           </div>
 
-          {/* PROGRESS */}
           <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
             <div className="flex items-center gap-3">
@@ -183,7 +184,6 @@ function TaskDetailsModal({
 
         </div>
 
-        {/* DESCRIPTION */}
         <div className="mt-10">
 
           <div className="flex items-center gap-3 mb-4">
@@ -201,7 +201,7 @@ function TaskDetailsModal({
 
           </div>
 
-          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-6">
+          <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-5">
 
             <p className="text-slate-600 dark:text-zinc-300 leading-relaxed">
               {task.description}
@@ -210,6 +210,10 @@ function TaskDetailsModal({
           </div>
 
         </div>
+
+        <TaskWorkPanel task={task} roleMode={roleMode} />
+
+        <TaskDiscussionPanel task={task} roleMode={roleMode} />
 
       </div>
 

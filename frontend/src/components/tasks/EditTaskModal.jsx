@@ -1,4 +1,4 @@
-function EditTaskModal({
+﻿function EditTaskModal({
   isOpen,
   onClose,
   editedTask,
@@ -15,9 +15,8 @@ function EditTaskModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
 
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl p-5 max-h-[90vh] overflow-y-auto">
 
-        {/* HEADER */}
         <div className="flex items-start justify-between">
 
           <div>
@@ -39,11 +38,9 @@ function EditTaskModal({
 
         </div>
 
-        {/* FORM */}
         <div className="space-y-6 mt-8">
          {role !== "member" && (
           <>
-          {/* TASK TITLE */}
           <div>
 
             <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -65,7 +62,6 @@ function EditTaskModal({
           </div>
 
           
-          {/* ASSIGN MEMBERS */}
 <div>
 
   <label className="block text-sm font-semibold dark:text-white mb-3">
@@ -118,7 +114,6 @@ function EditTaskModal({
   </div>
 
 </div>
-          {/* PROJECT */}
 <div>
 
   <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -152,10 +147,8 @@ function EditTaskModal({
   </select>
 
 </div>
-          {/* STATUS + PRIORITY */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* PRIORITY */}
             <div>
 
               <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -181,7 +174,6 @@ function EditTaskModal({
 
           </div>
 
-         {/* DUE DATE */}
           <div>
 
             <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -202,7 +194,6 @@ function EditTaskModal({
 
           </div>
 
-          {/* DESCRIPTION */}
           <div>
 
             <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -226,12 +217,10 @@ function EditTaskModal({
         
         </>
             )}
-            {/* MEMBER EDIT SECTION */}
      {role === "member" && (
       
   <div className="space-y-6">
 
-    {/* STATUS */}
     <div>
 
       <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -255,7 +244,6 @@ function EditTaskModal({
 
     </div>
 
-    {/* PROGRESS */}
     <div>
 
       <label className="block text-sm font-semibold dark:text-white mb-2">
@@ -281,7 +269,6 @@ function EditTaskModal({
   </div>
 )}
 
-        {/* FOOTER */}
         <div className="flex items-center justify-end gap-4 mt-10">
 
           <button

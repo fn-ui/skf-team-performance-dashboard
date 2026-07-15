@@ -1,4 +1,4 @@
-import { useAuth } from "../../contexts/AuthContext";
+﻿import { useAuth } from "../../contexts/AuthContext";
 
 import AdminGoals from "./AdminGoals";
 import ManagerGoals from "./ManagerGoals";
@@ -7,36 +7,31 @@ import MemberGoals from "./MemberGoals";
 function GoalsRouter() {
   const { profile } = useAuth();
 
-  // LOADING
   if (!profile) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading goals...
       </div>
     );
   }
 
-  // ADMIN
-  if (profile.role === "admin") {
+  const role = String(profile.role || "")
+    .trim()
+    .toLowerCase();
+
+  if (role === "admin" || role === "administrator") {
     return <AdminGoals />;
   }
 
-  // MANAGER
-  if (profile.role === "Team Manager") {
+  if (role === "team manager" || role === "manager") {
     return <ManagerGoals />;
   }
 
-  // MEMBER
-  if (profile.role === "member") {
+  if (role === "member" || role === "team member" || role === "user") {
     return <MemberGoals />;
   }
 
-  // FALLBACK
-  return (
-    <div className="p-10 text-red-500">
-      Unauthorized Access
-    </div>
-  );
+  return <MemberGoals />;
 }
 
 export default GoalsRouter;

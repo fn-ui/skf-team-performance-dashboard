@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useState,
 } from "react";
@@ -25,19 +25,15 @@ import ProjectDetailsModal from "./ProjectDetailsModal";
 function ManagerProjects() {
   const { profile } = useAuth();
 
-  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
-  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // SEARCH
   const [search, setSearch] =
     useState("");
 
-  // MODALS
   const [isEditOpen, setIsEditOpen] =
     useState(false);
 
@@ -46,7 +42,6 @@ function ManagerProjects() {
     setIsDetailsOpen,
   ] = useState(false);
 
-  // SELECTED PROJECTS
   const [editProject, setEditProject] =
     useState(null);
 
@@ -55,7 +50,6 @@ function ManagerProjects() {
     setSelectedProject,
   ] = useState(null);
 
-  // FETCH PROJECTS
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -66,9 +60,6 @@ const fetchProjects =
       const data =
         await getProjects();
 
-      /* ONLY PROJECTS
-         ASSIGNED TO
-         CURRENT MANAGER */
 
       const managerProjects =
         data.filter(
@@ -90,7 +81,6 @@ const fetchProjects =
     }
   };
 
-  // ✏️ OPEN EDIT
   const handleOpenEdit = (
     project
   ) => {
@@ -99,7 +89,6 @@ const fetchProjects =
     setIsEditOpen(true);
   };
 
-  // 👁 OPEN DETAILS
   const handleOpenDetails = (
     project
   ) => {
@@ -108,7 +97,6 @@ const fetchProjects =
     setIsDetailsOpen(true);
   };
 
-  // 💾 UPDATE PROJECT
   const handleUpdateProject =
     async () => {
       if (!editProject?.id)
@@ -141,7 +129,6 @@ const fetchProjects =
       }
     };
 
-  // 🔎 FILTERED PROJECTS
   const filteredProjects =
     projects.filter((project) =>
       project.name
@@ -151,7 +138,6 @@ const fetchProjects =
         )
     );
 
-  // 📊 STATS
   const completedProjects =
     projects.filter(
       (project) =>
@@ -173,7 +159,6 @@ const fetchProjects =
         "Planning"
     ).length;
 
-  // 🎨 PRIORITY COLOR
   const getPriorityColor = (
     priority
   ) => {
@@ -192,19 +177,17 @@ const fetchProjects =
     }
   };
 
-  // ⏳ LOADING
   if (loading) {
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading projects...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
 
         <h1 className="text-3xl font-bold dark:text-white">
@@ -217,10 +200,9 @@ const fetchProjects =
 
       </div>
 
-      {/* KPI */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -246,7 +228,7 @@ const fetchProjects =
 
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -278,7 +260,7 @@ const fetchProjects =
 
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
 
           <div className="flex items-center justify-between">
 
@@ -312,7 +294,6 @@ const fetchProjects =
 
       </div>
 
-      {/* SEARCH */}
       <div className="relative">
 
         <Search
@@ -332,14 +313,13 @@ const fetchProjects =
 
       </div>
 
-      {/* PROJECTS */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
 
         {filteredProjects.map(
           (project) => (
             <div
               key={project.id}
-              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+              className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
             >
 
               <div className="flex items-start justify-between">
@@ -368,7 +348,6 @@ const fetchProjects =
 
               </div>
 
-              {/* PROGRESS */}
               <div className="mt-6">
 
                 <div className="flex items-center justify-between mb-2">
@@ -396,7 +375,6 @@ const fetchProjects =
 
               </div>
 
-              {/* ACTIONS */}
               <div className="flex items-center gap-3 mt-8">
 
                 <button

@@ -1,4 +1,4 @@
-import { useMemo ,useEffect,} from "react";
+﻿import { useMemo ,useEffect,} from "react";
 
 import {
   X,
@@ -32,18 +32,12 @@ function AddEventModal({
   const isEditing =
     mode === "edit";
 
-  /* ========================================
-     ROLE
-  ======================================== */
 
   const currentRole =
     currentUser?.role
       ?.toLowerCase()
       ?.trim() || "";
 
-  /* ========================================
-     ROLE FLAGS
-  ======================================== */
 
   const isAdmin =
     currentRole === "admin";
@@ -54,22 +48,15 @@ function AddEventModal({
     currentRole ===
       "team manager";
 
-  /* ========================================
-     ASSIGNMENT TYPE
-  ======================================== */
 
   const assignmentType =
     newEvent.assignment_type ||
     "individual";
 
-  /* ========================================
-     ACCESSIBLE MEMBERS
-  ======================================== */
 
   const accessibleMembers =
     useMemo(() => {
 
-      /* ========= ADMIN ========= */
       if (isAdmin) {
 
         return members.filter(
@@ -80,7 +67,6 @@ function AddEventModal({
                 ?.toLowerCase()
                 ?.trim();
 
-            // exclude admins only
             return (
               role !== "admin"
             );
@@ -88,7 +74,6 @@ function AddEventModal({
         );
       }
 
-      /* ========= MANAGER ========= */
       if (isManager) {
 
         return members.filter(
@@ -99,14 +84,12 @@ function AddEventModal({
                 ?.toLowerCase()
                 ?.trim();
 
-            /* EXCLUDE ADMINS */
             if (
               role === "admin"
             ) {
               return false;
             }
 
-            /* INCLUDE MANAGERS */
             if (
               role ===
                 "manager" ||
@@ -116,7 +99,6 @@ function AddEventModal({
               return true;
             }
 
-            /* INCLUDE OWN TEAM MEMBERS */
             return (
               String(
                 member.manager_id
@@ -138,9 +120,6 @@ function AddEventModal({
       currentUser,
     ]);
 
-  /* ========================================
-     VALIDATION
-  ======================================== */
 
   const isDisabled =
     !newEvent.title?.trim() ||
@@ -163,9 +142,6 @@ function AddEventModal({
       !newEvent.role_target
     );
 
-  /* ========================================
-     ROLE DATA
-  ======================================== */
 
   const roles = [
     ...new Set(
@@ -178,14 +154,10 @@ function AddEventModal({
     ),
   ];
 
-  /* ========================================
-     TEAM DATA
-  ======================================== */
 
   const teams =
     useMemo(() => {
 
-      /* ========= ADMIN ========= */
       if (isAdmin) {
 
         return (
@@ -228,7 +200,6 @@ function AddEventModal({
           );
       }
 
-      /* ========= MANAGER ========= */
       if (isManager) {
 
         return (
@@ -279,9 +250,6 @@ function AddEventModal({
       isManager,
     ]);
 
-  /* ========================================
-     ASSIGNMENT OPTIONS
-  ======================================== */
 
   const assignmentOptions =
     isAdmin
@@ -300,14 +268,10 @@ function AddEventModal({
           "role",
         ];
 
- /* ========================================
-   TEAM OPTIONS
-======================================== */
 
 const teamOptions =
   useMemo(() => {
 
-    /* GET MANAGERS */
     const managers =
       (members || []).filter(
         (member) => {
@@ -330,7 +294,6 @@ const teamOptions =
     return managers.map(
       (manager) => {
 
-        /* TEAM MEMBERS */
         const teamMembers =
           (members || []).filter(
             (member) =>
@@ -364,9 +327,6 @@ const teamOptions =
 
   }, [members]);
 
-  /* ========================================
-   AUTO TEAM TARGET FOR MANAGER
-======================================== */
 
 useEffect(() => {
 
@@ -396,11 +356,6 @@ useEffect(() => {
   currentUser,
   setNewEvent,
 ]);
-/* ========================================
-
-   PRIORITY COLORS
-
-======================================== */
 
 
 
@@ -446,9 +401,6 @@ const priorityColor =
 
   }, [newEvent.priority]);
 
-  /* ========================================
-     FILTERED MEMBERS
-  ======================================== */
 
   const filteredMembers =
 
@@ -497,8 +449,7 @@ const priorityColor =
 
       <div className="w-full max-w-3xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* HEADER */}
-        <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-start justify-between border-b border-slate-200 p-5 dark:border-zinc-800">
 
           <div className="flex items-center gap-4">
 
@@ -542,10 +493,8 @@ const priorityColor =
 
         </div>
 
-        {/* BODY */}
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-5">
 
-          {/* TITLE */}
           <div>
 
             <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
@@ -572,7 +521,6 @@ const priorityColor =
 
           </div>
 
-          {/* DESCRIPTION */}
           <div>
 
             <label className="mb-2 flex items-center gap-2 text-sm font-semibold dark:text-white">
@@ -602,7 +550,6 @@ const priorityColor =
 
           </div>
 
-          {/* DATE + TIME */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
             <div>
@@ -662,7 +609,6 @@ const priorityColor =
 
           </div>
 
-          {/* TYPE + PRIORITY */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
             <div>
@@ -760,8 +706,7 @@ const priorityColor =
 
           </div>
 
-          {/* ASSIGNMENT SECTION */}
-          <div className="rounded-3xl border border-slate-200 p-5 dark:border-zinc-800">
+          <div className="rounded-2xl border border-slate-200 p-5 dark:border-zinc-800">
 
             <div className="mb-5 flex items-start justify-between gap-4">
 
@@ -795,10 +740,8 @@ const priorityColor =
 
             </div>
 
-            {/* BUTTONS */}
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
 
-              {/* INDIVIDUAL */}
               {assignmentOptions.includes(
                 "individual"
               ) && (
@@ -830,7 +773,6 @@ const priorityColor =
                 </button>
               )}
 
-              {/* TEAM */}
               {assignmentOptions.includes(
                 "team"
               ) && (
@@ -862,7 +804,6 @@ const priorityColor =
                 </button>
               )}
 
-              {/* MANAGERS */}
               {assignmentOptions.includes(
                 "manager"
               ) && (
@@ -894,7 +835,6 @@ const priorityColor =
                 </button>
               )}
 
-              {/* ROLE */}
               {assignmentOptions.includes(
                 "role"
               ) && (
@@ -926,7 +866,6 @@ const priorityColor =
                 </button>
               )}
 
-              {/* ALL MEMBERS */}
               {isAdmin &&
                 assignmentOptions.includes(
                   "all_members"
@@ -965,7 +904,6 @@ const priorityColor =
                   </button>
                 )}
 
-              {/* EVERYONE */}
               {isAdmin &&
                 assignmentOptions.includes(
                   "all"
@@ -1006,7 +944,6 @@ const priorityColor =
 
             </div>
 
-            {/* INDIVIDUAL */}
             {assignmentType ===
               "individual" && (
               <div className="mt-5">
@@ -1063,7 +1000,6 @@ const priorityColor =
 
               <div className="mt-5">
 
-                {/* ========= ADMIN ========= */}
                 {isAdmin && (
 
                   <select
@@ -1098,7 +1034,7 @@ const priorityColor =
                         >
 
                           {team.teamName}
-                          {" • "}
+                          {" â€¢ "}
                           {
                             team.totalMembers
                           }
@@ -1111,7 +1047,6 @@ const priorityColor =
                   </select>
                 )}
 
-    {/* ========= MANAGER ========= */}
     {isManager &&
       !isAdmin && (
 
@@ -1149,7 +1084,6 @@ const priorityColor =
   </div>
 )}
 
-            {/* ROLE */}
             {assignmentType ===
               "role" && (
               <div className="mt-5">
@@ -1189,7 +1123,6 @@ const priorityColor =
               </div>
             )}
 
-            {/* INFO MESSAGE */}
             {(assignmentType ===
               "all_members" ||
               assignmentType ===
@@ -1230,7 +1163,6 @@ const priorityColor =
 
           </div>
 
-          {/* MEETING LINK */}
           <div>
 
             <label className="mb-2 flex items-center gap-2 font-semibold dark:text-white">
@@ -1262,8 +1194,7 @@ const priorityColor =
 
         </div>
 
-        {/* FOOTER */}
-        <div className="flex items-center justify-end gap-4 border-t border-slate-200 bg-slate-50 p-6 dark:border-zinc-800 dark:bg-zinc-950/40">
+        <div className="flex items-center justify-end gap-4 border-t border-slate-200 bg-slate-50 p-5 dark:border-zinc-800 dark:bg-zinc-950/40">
 
           <button
             onClick={onClose}

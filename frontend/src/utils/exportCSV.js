@@ -1,7 +1,4 @@
-// ========================================
-// 📄 EXPORT CSV
-// ========================================
-
+﻿
 export function exportCSV(
   filename = "export.csv",
   rows = [],
@@ -10,7 +7,6 @@ export function exportCSV(
 
   try {
 
-    // 🚫 NO DATA
     if (!Array.isArray(rows) || rows.length === 0) {
 
       alert("No data to export");
@@ -18,26 +14,17 @@ export function exportCSV(
       return;
     }
 
-    // ========================================
-    // OPTIONS
-    // ========================================
 
     const {
       columns = null,
       headers = null,
     } = options;
 
-    // ========================================
-    // GET KEYS
-    // ========================================
 
     const keys =
       columns ||
       Object.keys(rows[0]);
 
-    // ========================================
-    // ESCAPE CSV VALUES
-    // ========================================
 
     const escapeValue = (
       value
@@ -50,7 +37,6 @@ export function exportCSV(
         return "";
       }
 
-      // 📅 FORMAT DATES
       if (
         value instanceof Date
       ) {
@@ -58,7 +44,6 @@ export function exportCSV(
           value.toISOString();
       }
 
-      // 📦 OBJECTS
       if (
         typeof value ===
         "object"
@@ -70,7 +55,6 @@ export function exportCSV(
       const stringValue =
         String(value);
 
-      // ESCAPE SPECIAL CHARS
       if (
         stringValue.includes(",") ||
         stringValue.includes("\n") ||
@@ -86,16 +70,10 @@ export function exportCSV(
       return stringValue;
     };
 
-    // ========================================
-    // HEADER ROW
-    // ========================================
 
     const headerRow =
       headers || keys;
 
-    // ========================================
-    // DATA ROWS
-    // ========================================
 
     const csvRows = rows.map(
       (row) =>
@@ -108,16 +86,12 @@ export function exportCSV(
           .join(",")
     );
 
-    // ========================================
-    // FINAL CSV
-    // ========================================
 
     const csvContent = [
       headerRow.join(","),
       ...csvRows,
     ].join("\n");
 
-    // UTF-8 BOM FOR EXCEL
     const BOM = "\uFEFF";
 
     const blob = new Blob(
@@ -127,9 +101,6 @@ export function exportCSV(
       }
     );
 
-    // ========================================
-    // DOWNLOAD
-    // ========================================
 
     const url =
       URL.createObjectURL(blob);

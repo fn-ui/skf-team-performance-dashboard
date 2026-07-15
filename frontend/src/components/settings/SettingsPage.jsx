@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 import {
   User,
@@ -12,8 +12,9 @@ import ProfileSettings from "./ProfileSettings";
 import SecuritySettings from "./SecuritySettings";
 
 import NotificationSettings from "./NotificationSettings";
+import RoleSettingsOverview from "./RoleSettingsOverview";
 
-function SettingsPage() {
+function SettingsPage({ roleMode = "member" }) {
 
   const [activeTab, setActiveTab] =
     useState("Profile");
@@ -47,7 +48,7 @@ function SettingsPage() {
 
       case "Notifications":
         return (
-          <NotificationSettings />
+          <NotificationSettings roleMode={roleMode} />
         );
 
       default:
@@ -56,11 +57,10 @@ function SettingsPage() {
   };
 
   return (
-    <div className="space-y-7 pb-8">
+    <div className="space-y-5 pb-8">
 
-      {/* HEADER */}
       <div className="surface-panel overflow-hidden p-0">
-        <div className="relative bg-[linear-gradient(135deg,rgba(6,95,70,0.95),rgba(8,145,178,0.9),rgba(146,64,14,0.88))] p-6 text-white sm:p-8">
+        <div className="relative bg-[linear-gradient(135deg,rgba(6,95,70,0.95),rgba(8,145,178,0.9),rgba(146,64,14,0.88))] p-5 text-white sm:p-5">
           <div className="fine-noise absolute inset-0 opacity-20" />
 
           <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -71,7 +71,7 @@ function SettingsPage() {
               </div>
 
               <h1 className="text-3xl font-bold text-white">
-                Admin Settings
+                {roleMode === "admin" ? "Admin Settings" : roleMode === "manager" ? "Manager Settings" : "My Settings"}
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-50/80">
@@ -108,10 +108,10 @@ function SettingsPage() {
         </div>
       </div>
 
-      {/* LAYOUT */}
+      <RoleSettingsOverview roleMode={roleMode} />
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
 
-        {/* SIDEBAR */}
         <div className="surface-panel hidden h-fit p-4 lg:block">
 
           <div className="space-y-2">
@@ -150,7 +150,6 @@ function SettingsPage() {
 
         </div>
 
-        {/* CONTENT */}
         <div className="lg:col-span-3">
 
           {renderContent()}

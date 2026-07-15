@@ -1,7 +1,6 @@
-import { supabase } from "../lib/supabase";
+﻿import { supabase } from "../lib/supabase";
 
 
-// GET ADMIN PROFILE SETTINGS
 export async function getProfileSettings(
   userId
 ) {
@@ -29,7 +28,6 @@ export async function getProfileSettings(
 }
 
 
-// UPDATE ADMIN PROFILE SETTINGS
 export async function updateProfileSettings(
   userId,
   updates
@@ -42,7 +40,7 @@ export async function updateProfileSettings(
         full_name: updates.full_name,
         bio: updates.bio,
         phone: updates.phone,
-        avatar_url: updates.avatar_url,           // Keep for profiles
+        avatar_url: updates.avatar_url,
         notifications_enabled: updates.notifications_enabled,
         dark_mode: updates.dark_mode,
       })
@@ -50,7 +48,6 @@ export async function updateProfileSettings(
       .select()
       .single();
 
-  // Also update member_details table (important for consistency)
   if (updates.avatar_url) {
     const { error: memberError } = await supabase
       .from("member_details")
@@ -69,7 +66,6 @@ export async function updateProfileSettings(
   return data;
 }
 
-// UPDATE PASSWORD
 export async function updatePassword(
   newPassword
 ) {
@@ -85,7 +81,6 @@ export async function updatePassword(
 }
 
 
-// UPLOAD AVATAR
 export async function uploadAvatar(
   file,
   userId
@@ -100,7 +95,6 @@ export async function uploadAvatar(
   const filePath =
     `avatars/${fileName}`;
 
-  // UPLOAD FILE
   const {
     error: uploadError,
   } = await supabase.storage
@@ -110,7 +104,6 @@ export async function uploadAvatar(
   if (uploadError)
     throw uploadError;
 
-  // GET PUBLIC URL
   const { data } = supabase
     .storage
     .from("avatars")

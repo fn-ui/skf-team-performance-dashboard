@@ -1,4 +1,4 @@
-function EditProjectModal({
+﻿function EditProjectModal({
   isOpen,
   onClose,
   editProject,
@@ -12,9 +12,8 @@ function EditProjectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
 
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
 
-        {/* HEADER */}
         <div className="mb-8 flex items-center justify-between">
 
           <div>
@@ -37,15 +36,13 @@ function EditProjectModal({
             onClick={onClose}
             className="h-10 w-10 rounded-full bg-slate-100 dark:bg-zinc-800 dark:text-white"
           >
-            ✕
+            âœ•
           </button>
 
         </div>
 
-        {/* FORM */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-          {/* PROJECT NAME */}
           <div className="md:col-span-2">
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -71,7 +68,6 @@ function EditProjectModal({
 
           </div>
 
-          {/* DESCRIPTION */}
           <div className="md:col-span-2">
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -100,8 +96,6 @@ function EditProjectModal({
 
           </div>
 
-          {/* MANAGER */}
-          {/* MANAGER */}
             {!isManager && (
               <div>
 
@@ -123,7 +117,6 @@ function EditProjectModal({
 
                 </div>
               )}
-          {/* DEADLINE */}
           <div>
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -152,7 +145,6 @@ function EditProjectModal({
 
           </div>
 
-          {/* STATUS */}
           <div>
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -194,7 +186,6 @@ function EditProjectModal({
 
           </div>
 
-          {/* PRIORITY */}
           <div>
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -237,7 +228,6 @@ function EditProjectModal({
 
           </div>
 
-          {/* PROGRESS */}
           <div className="md:col-span-2">
 
             <label className="mb-2 block text-sm font-medium dark:text-white">
@@ -266,7 +256,6 @@ function EditProjectModal({
 
         </div>
 
-        {/* ACTIONS */}
         <div className="mt-8 flex items-center justify-end gap-4">
 
           <button

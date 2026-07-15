@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 import {
   getGoals,
@@ -26,30 +26,24 @@ import {
 
 function AdminGoals() {
 
-  // GOALS
   const [goalList, setGoalList] =
     useState([]);
 
-  // PROJECTS
   const [projects, setProjects] =
     useState([]);
 
-  // USERS
   const [users, setUsers] =
     useState([]);
 
-  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // SEARCH/FILTERS
   const [search, setSearch] =
     useState("");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
 
-  // MODALS
   const [isModalOpen, setIsModalOpen] =
     useState(false);
 
@@ -59,11 +53,9 @@ function AdminGoals() {
   const [isDetailsOpen, setIsDetailsOpen] =
     useState(false);
 
-  // SELECTED GOAL
   const [selectedGoal, setSelectedGoal] =
     useState(null);
 
-  // NEW GOAL
   const [newGoal, setNewGoal] =
     useState({
       title: "",
@@ -83,7 +75,6 @@ function AdminGoals() {
     team_member_ids: [],
     });
 
-  // FETCH GOALS + PROJECTS + USERS
   useEffect(() => {
     fetchData();
   }, []);
@@ -120,7 +111,6 @@ function AdminGoals() {
     }
   };
 
-  // FILTERED GOALS
   const filteredGoals = goalList
     .filter((goal) =>
       goal.title
@@ -137,7 +127,6 @@ function AdminGoals() {
     );
 
   
-  // CREATE GOAL
 const handleCreateGoal =
   async () => {
 
@@ -148,11 +137,6 @@ const handleCreateGoal =
 
       let goalsToCreate = [];
 
-      /*
-        =====================================
-        BASE PAYLOAD
-        =====================================
-      */
 
       const basePayload = {
         title: newGoal.title,
@@ -179,11 +163,6 @@ const handleCreateGoal =
           null,
       };
 
-      /*
-        =====================================
-        INDIVIDUAL
-        =====================================
-      */
 
       if (
         newGoal.assignment_type ===
@@ -199,11 +178,6 @@ const handleCreateGoal =
         });
       }
 
-      /*
-        =====================================
-        ALL MANAGERS
-        =====================================
-      */
 
       else if (
         newGoal.assignment_type ===
@@ -232,11 +206,6 @@ const handleCreateGoal =
         );
       }
 
-      /*
-        =====================================
-        ALL MEMBERS
-        =====================================
-      */
 
       else if (
         newGoal.assignment_type ===
@@ -265,11 +234,6 @@ const handleCreateGoal =
         );
       }
 
-      /*
-        =====================================
-        ENTIRE COMPANY
-        =====================================
-      */
 
       else if (
         newGoal.assignment_type ===
@@ -299,18 +263,12 @@ const handleCreateGoal =
       }
 
     
- /*
-=====================================
-SPECIFIC TEAM
-=====================================
-*/
 
 else if (
   newGoal.assignment_type ===
   "specific_team"
 ) {
 
-  /* SELECTED MANAGER */
   const selectedManager =
     users.find(
       (user) =>
@@ -320,7 +278,6 @@ else if (
         )
     );
 
-  /* TEAM MEMBERS */
   const teamMembers =
     users.filter(
       (user) =>
@@ -336,9 +293,6 @@ else if (
           "member"
     );
 
-  /*
-    CREATE GOAL FOR MANAGER
-  */
 
   if (selectedManager) {
 
@@ -356,9 +310,6 @@ else if (
     });
   }
 
-  /*
-    CREATE GOALS FOR TEAM MEMBERS
-  */
 
   teamMembers.forEach(
     (member) => {
@@ -379,18 +330,12 @@ else if (
   );
 }
 
-/*
-  =====================================
-  TEAM (MANAGER)
-  =====================================
-*/
 
 else if (
   newGoal.assignment_type ===
   "team"
 ) {
 
-  /* MANAGER MEMBERS */
   const teamMembers =
     users.filter(
       (user) =>
@@ -406,9 +351,6 @@ else if (
           "member"
     );
 
-  /*
-    INCLUDE MANAGER
-  */
 
   goalsToCreate.push({
     ...basePayload,
@@ -423,9 +365,6 @@ else if (
       profile?.id,
   });
 
-  /*
-    INCLUDE TEAM MEMBERS
-  */
 
   teamMembers.forEach(
     (member) => {
@@ -445,11 +384,6 @@ else if (
     }
   );
 }
-      /*
-        =====================================
-        CREATE ALL GOALS
-        =====================================
-      */
 
       const createdGoals =
         await Promise.all(
@@ -459,22 +393,12 @@ else if (
           )
         );
 
-      /*
-        =====================================
-        UPDATE UI
-        =====================================
-      */
 
       setGoalList((prev) => [
         ...createdGoals,
         ...prev,
       ]);
 
-      /*
-        =====================================
-        RESET
-        =====================================
-      */
 
       setNewGoal({
         title: "",
@@ -505,7 +429,6 @@ else if (
     }
   };
 
-  // OPEN DETAILS
   const handleOpenDetails = (
     goal
   ) => {
@@ -516,7 +439,6 @@ else if (
 
   };
 
-  // OPEN EDIT
   const handleEditGoal = (
     goal
   ) => {
@@ -531,7 +453,6 @@ else if (
 
   };
 
-  // UPDATE GOAL
   const handleUpdateGoal =
   async () => {
 
@@ -586,7 +507,6 @@ else if (
     }
   };
 
-  // DELETE GOAL
   const handleDeleteGoal =
     async (id) => {
 
@@ -611,7 +531,6 @@ else if (
       }
     };
 
-  // STATS
   const completedGoals =
     goalList.filter(
       (goal) =>
@@ -633,7 +552,6 @@ else if (
         "In Progress"
     ).length;
 
-  // PRIORITY COLORS
   const getPriorityColor = (
     priority
   ) => {
@@ -654,20 +572,18 @@ else if (
     }
   };
 
-  // LOADING
   if (loading) {
 
     return (
-      <div className="p-10 dark:text-white">
+      <div className="p-5 dark:text-white">
         Loading goals...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
         <div>
@@ -698,11 +614,9 @@ else if (
 
       </div>
 
-      {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        {/* TOTAL */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -728,8 +642,7 @@ else if (
 
         </div>
 
-        {/* COMPLETED */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -763,8 +676,7 @@ else if (
 
         </div>
 
-        {/* ACTIVE */}
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5">
 
           <div className="flex items-center justify-between">
 
@@ -800,10 +712,8 @@ else if (
 
       </div>
 
-      {/* FILTERS */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-        {/* SEARCH */}
         <div className="lg:col-span-3 relative">
 
           <Search
@@ -823,7 +733,6 @@ else if (
 
         </div>
 
-        {/* STATUS FILTER */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -848,17 +757,15 @@ else if (
 
       </div>
 
-      {/* GOALS GRID */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
 
         {filteredGoals.map((goal) => (
 
           <div
             key={goal.id}
-            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6"
+            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5"
           >
 
-            {/* TOP */}
             <div className="flex items-start justify-between gap-4">
 
               <div>
@@ -883,7 +790,6 @@ else if (
 
             </div>
 
-            {/* PROGRESS */}
             <div className="mt-6">
 
               <div className="flex items-center justify-between mb-2">
@@ -911,7 +817,6 @@ else if (
 
             </div>
 
-            {/* DETAILS */}
             <div className="space-y-3 mt-6">
 
               <div className="flex items-center justify-between">
@@ -961,7 +866,6 @@ else if (
 
             </div>
 
-            {/* PROJECT */}
            <div className="mt-6 flex items-center justify-between">
 
               <p className="text-slate-500 dark:text-zinc-400">
@@ -975,7 +879,6 @@ else if (
             </div>
             <div className="flex items-center gap-3 mt-6">
 
-                {/* VIEW */}
                 <button
                     onClick={() => {
                     setSelectedGoal(goal);
@@ -986,7 +889,6 @@ else if (
                     View
                 </button>
 
-                {/* EDIT */}
                 <button
                     onClick={() => {
                     setSelectedGoal(goal);
@@ -996,7 +898,6 @@ else if (
                 >
                     Edit
                 </button>
-                {/* DELETE */}
                 <button
                     onClick={() =>
                     handleDeleteGoal(goal.id)
@@ -1017,10 +918,9 @@ else if (
 
       </div>
 
-      {/* EMPTY STATE */}
       {filteredGoals.length === 0 && (
 
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-16 text-center">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 text-center">
 
           <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-6">
 
@@ -1044,7 +944,6 @@ else if (
 
       )}
 
-      {/* CREATE GOAL MODAL */}
       <CreateGoalModal
           isOpen={isModalOpen}
           onClose={() =>
@@ -1057,7 +956,6 @@ else if (
           saving={loading}
         />
 
-      {/* EDIT MODAL */}
 <EditGoalModal
   isOpen={isEditOpen}
   onClose={() =>
@@ -1068,15 +966,16 @@ else if (
   handleUpdateGoal={handleUpdateGoal}
   projects={projects}
   users={users}
+  roleMode="admin"
 />
 
-{/* DETAILS MODAL */}
-<GoalDetailsModal
+      <GoalDetailsModal
   isOpen={isDetailsOpen}
   onClose={() =>
     setIsDetailsOpen(false)
   }
-  goal={selectedGoal}
+        goal={selectedGoal}
+        roleMode="admin"
 />
 
     </div>

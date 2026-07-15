@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 
 import {
   Download,
@@ -23,7 +23,6 @@ import {
 import { supabase } from "../../lib/supabase.js";
 import { exportCSV } from "../../utils/exportCSV";
 
-/* ================= OPTIONS ================= */
 
 const roleOptions = [
   "Team Manager",
@@ -54,7 +53,6 @@ const colors = [
   "bg-cyan-500",
 ];
 
-/* ================= EMPTY FORM ================= */
 
 const emptyMember = {
   full_name: "",
@@ -70,7 +68,6 @@ const emptyMember = {
   manager_id: "",
 };
 
-/* ================= HELPERS ================= */
 
 const initials = (name = "") =>
   name
@@ -96,9 +93,9 @@ const getStatus = (lastSeen, isOnline) => {
 const productivityValue = (value) =>
   Number(String(value || 0).replace("%", "")) || 0;
 
-/* ================= COMPONENT ================= */
 
 function MembersPage({ mode }) {
+  const functionsBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
   
   const isAdmin = mode === "admin";
 
@@ -121,7 +118,6 @@ function MembersPage({ mode }) {
   isInviteOpen,
   setIsInviteOpen,
 ] = useState(false);
-/* ================= PAGINATION ================= */
 
 const ITEMS_PER_PAGE = 5;
 
@@ -136,17 +132,14 @@ const [inviteData, setInviteData] =
   useState({
     email: "",
   });
-  //use effect
        useEffect(() => {
   fetchMembers();
   fetchManagers();
 
-  /* ================= REALTIME ================= */
 
   const channel = supabase
     .channel("members-realtime")
 
-    /* PROFILES */
 
     .on(
       "postgres_changes",
@@ -161,7 +154,6 @@ const [inviteData, setInviteData] =
       }
     )
 
-    /* MEMBER DETAILS */
 
     .on(
       "postgres_changes",
@@ -184,7 +176,6 @@ const [inviteData, setInviteData] =
   };
 }, []);
 
-        //fetch managers
       const fetchManagers = async () => {
         const { data, error } = await supabase
           .from("profiles")
@@ -201,7 +192,6 @@ const [inviteData, setInviteData] =
 
         setManagers(data || []);
       };
-  /* ================= FETCH MEMBERS ================= */
 
   const fetchMembers = async () => {
   let query = supabase
@@ -223,7 +213,6 @@ const [inviteData, setInviteData] =
       ascending: false,
     });
 
-  /* ================= MANAGER FILTER ================= */
 
  if (!isAdmin) {
   const {
@@ -237,7 +226,6 @@ const [inviteData, setInviteData] =
 
   
 
-  //  get correct profile 
   const { data: managerProfile, error } = await supabase
     .from("profiles")
     .select("id, email")
@@ -256,7 +244,6 @@ const [inviteData, setInviteData] =
 
   console.log("Manager profile found:", managerProfile);
 
-  //  use profile.id for filtering
   query = query.eq("manager_id", managerProfile.id);
 }
 
@@ -323,7 +310,6 @@ const [inviteData, setInviteData] =
   
 };
 
-  /* ================= FILTERED DATA ================= */
 
   const visibleMembers = useMemo(() => {
     const query = search.toLowerCase();
@@ -357,7 +343,6 @@ const [inviteData, setInviteData] =
       );
   }, [members, search, department, status]);
   
-  /* RESET PAGINATION WHEN FILTERS CHANGE */
 
       useEffect(() => {
         setManagersPage(1);
@@ -384,7 +369,6 @@ const membersList =
       member.role !== "admin"
   );
 
-  /* ================= PAGINATED DATA ================= */
 
 const totalManagersPages =
   Math.ceil(
@@ -398,7 +382,6 @@ const totalMembersPages =
       ITEMS_PER_PAGE
   ) || 1;
 
-/* MANAGERS */
 
 const paginatedManagers =
   managersList.slice(
@@ -409,7 +392,6 @@ const paginatedManagers =
       ITEMS_PER_PAGE
   );
 
-/* MEMBERS */
 
 const paginatedMembers =
   membersList.slice(
@@ -420,7 +402,6 @@ const paginatedMembers =
       ITEMS_PER_PAGE
   );
 
-  /* ================= STATS ================= */
 
   const stats = {
     total: visibleMembers.length,
@@ -452,7 +433,6 @@ const paginatedMembers =
         : 0,
   };
 
-  /* ================= ADD / EDIT ================= */
 
   const openAdd = () => {
     setEditingMember(null);
@@ -510,10 +490,8 @@ const paginatedMembers =
   return;
 }
 
-    /* ================= EDIT ================= */
 
     if (editingMember) {
-      /* update profile */
 
       const { error: profileError } = await supabase
         .from("profiles")
@@ -530,7 +508,6 @@ const paginatedMembers =
         return;
       }
 
-      /* update member details */
 
       const { error: detailsError } = await supabase
         .from("member_details")
@@ -565,7 +542,6 @@ if (detailsError) {
 }
     }
 
-    /* ================= ADD ================= */
 
 else {
   const {
@@ -573,7 +549,7 @@ else {
 } = await supabase.auth.getSession();
 
 const response = await fetch(
-  "https://ruunghmsdqefduzbtwtm.supabase.co/functions/v1/create-member",
+  `${functionsBaseUrl}/create-member`,
   {
     method: "POST",
 
@@ -633,7 +609,6 @@ const response = await fetch(
     await fetchMembers();
   };
 
-  /* ================= DELETE ================= */
 
   const deleteMember = async (id) => {
   const confirmed = window.confirm(
@@ -648,7 +623,7 @@ const response = await fetch(
     } = await supabase.auth.getSession();
 
     const response = await fetch(
-      "https://ruunghmsdqefduzbtwtm.supabase.co/functions/v1/delete-member",
+      `${functionsBaseUrl}/delete-member`,
       {
         method: "POST",
 
@@ -686,7 +661,6 @@ const response = await fetch(
     console.error(err);
   }
 };
-//invite
 const handleInviteMember =
   async () => {
     try {
@@ -703,7 +677,7 @@ const handleInviteMember =
 
       const response =
         await fetch(
-          "https://ruunghmsdqefduzbtwtm.supabase.co/functions/v1/invite-member",
+          `${functionsBaseUrl}/invite-member`,
           {
             method: "POST",
 
@@ -739,7 +713,6 @@ const handleInviteMember =
         "Invitation sent successfully"
       );
 
-      /* RESET */
 
       setInviteData({
         email: "",
@@ -747,7 +720,6 @@ const handleInviteMember =
 
       setIsInviteOpen(false);
 
-      /* REFRESH */
 
       fetchMembers();
     } catch (err) {
@@ -759,7 +731,6 @@ const handleInviteMember =
     }
   };
 
-  /* ================= EXPORT ================= */
 
   const exportMembers = () => {
     exportCSV(
@@ -880,7 +851,6 @@ const handleInviteMember =
         </select>
       </div>
 
-      {/* ================= MANAGERS ================= */}
 {isAdmin && (
 <div className="space-y-4">
 
@@ -909,7 +879,6 @@ const handleInviteMember =
     onDelete={deleteMember}
     
   />
-              {/* MANAGERS PAGINATION */}
 
             {totalManagersPages > 1 && (
               <Pagination
@@ -927,7 +896,6 @@ const handleInviteMember =
 
 </div>
 )}
-{/* ================= MEMBERS ================= */}
 
 <div className="space-y-4 pt-4">
 
@@ -956,7 +924,6 @@ const handleInviteMember =
     onDelete={deleteMember}
     
   />
-        {/* MEMBERS PAGINATION */}
 
       {totalMembersPages > 1 && (
         <Pagination
@@ -1367,7 +1334,7 @@ function MemberDetailsModal({ member, isAdmin, onClose, onEdit }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 dark:border-zinc-800">
           <div className="flex items-center gap-4">
             <div
               className={`flex h-16 w-16 items-center justify-center rounded-2xl ${member.color} text-xl font-bold text-white`}
@@ -1390,7 +1357,7 @@ function MemberDetailsModal({ member, isAdmin, onClose, onEdit }) {
           </button>
         </div>
 
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-5">
           <p className="rounded-2xl bg-slate-50 p-5 leading-relaxed text-slate-600 dark:bg-zinc-950 dark:text-zinc-300">
             {member.bio || "No profile summary has been added yet."}
           </p>
@@ -1459,7 +1426,7 @@ function MemberFormModal({
         onSubmit={onSubmit}
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
       >
-        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-zinc-800">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
               {isEditing ? "Edit Member" : "Add Member"}
@@ -1479,8 +1446,7 @@ function MemberFormModal({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
-          {/* FULL NAME */}
+        <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
 
           <Field label="Full Name">
             <input
@@ -1496,7 +1462,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* EMAIL */}
 
           <Field label="Email">
             <input
@@ -1515,7 +1480,6 @@ function MemberFormModal({
 
           
 
-          {/* PHONE */}
 
           <Field label="Phone">
             <input
@@ -1530,7 +1494,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* LOCATION */}
 
           <Field label="Location">
             <input
@@ -1545,7 +1508,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* ROLE */}
 
           <Field label="Role">
             <select
@@ -1566,7 +1528,6 @@ function MemberFormModal({
             </select>
           </Field>
 
-          {/* ASSIGN MANAGER */}
 
             <Field label="Assign Manager">
               <select
@@ -1595,7 +1556,6 @@ function MemberFormModal({
             </Field>
 
 
-          {/* DEPARTMENT */}
 
           <Field label="Department">
             <select
@@ -1618,7 +1578,6 @@ function MemberFormModal({
             </select>
           </Field>
 
-          {/* PRODUCTIVITY */}
 
           <Field label="Productivity">
             <input
@@ -1636,7 +1595,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* TASKS */}
 
           <Field label="Tasks">
             <input
@@ -1653,7 +1611,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* PROJECTS */}
 
           <Field label="Projects">
             <input
@@ -1670,7 +1627,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* JOIN DATE */}
 
           <Field label="Join Date">
             <input
@@ -1686,7 +1642,6 @@ function MemberFormModal({
             />
           </Field>
 
-          {/* BIO */}
 
           <div className="md:col-span-2">
             <Field label="Profile Summary">
@@ -1705,7 +1660,7 @@ function MemberFormModal({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-center justify-end gap-3 border-t border-slate-200 p-5 dark:border-zinc-800">
           <button
             type="button"
             onClick={onClose}
@@ -1744,10 +1699,9 @@ function InviteMemberModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl dark:bg-zinc-900">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
         
-        {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-zinc-800">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
               Invite Member
@@ -1762,14 +1716,12 @@ function InviteMemberModal({
             onClick={onClose}
             className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-zinc-800"
           >
-            ✕
+            âœ•
           </button>
         </div>
 
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-5 p-6">
+        <form onSubmit={handleSubmit} className="space-y-5 p-5">
 
-          {/* EMAIL ONLY */}
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-zinc-300">
               Email Address
@@ -1789,7 +1741,6 @@ function InviteMemberModal({
             />
           </div>
 
-          {/* ACTIONS */}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"

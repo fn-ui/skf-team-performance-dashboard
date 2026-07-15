@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import PerformanceActionCenter from "./PerformanceActionCenter";
 
 import {
   TrendingUp,
@@ -25,7 +26,6 @@ function AdminPerformance() {
   const [loading, setLoading] =
     useState(true);
 
-  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
     loadData();
@@ -88,7 +88,6 @@ function AdminPerformance() {
   };
 
   
-    /* ================= SPLIT USERS ================= */
 
   const managers =
     profiles.filter((user) => {
@@ -121,7 +120,6 @@ function AdminPerformance() {
         role !== "admin"
       );
     });
-  /* ================= MANAGER PERFORMANCE ================= */
 
   const managerPerformance =
     managers.map((manager) => {
@@ -189,7 +187,6 @@ function AdminPerformance() {
       };
     });
 
-  /* ================= MEMBER PERFORMANCE ================= */
 
   const memberPerformance =
     members.map((member) => {
@@ -272,7 +269,6 @@ function AdminPerformance() {
       };
     });
 
-  /* ================= SORT ================= */
 
   const sortedManagers =
     [...managerPerformance].sort(
@@ -288,7 +284,6 @@ function AdminPerformance() {
         a.productivity
     );
 
-  /* ================= TOP PERFORMERS ================= */
 
   const topManager =
     sortedManagers[0] || {
@@ -302,7 +297,6 @@ function AdminPerformance() {
       productivity: 0,
     };
 
-  /* ================= KPI ================= */
 
   const totalEmployees =
     profiles.length;
@@ -347,11 +341,10 @@ function AdminPerformance() {
       return "bg-amber-500";
     };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-10 text-emerald-600">
+      <div className="flex items-center gap-3 p-5 text-emerald-600">
         <Loader2 className="animate-spin" />
 
         Loading performance...
@@ -360,9 +353,8 @@ function AdminPerformance() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* HEADER */}
 
       <div>
         <h1 className="text-3xl font-bold dark:text-white">
@@ -376,11 +368,12 @@ function AdminPerformance() {
         </p>
       </div>
 
-      {/* KPI CARDS */}
+
+      <PerformanceActionCenter roleMode="admin" tasks={tasks} projects={projects} />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
 
-        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -404,7 +397,7 @@ function AdminPerformance() {
 
         </div>
 
-        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -428,7 +421,7 @@ function AdminPerformance() {
 
         </div>
 
-        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -452,7 +445,7 @@ function AdminPerformance() {
 
         </div>
 
-        <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
           <div className="flex items-center justify-between">
 
@@ -478,13 +471,11 @@ function AdminPerformance() {
 
       </div>
 
-      {/* TOP CARDS */}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-        {/* TOP MANAGER */}
 
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-700 to-emerald-500 p-8 text-white shadow-xl">
+        <div className="rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-500 p-5 text-white shadow-xl">
 
           <div className="flex items-center gap-3">
             <Briefcase size={28} />
@@ -505,9 +496,8 @@ function AdminPerformance() {
 
         </div>
 
-        {/* TOP MEMBER */}
 
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-400 p-8 text-white shadow-xl">
+        <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-400 p-5 text-white shadow-xl">
 
           <div className="flex items-center gap-3">
             <Target size={28} />
@@ -530,11 +520,10 @@ function AdminPerformance() {
 
       </div>
 
-      {/* MANAGER TABLE */}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
-        <div className="border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="border-b border-slate-200 p-5 dark:border-zinc-800">
 
           <h2 className="text-2xl font-bold dark:text-white">
             Team Manager Rankings
@@ -647,11 +636,10 @@ function AdminPerformance() {
 
       </div>
 
-      {/* MEMBER TABLE */}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 
-        <div className="border-b border-slate-200 p-6 dark:border-zinc-800">
+        <div className="border-b border-slate-200 p-5 dark:border-zinc-800">
 
           <h2 className="text-2xl font-bold dark:text-white">
             Member Rankings
